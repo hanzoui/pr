@@ -14,6 +14,25 @@
 
 ## Usage
 
+### 1. Setup Envs
+
+#### Github API Token
+
+GO https://github.com/settings/tokens?type=beta to get an Github Access key
+
+Check 3 permissions for all of your repositories
+- Pull requests Access: Read and write
+- Workflows Access: Read and write
+- Metadata Access: Read-only
+
+#### Github Access Key
+
+(to push code automaticaly, btw prob. you already setup)
+
+Run `ssh-keygen`, got `id_rsa.pub`, Then add into here https://github.com/settings/keys
+
+### 2. Run!
+
 1. Local native usage.
 
 ```sh
@@ -46,25 +65,6 @@ docker run --rm -it \
     -e TARGET_REPO=https://github.com/snomiao/ComfyNode-Registry-test \
     snomiao/comfy-registry-pr
 ```
-
-### Setup Envs
-
-#### 1. Github API Token
-
-GO https://github.com/settings/tokens?type=beta to get an Github Access key
-
-Check 3 permissions for all of your repositories
-- Pull requests Access: Read and write
-- Workflows Access: Read and write
-- Metadata Access: Read-only
-
-#### 2. Github Access Key (to push code)
-
-run `ssh-keygen`
-And add into here https://github.com/settings/keys
-
-#### 3. 
-
 
 #### Other Configurations
 
