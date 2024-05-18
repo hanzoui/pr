@@ -1,0 +1,9 @@
+
+services:
+  crpr:
+    image: snomiao/comfy-registry-pr
+    # command: https://github.com/Kosinkadink/ComfyUI-AnimateDiff-Evolved
+    build: .
+    env_file:
+      - .env
+

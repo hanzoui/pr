@@ -6,21 +6,25 @@ import path, { basename, dirname } from "path";
 import { gh } from "./scripts/gh.js";
 import { readFile } from "fs/promises";
 
+// read env/parameters
+const FORK_ORG = process.env.FORK_ORG?.replace(/"/g, "")?.trim();
+const FORK_PREFIX = process.env.FORK_PREFIX?.replace(/"/g, "")?.trim();
+if (!FORK_ORG) throw new Error("Missing FORK_ORG");
+if (!FORK_PREFIX) throw new Error("Missing FORK_PREFIX");
+// console.log(process.argv);
+const dstUrl = process.argv[2] || process.env.TARGET_REPO;
+if (!dstUrl) throw new Error("Missing dstUrl");
+
 console.log("Fetch Current Github User...");
 const user = (await gh.users.getAuthenticated()).data;
-console.log(user.name, user.email);
+console.log("GIT_USER: ", user.name, user.email);
 {
   //   Repo Define
-  const dstUrl = process.argv[2] || process.env.TARGET_REPO;
-  if (!dstUrl) throw new Error("Missing dstUrl");
   // TODO: add a confirmation
   const dst = parseOwnerRepo(dstUrl);
-  const salt = "m3KMgZ2AeZGWYh7W";
+  const salt = process.env.PR_SALT || "m3KMgZ2AeZGWYh7W";
   const repo_hash = md5(`${salt}-${dst.owner}/${dst.repo}`).slice(0, 8);
-  const FORK_ORG = process.env.FORK_ORG;
-  if (!FORK_ORG) throw new Error("Missing FORK_ORG");
-  const FORK_PREFIX = process.env.FORK_PREFIX;
-  if (!FORK_PREFIX) throw new Error("Missing FORK_PREFIX");
+
   const srcUrl = `git@github.com:${FORK_ORG}/${FORK_PREFIX}${dst.repo}-${repo_hash}`;
   const src = parseOwnerRepo(srcUrl);
   console.log("PR_SRC: ", srcUrl);
@@ -30,7 +34,6 @@ console.log(user.name, user.email);
   // clean the repo before run
   const dir = `prs/${src.repo}`;
   await $`rm -rf ${dir}`;
-  // await gh.repos.delete({ owner: src.owner, repo: src.repo }).catch(() => null); // delete failed repo
 
   //   FORK
   await fork(dst, src);
@@ -46,7 +49,7 @@ console.log(user.name, user.email);
     pr({ ...publish_info, src, dst }),
   ]);
 
-  throw "done";
+  console.log("ALL DONE");
 }
 
 async function pr({
@@ -62,6 +65,7 @@ async function pr({
   src: { owner: string; repo: string };
   dst: { owner: string; repo: string };
 }) {
+  const repo = (await gh.repos.get({ ...dst })).data;
   await gh.pulls
     .create({
       // pr info
@@ -73,13 +77,9 @@ async function pr({
       // pr will merge into
       owner: dst.owner,
       repo: dst.repo,
-      base: "main",
-      // draft
-      // draft: true,
+      base: repo.default_branch,
       maintainer_can_modify: true,
-      // headers: {
-      //   "X-GitHub-Api-Version": "2022-11-28",
-      // },
+      // draft: true,
     })
     .catch((e) => {
       if (e.message.match("A pull request already exists for")) return null;
@@ -95,12 +95,9 @@ async function add_pyproject(dir: string, pullUrl: string, pushUrl: string) {
   if (await gh.repos.getBranch({ ...repo, branch }).catch(() => null))
     return { title, body, branch };
 
-  // console.log(`cd ${dir} && git worktree add ${branch}`);
-  // await $`cd ${dir} && git worktree add ${branch}`;
-
-  // if (!existsSync(`${dir}/${branch}`)) throw new Error("worktree create fails");
-  console.log({ pushUrl });
-  const proc = await $`
+  console.log(
+    // TODO: streaming process stdio
+    await $`
     source ./.venv/bin/activate
 
     git clone ${pullUrl} ${dir}/${branch}
@@ -114,8 +111,8 @@ async function add_pyproject(dir: string, pullUrl: string, pushUrl: string) {
     git add .
     git commit -am "chore(${branch}): ${title}"
     git push "${pushUrl}" ${branch}:${branch}
-    `;
-  console.log(proc.stdout);
+    `
+  );
   console.log("Creating branch: pyproject OK");
   return { title, body, branch };
 }
@@ -130,8 +127,10 @@ async function add_publish(dir: string, pullUrl: string, pushUrl: string) {
 
   const file = `${dir}/${branch}/.github/workflows/publish.yml`;
   const src = path.join(process.cwd(), "/templates/publish.yaml");
-  // await mkdir(dirname(file), { recursive: true });
-  await $`
+
+  console.log(
+    // TODO: streaming process stdio
+    await $`
     git clone ${pullUrl} ${dir}/${branch}
     cd ${dir}/${branch}
     git config user.name ${process.env.GIT_CONFIG_USER_NAME || user.name}
@@ -144,7 +143,8 @@ async function add_publish(dir: string, pullUrl: string, pushUrl: string) {
     git add .
     git commit -am "chore(${branch}): ${title}"
     git push "${pushUrl}" ${branch}:${branch}
-    `;
+    `
+  );
   console.log("Creating branch: publish OK");
   return { title, body, branch };
 }

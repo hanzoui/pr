@@ -1,6 +1,7 @@
 # Comfy-Registry-PR
 
-Dev Goals:
+
+## Project Goals: (aka roadmap)
 
 - [x] fork repo
 - [x] clone repo locally
@@ -11,8 +12,40 @@ Dev Goals:
 
 - [ ] Delete the repo which is Done (merged or rejected)
 
+## Usage
 
-git clone https://github.com/drip-art/Comfy-Registry-PR/tree/main#
+1. Local native usage.
+
+```sh
+git clone https://github.com/drip-art/Comfy-Registry-PR
+
+# setup comfy-cli environment
+cd Comfy-Registry-PR
+python -m venv .venv
+chmod +x ./.venv/bin/*
+source ./.venv/bin/activate
+pip3 install comfy-cli
+
+# setup bun for js-script
+curl -fsSL https://bun.sh/install | bash
+bun i
+
+# and
+bun index.ts [REPO_PATH_NEED_TO_PR]
+# for example
+bun index.ts https://github.com/snomiao/ComfyNode-Registry-test
+
+```
+
+2. Docker usage (not stable)
+
+```sh
+docker run --rm -it \
+    -v $HOME/.ssh:/root/.ssh:ro \
+    -e GH_TOKEN=ghp_WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW \
+    -e TARGET_REPO=https://github.com/snomiao/ComfyNode-Registry-test \
+    snomiao/comfy-registry-pr
+```
 
 ### Setup Envs
 
@@ -37,7 +70,12 @@ And add into here https://github.com/settings/keys
 
 by default:
 
+```dockerfile
+
+ENV FORK_ORG=drip-art
+ENV FORK_PREFIX=PR-
+
+# Unset it into current authorized user's name and email (from your github api token).
 ENV GIT_CONFIG_USER_EMAIL=comfy-ci@drip.art
 ENV GIT_CONFIG_USER_NAME=comfy-ci
-
-Unset it into current authorized user's name and email (from your github api token).
+```
