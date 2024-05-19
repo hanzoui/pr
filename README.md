@@ -53,6 +53,12 @@ chmod +x ./.venv/bin/*
 source ./.venv/bin/activate
 pip3 install comfy-cli
 
+#################### Windows Run here
+
+npx -y esbuild --bundle --platform=node --format=esm --outfile=./out.mjs index.ts
+npx zx out.mjs https://github.com/snomiao/ComfyNode-Registry-test
+
+#################### Linux/MacOS Run here
 # setup bun for js-script
 curl -fsSL https://bun.sh/install | bash
 bun i
@@ -68,6 +74,16 @@ bun index.ts https://github.com/snomiao/ComfyNode-Registry-test
 
 ```sh
 docker run --rm -it \
+    -v $HOME/.ssh:/root/.ssh:ro \
+    -e GH_TOKEN=ghp_WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW \
+    -e TARGET_REPO=https://github.com/snomiao/ComfyNode-Registry-test \
+    snomiao/comfy-registry-pr
+```
+
+3. docker-compose usage (not stable)
+
+```sh
+docker a run --rm -it \
     -v $HOME/.ssh:/root/.ssh:ro \
     -e GH_TOKEN=ghp_WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW \
     -e TARGET_REPO=https://github.com/snomiao/ComfyNode-Registry-test \

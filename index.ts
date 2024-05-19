@@ -12,14 +12,14 @@ const FORK_PREFIX = process.env.FORK_PREFIX?.replace(/"/g, "")?.trim();
 if (!FORK_ORG) throw new Error("Missing FORK_ORG");
 if (!FORK_PREFIX) throw new Error("Missing FORK_PREFIX");
 // console.log(process.argv);
-const dstUrl = process.argv[2] || process.env.TARGET_REPO;
+const dstUrl = process.env.REPO;
 if (!dstUrl) throw new Error("Missing dstUrl");
 
 console.log("Fetch Current Github User...");
 const user = (await gh.users.getAuthenticated()).data;
 console.log("GIT_USER: ", user.name, user.email);
 {
-  //   Repo Define
+  // Repo Define
   // TODO: add a confirmation
   const dst = parseOwnerRepo(dstUrl);
   const salt = process.env.PR_SALT || "m3KMgZ2AeZGWYh7W";
