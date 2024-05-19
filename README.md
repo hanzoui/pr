@@ -41,7 +41,15 @@ Run `ssh-keygen`, got `id_rsa.pub`, Then add into here https://github.com/settin
 
 ### 2. Run!
 
-1. Local native usage.
+Ways to run this script
+
+1. Local run
+2. Docker run (also local)
+3. Docker run at cloud (TODO)
+
+#### 1. Local native usage.
+
+##### Linux/MacOS Run here
 
 ```sh
 git clone https://github.com/drip-art/Comfy-Registry-PR
@@ -50,14 +58,11 @@ git clone https://github.com/drip-art/Comfy-Registry-PR
 cd Comfy-Registry-PR
 python -m venv .venv
 chmod +x ./.venv/bin/*
-source ./.venv/bin/activate || .\.venv\Scripts\activate
+source ./.venv/bin/activate 
 pip3 install comfy-cli
 
-#################### Windows Run here
 
-npx -y cross-env REPO=https://github.com/snomiao/ComfyNode-Registry-test npx -y tsx index.ts
 
-#################### Linux/MacOS Run here
 # setup bun for js-script
 curl -fsSL https://bun.sh/install | bash
 bun i
@@ -69,7 +74,25 @@ bun index.ts https://github.com/snomiao/ComfyNode-Registry-test
 
 ```
 
-2. Docker usage (not stable)
+
+##### Windows Run here
+
+```bat
+
+git clone https://github.com/drip-art/Comfy-Registry-PR
+
+@REM setup comfy-cli environment
+cd Comfy-Registry-PR
+python -m venv .venv
+.\.venv\Scripts\activate
+pip3 install comfy-cli
+
+@REM run with tsx
+npx -y cross-env REPO=https://github.com/snomiao/ComfyNode-Registry-test npx -y tsx index.ts
+
+```
+
+#### 2. Docker usage (not stable)
 
 ```sh
 docker run --rm -it \
