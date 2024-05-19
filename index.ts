@@ -99,14 +99,9 @@ async function add_pyproject(dir: string, pullUrl: string, pushUrl: string) {
   const repo = parseOwnerRepo(pushUrl);
   if (await gh.repos.getBranch({ ...repo, branch }).catch(() => null))
     return { title, body, branch };
-
-  // console.log(
-  //   // TODO: streaming process stdio
-  //   // .\\.venv\\Scripts\\activate
-  //   // ./.venv/bin/activate ||
-  // );
+  
   const cwd = `${dir}/${branch}`;
-  await $`git clone ${pushUrl} ${cwd}`;
+  await $`git clone ${pullUrl} ${cwd}`;
   await $({ cwd })`
     git config user.name ${process.env.GIT_CONFIG_USER_NAME || user.name}
     git config user.email ${process.env.GIT_CONFIG_USER_EMAIL || user.email}
@@ -136,7 +131,7 @@ async function add_publish(dir: string, pullUrl: string, pushUrl: string) {
   console.log(src);
   // TODO: streaming process stdio
   const cwd = `${dir}/${branch}`;
-  await $`git clone ${pushUrl} ${cwd}`;
+  await $`git clone ${pullUrl} ${cwd}`;
   await $({ cwd })`
   git config user.name ${process.env.GIT_CONFIG_USER_NAME || user.name}
   git config user.email ${process.env.GIT_CONFIG_USER_EMAIL || user.email}
@@ -145,7 +140,6 @@ async function add_publish(dir: string, pullUrl: string, pushUrl: string) {
   await mkdir(dirname(file), {recursive: true})
   await writeFile( file, await readFile( src, 'utf8'))
   await $({ cwd })`
-    
     git add .
     git commit -am "chore(${branch}): ${title}"
     git push "${pushUrl}" ${branch}:${branch}
