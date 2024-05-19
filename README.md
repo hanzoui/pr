@@ -36,12 +36,6 @@ Check 3 permissions for all of your repositories
 
 And save your GH_TOKEN into .env file
 
-.env
-
-```
-GH_TOKEN=ghp_WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-```
-
 #### Github SSH Key (.ssh/id_rsa, .ssh/id_rsa.pub)
 
 Must provide to push code automaticaly, btw prob. you've already setup.

@@ -7,4 +7,3 @@ services:
       - $HOME/.ssh:/root/.ssh:ro
     env_file:
       - .env
-
