@@ -4,12 +4,12 @@ import "dotenv/config";
 import md5 from "md5";
 import path, { basename, dirname } from "path";
 import { gh } from "./scripts/gh.js";
-import { readFile, unlink, rmdir, rm } from "fs/promises";
+import { writeFile, mkdir, readFile, unlink, rmdir, rm } from "fs/promises";
 import { execaCommand } from "execa";
 // read env/parameters
-const FORK_ORG = process.env.FORK_ORG?.replace(/"/g, "")?.trim();
+const FORK_OWNER = process.env.FORK_OWNER?.replace(/"/g, "")?.trim() || process.env.FORK_OWNER?.replace(/"/g, "")?.trim();
 const FORK_PREFIX = process.env.FORK_PREFIX?.replace(/"/g, "")?.trim();
-if (!FORK_ORG) throw new Error("Missing FORK_ORG");
+if (!FORK_OWNER) throw new Error("Missing FORK_OWNER");
 if (!FORK_PREFIX) throw new Error("Missing FORK_PREFIX");
 // console.log(process.argv);
 const dstUrl = process.env.REPO || process.argv[3] || process.argv[2];
@@ -28,7 +28,7 @@ console.log("GIT_USER: ", user.name, user.email);
     8
   );
 
-  const srcUrl = `git@github.com:${FORK_ORG}/${FORK_PREFIX}${dst.repo}-${repo_hash}`;
+  const srcUrl = `git@github.com:${FORK_OWNER}/${FORK_PREFIX}${dst.repo}-${repo_hash}`;
   const src = parseOwnerRepo(srcUrl);
   console.log("PR_SRC: ", srcUrl);
   console.log("PR_DST: ", dstUrl);
@@ -131,19 +131,20 @@ async function add_publish(dir: string, pullUrl: string, pushUrl: string) {
     return { title, body, branch };
 
   const file = `${dir}/${branch}/.github/workflows/publish.yml`;
-  const src = "../../../templates/publish.yaml";
+  const src = "./templates/publish.yaml";
   //           ./prs/repo/branch/
   console.log(src);
   // TODO: streaming process stdio
   const cwd = `${dir}/${branch}`;
   await $`git clone ${pushUrl} ${cwd}`;
   await $({ cwd })`
-    git config user.name ${process.env.GIT_CONFIG_USER_NAME || user.name}
-    git config user.email ${process.env.GIT_CONFIG_USER_EMAIL || user.email}
-    git checkout -b ${branch}
-    
-    mkdir -p ${dirname(file)}
-    cat "${src}" > "${file}"
+  git config user.name ${process.env.GIT_CONFIG_USER_NAME || user.name}
+  git config user.email ${process.env.GIT_CONFIG_USER_EMAIL || user.email}
+  git checkout -b ${branch}
+  `;
+  await mkdir(dirname(file), {recursive: true})
+  await writeFile( file, await readFile( src, 'utf8'))
+  await $({ cwd })`
     
     git add .
     git commit -am "chore(${branch}): ${title}"

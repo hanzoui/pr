@@ -117,7 +117,7 @@ Don't change it unless you know what you are doing.
 
 ```dockerfile
 
-ENV FORK_ORG=drip-art
+ENV FORK_OWNER=drip-art
 ENV FORK_PREFIX=PR-
 
 # Unset it into current authorized user's name and email (from your github api token).
