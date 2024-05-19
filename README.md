@@ -1,6 +1,5 @@
 # Comfy-Registry-PR
 
-
 ## Project Goals: (aka roadmap)
 
 - [x] fork repo
@@ -21,6 +20,7 @@
 GO https://github.com/settings/tokens?type=beta to get an Github Access key
 
 Check 3 permissions for all of your repositories
+
 - Pull requests Access: Read and write
 - Workflows Access: Read and write
 - Metadata Access: Read-only
@@ -47,9 +47,28 @@ Ways to run this script
 2. Docker run (also local)
 3. Docker run at cloud (TODO)
 
-#### 1. Local native usage.
+#### 1. Launch by Docker Compose
 
-##### Unix/Linux/MacOS/WSL Run here
+After configured your .env file, run docker compose build and up.
+
+```sh
+git clone https://github.com/drip-art/Comfy-Registry-PR
+cd Comfy-Registry-PR
+docker compose build
+docker compose up
+```
+
+#### 2. Docker usage (not stable)
+
+```sh
+docker run --rm -it \
+    -v $HOME/.ssh:/root/.ssh:ro \
+    -e GH_TOKEN=ghp_WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW \
+    -e TARGET_REPO=https://github.com/snomiao/ComfyNode-Registry-test \
+    snomiao/comfy-registry-pr
+```
+
+#### 3. Run native in Unix/Linux/MacOS/WSL
 
 ```sh
 git clone https://github.com/drip-art/Comfy-Registry-PR
@@ -58,7 +77,7 @@ git clone https://github.com/drip-art/Comfy-Registry-PR
 cd Comfy-Registry-PR
 python3 -m venv .venv
 chmod +x ./.venv/bin/*
-source ./.venv/bin/activate 
+source ./.venv/bin/activate
 pip3 install comfy-cli
 
 
@@ -74,7 +93,7 @@ bun index.ts https://github.com/snomiao/ComfyNode-Registry-test
 
 ```
 
-##### Windows Run here
+#### 4. Run natively in Windows
 
 ```bat
 
@@ -91,20 +110,11 @@ npx -y cross-env REPO=https://github.com/snomiao/ComfyNode-Registry-test npx -y 
 
 ```
 
-#### 2. Docker usage (not stable)
-
-```sh
-docker run --rm -it \
-    -v $HOME/.ssh:/root/.ssh:ro \
-    -e GH_TOKEN=ghp_WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW \
-    -e TARGET_REPO=https://github.com/snomiao/ComfyNode-Registry-test \
-    snomiao/comfy-registry-pr
-```
 
 3. docker-compose usage (not stable)
 
 ```sh
-docker a run --rm -it \
+docker compose --rm -it \
     -v $HOME/.ssh:/root/.ssh:ro \
     -e GH_TOKEN=ghp_WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW \
     -e TARGET_REPO=https://github.com/snomiao/ComfyNode-Registry-test \
