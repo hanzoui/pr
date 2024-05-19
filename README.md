@@ -15,6 +15,15 @@
 
 ### 1. Setup Envs
 
+A demo .env should be sth like:
+
+```sh
+GH_TOKEN=ghp_WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+FORK_OWNER="drip-art" #
+FORK_PREFIX="PR-"
+REPO=https://github.com/snomiao/ComfyNode-Registry-test
+```
+
 #### Github API Token (GH_TOKEN)
 
 GO https://github.com/settings/tokens?type=beta to get an Github Access key
@@ -64,7 +73,7 @@ docker compose up
 docker run --rm -it \
     -v $HOME/.ssh:/root/.ssh:ro \
     -e GH_TOKEN=ghp_WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW \
-    -e TARGET_REPO=https://github.com/snomiao/ComfyNode-Registry-test \
+    -e REPO=https://github.com/snomiao/ComfyNode-Registry-test \
     snomiao/comfy-registry-pr
 ```
 
@@ -108,17 +117,6 @@ pip3 install comfy-cli
 @REM run with tsx
 npx -y cross-env REPO=https://github.com/snomiao/ComfyNode-Registry-test npx -y tsx index.ts
 
-```
-
-
-3. docker-compose usage (not stable)
-
-```sh
-docker compose --rm -it \
-    -v $HOME/.ssh:/root/.ssh:ro \
-    -e GH_TOKEN=ghp_WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW \
-    -e TARGET_REPO=https://github.com/snomiao/ComfyNode-Registry-test \
-    snomiao/comfy-registry-pr
 ```
 
 #### Other Configurations in dockerfile
