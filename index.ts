@@ -70,20 +70,6 @@ async function pr({
   dst: { owner: string; repo: string };
 }) {
   const repo = (await gh.repos.get({ ...dst })).data;
-  console.log({
-    // pr info
-    title,
-    body,
-    // source repo
-    head_repo: src.owner + "/" + src.repo,
-    head: src.owner + ":" + branch,
-    // pr will merge into
-    owner: dst.owner,
-    repo: dst.repo,
-    base: repo.default_branch,
-    maintainer_can_modify: true,
-    // draft: true,
-  })
   await gh.pulls
     .create({
       // pr info
