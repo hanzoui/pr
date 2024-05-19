@@ -1,12 +1,10 @@
 #!/usr/bin/env zx
-import "zx/globals";
 import "dotenv/config";
+import { mkdir, readFile, rm, writeFile } from "fs/promises";
 import md5 from "md5";
-import path, { basename, dirname } from "path";
+import { basename, dirname } from "path";
+import "zx/globals";
 import { gh } from "./scripts/gh.js";
-import { writeFile, mkdir, readFile, unlink, rmdir, rm } from "fs/promises";
-import { execa, execaCommand, execaSync } from "execa";
-import { exec } from "child_process";
 
 // read env/parameters
 console.log("Fetch Current Github User...");
