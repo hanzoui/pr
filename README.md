@@ -111,9 +111,9 @@ docker a run --rm -it \
     snomiao/comfy-registry-pr
 ```
 
-#### Other Configurations
+#### Other Configurations in dockerfile
 
-by default:
+Don't change it unless you know what you are doing.
 
 ```dockerfile
 
@@ -121,6 +121,6 @@ ENV FORK_ORG=drip-art
 ENV FORK_PREFIX=PR-
 
 # Unset it into current authorized user's name and email (from your github api token).
-ENV GIT_CONFIG_USER_EMAIL=comfy-ci@drip.art
-ENV GIT_CONFIG_USER_NAME=comfy-ci
+ENV GIT_USEREMAIL=comfy-ci@drip.art
+ENV GIT_USERNAME=comfy-ci
 ```

@@ -11,8 +11,9 @@ COPY package.json .
 RUN bun i
 
 # setup envs
-ENV GIT_CONFIG_USER_EMAIL=comfy-ci@drip.art
-ENV GIT_CONFIG_USER_NAME=comfy-ci
+ENV SALT=Q51fPMvQ7VdJnQjX
+ENV GIT_USEREMAIL=comfy-ci@drip.art
+ENV GIT_USERNAME=comfy-ci
 ENV FORK_PREFIX=PR-
 ENV FORK_ORG=drip-art
 ENV GH_TOKEN=
