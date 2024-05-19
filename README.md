@@ -44,7 +44,7 @@ GH_TOKEN=ghp_WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
 
 #### Github SSH Key (.ssh/id_rsa, .ssh/id_rsa.pub)
 
-(to push code automaticaly, btw prob. you already setup)
+Must provide to push code automaticaly, btw prob. you've already setup.
 
 Run `ssh-keygen`, got `id_rsa.pub`, Then add into here https://github.com/settings/keys
 
