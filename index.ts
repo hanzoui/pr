@@ -12,7 +12,7 @@ const FORK_PREFIX = process.env.FORK_PREFIX?.replace(/"/g, "")?.trim();
 if (!FORK_ORG) throw new Error("Missing FORK_ORG");
 if (!FORK_PREFIX) throw new Error("Missing FORK_PREFIX");
 // console.log(process.argv);
-const dstUrl = process.env.REPO;
+const dstUrl = process.env.REPO || process.argv[3] || process.argv[2] ;
 if (!dstUrl) throw new Error("Missing dstUrl");
 
 console.log("Fetch Current Github User...");

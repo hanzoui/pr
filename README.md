@@ -56,7 +56,7 @@ pip3 install comfy-cli
 #################### Windows Run here
 
 npx -y esbuild --bundle --platform=node --format=esm --outfile=./out.mjs index.ts
-npx zx out.mjs https://github.com/snomiao/ComfyNode-Registry-test
+npx cross-env REPO=https://github.com/snomiao/ComfyNode-Registry-test npx zx out.mjs
 
 #################### Linux/MacOS Run here
 # setup bun for js-script
