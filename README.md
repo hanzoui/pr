@@ -56,7 +56,7 @@ git clone https://github.com/drip-art/Comfy-Registry-PR
 
 # setup comfy-cli environment
 cd Comfy-Registry-PR
-python -m venv .venv
+python3 -m venv .venv
 chmod +x ./.venv/bin/*
 source ./.venv/bin/activate 
 pip3 install comfy-cli
@@ -83,7 +83,7 @@ git clone https://github.com/drip-art/Comfy-Registry-PR
 
 @REM setup comfy-cli environment
 cd Comfy-Registry-PR
-python -m venv .venv
+python3 -m venv .venv
 .\.venv\Scripts\activate
 pip3 install comfy-cli
 

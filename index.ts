@@ -1,11 +1,12 @@
 #!/usr/bin/env zx
-import "zx/globals";
+// import "zx/globals";
 import "dotenv/config";
 import md5 from "md5";
 import path, { basename, dirname } from "path";
 import { gh } from "./scripts/gh.js";
 import { readFile } from "fs/promises";
-
+import { execaCommand } from "execa";
+import snorun from 'snorun'
 // read env/parameters
 const FORK_ORG = process.env.FORK_ORG?.replace(/"/g, "")?.trim();
 const FORK_PREFIX = process.env.FORK_PREFIX?.replace(/"/g, "")?.trim();
@@ -36,7 +37,7 @@ console.log("GIT_USER: ", user.name, user.email);
 
   // clean the repo before run
   const dir = `prs/${src.repo}`;
-  await $`rm -rf ${dir}`;
+  await sh(`rm -rf ${dir}`);
 
   //   FORK
   await fork(dst, src);
@@ -69,6 +70,20 @@ async function pr({
   dst: { owner: string; repo: string };
 }) {
   const repo = (await gh.repos.get({ ...dst })).data;
+  console.log({
+    // pr info
+    title,
+    body,
+    // source repo
+    head_repo: src.owner + "/" + src.repo,
+    head: src.owner + ":" + branch,
+    // pr will merge into
+    owner: dst.owner,
+    repo: dst.repo,
+    base: repo.default_branch,
+    maintainer_can_modify: true,
+    // draft: true,
+  })
   await gh.pulls
     .create({
       // pr info
@@ -102,8 +117,7 @@ async function add_pyproject(dir: string, pullUrl: string, pushUrl: string) {
     // TODO: streaming process stdio
     // .\\.venv\\Scripts\\activate
     // ./.venv/bin/activate ||
-    await $`
-
+    await sh(`
     git clone ${pullUrl} ${dir}/${branch}
     cd ${dir}/${branch}
     git config user.name ${process.env.GIT_CONFIG_USER_NAME || user.name}
@@ -115,7 +129,7 @@ async function add_pyproject(dir: string, pullUrl: string, pushUrl: string) {
     git add .
     git commit -am "chore(${branch}): ${title}"
     git push "${pushUrl}" ${branch}:${branch}
-    `
+    `)
   );
   console.log("Creating branch: pyproject OK");
   return { title, body, branch };
@@ -130,12 +144,12 @@ async function add_publish(dir: string, pullUrl: string, pushUrl: string) {
     return { title, body, branch };
 
   const file = `${dir}/${branch}/.github/workflows/publish.yml`;
-  const src = "../../../templates/publish.yaml"
+  const src = "../../../templates/publish.yaml";
   //           ./prs/repo/branch/
   console.log(src);
   console.log(
     // TODO: streaming process stdio
-    await $`
+    await sh(`
     git clone ${pullUrl} ${dir}/${branch}
     cd ${dir}/${branch}
     git config user.name ${process.env.GIT_CONFIG_USER_NAME || user.name}
@@ -148,7 +162,7 @@ async function add_publish(dir: string, pullUrl: string, pushUrl: string) {
     git add .
     git commit -am "chore(${branch}): ${title}"
     git push "${pushUrl}" ${branch}:${branch}
-    `
+    `)
   );
   console.log("Creating branch: publish OK");
   return { title, body, branch };
@@ -183,4 +197,14 @@ function parseTitleBodyOfMarkdown(tmpl: string) {
   const title = tmpl.split("\n")[0].slice(1).trim();
   const body = tmpl.split("\n").slice(1).join("\n").trim();
   return { title, body };
+}
+async function sh(s: string) {
+  for await (const x of s.split("\n")) {
+    // console.log((await execaCommand(x)).all);
+    if(!x) continue
+    await snorun(x) 
+  }
+  // for await (const x of s.split("\n")) {
+  //   console.log((await execaCommand(x)).all);
+  // }
 }
