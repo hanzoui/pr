@@ -16,7 +16,7 @@
 
 ### 1. Setup Envs
 
-#### Github API Token
+#### Github API Token (GH_TOKEN)
 
 GO https://github.com/settings/tokens?type=beta to get an Github Access key
 
@@ -25,7 +25,15 @@ Check 3 permissions for all of your repositories
 - Workflows Access: Read and write
 - Metadata Access: Read-only
 
-#### Github Access Key
+And save your GH_TOKEN into .env file
+
+.env
+
+```
+GH_TOKEN=ghp_WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
+```
+
+#### Github SSH Key (.ssh/id_rsa, .ssh/id_rsa.pub)
 
 (to push code automaticaly, btw prob. you already setup)
 
