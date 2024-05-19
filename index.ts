@@ -36,7 +36,7 @@ console.log("GIT_USER: ", user.name, user.email);
 
   console.log("Cleaning the pr before run");
   const dir = `prs/${src.repo}`;
-  await $`rm -rf ${dir}`;
+  // await $`rm -rf ${dir}`;
   await rm(dir, { recursive: true }).catch(() => null);
 
   //   FORK
@@ -105,9 +105,8 @@ async function add_pyproject(dir: string, pullUrl: string, pushUrl: string) {
   //   // .\\.venv\\Scripts\\activate
   //   // ./.venv/bin/activate ||
   // );
-  await $`git clone ${pushUrl} ${dir}/${branch}`;
-
   const cwd = `${dir}/${branch}`;
+  await $`git clone ${pushUrl} ${cwd}`;
   await $({ cwd })`
     git config user.name ${process.env.GIT_CONFIG_USER_NAME || user.name}
     git config user.email ${process.env.GIT_CONFIG_USER_EMAIL || user.email}
@@ -136,10 +135,8 @@ async function add_publish(dir: string, pullUrl: string, pushUrl: string) {
   //           ./prs/repo/branch/
   console.log(src);
   // TODO: streaming process stdio
-  await $`
-    git clone ${pushUrl} ${dir}/${branch}
-    `;
   const cwd = `${dir}/${branch}`;
+  await $`git clone ${pushUrl} ${cwd}`;
   await $({ cwd })`
     git config user.name ${process.env.GIT_CONFIG_USER_NAME || user.name}
     git config user.email ${process.env.GIT_CONFIG_USER_EMAIL || user.email}
@@ -163,7 +160,7 @@ async function fork(
 ) {
   const forkResult = await gh.repos
     .createFork({
-      organization: to.owner,
+      ...(user.name !== to.owner && { organization: to.owner }),
       name: to.repo,
       owner: from.owner,
       repo: from.repo,
