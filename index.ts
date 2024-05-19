@@ -12,7 +12,7 @@ const FORK_PREFIX = process.env.FORK_PREFIX?.replace(/"/g, "")?.trim();
 if (!FORK_ORG) throw new Error("Missing FORK_ORG");
 if (!FORK_PREFIX) throw new Error("Missing FORK_PREFIX");
 // console.log(process.argv);
-const dstUrl = process.env.REPO || process.argv[3] || process.argv[2] ;
+const dstUrl = process.env.REPO || process.argv[3] || process.argv[2];
 if (!dstUrl) throw new Error("Missing dstUrl");
 
 console.log("Fetch Current Github User...");
@@ -23,7 +23,10 @@ console.log("GIT_USER: ", user.name, user.email);
   // TODO: add a confirmation
   const dst = parseOwnerRepo(dstUrl);
   const salt = process.env.PR_SALT || "m3KMgZ2AeZGWYh7W";
-  const repo_hash = md5(`${salt}-${dst.owner}/${dst.repo}`).slice(0, 8);
+  const repo_hash = md5(`${salt}-${user.name}-${dst.owner}/${dst.repo}`).slice(
+    0,
+    8
+  );
 
   const srcUrl = `git@github.com:${FORK_ORG}/${FORK_PREFIX}${dst.repo}-${repo_hash}`;
   const src = parseOwnerRepo(srcUrl);
@@ -97,8 +100,9 @@ async function add_pyproject(dir: string, pullUrl: string, pushUrl: string) {
 
   console.log(
     // TODO: streaming process stdio
+    // .\\.venv\\Scripts\\activate
+    // ./.venv/bin/activate ||
     await $`
-    source ./.venv/bin/activate
 
     git clone ${pullUrl} ${dir}/${branch}
     cd ${dir}/${branch}
@@ -126,8 +130,9 @@ async function add_publish(dir: string, pullUrl: string, pushUrl: string) {
     return { title, body, branch };
 
   const file = `${dir}/${branch}/.github/workflows/publish.yml`;
-  const src = path.join(process.cwd(), "/templates/publish.yaml");
-
+  const src = "../../../templates/publish.yaml"
+  //           ./prs/repo/branch/
+  console.log(src);
   console.log(
     // TODO: streaming process stdio
     await $`
@@ -138,7 +143,7 @@ async function add_publish(dir: string, pullUrl: string, pushUrl: string) {
     git checkout -b ${branch}
     
     mkdir -p ${dirname(file)}
-    cat ${src} > ${file}
+    cat "${src}" > "${file}"
     
     git add .
     git commit -am "chore(${branch}): ${title}"

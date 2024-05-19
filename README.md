@@ -50,13 +50,12 @@ git clone https://github.com/drip-art/Comfy-Registry-PR
 cd Comfy-Registry-PR
 python -m venv .venv
 chmod +x ./.venv/bin/*
-source ./.venv/bin/activate
+source ./.venv/bin/activate || .\.venv\Scripts\activate
 pip3 install comfy-cli
 
 #################### Windows Run here
 
-npx -y esbuild --bundle --platform=node --format=esm --outfile=./out.mjs index.ts
-npx cross-env REPO=https://github.com/snomiao/ComfyNode-Registry-test npx zx out.mjs
+npx -y cross-env REPO=https://github.com/snomiao/ComfyNode-Registry-test npx -y tsx index.ts
 
 #################### Linux/MacOS Run here
 # setup bun for js-script
