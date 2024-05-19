@@ -5,24 +5,29 @@ import md5 from "md5";
 import path, { basename, dirname } from "path";
 import { gh } from "./scripts/gh.js";
 import { writeFile, mkdir, readFile, unlink, rmdir, rm } from "fs/promises";
-import { execaCommand } from "execa";
+import { execa, execaCommand, execaSync } from "execa";
+import { exec } from "child_process";
+
 // read env/parameters
-const FORK_OWNER = process.env.FORK_OWNER?.replace(/"/g, "")?.trim() || process.env.FORK_OWNER?.replace(/"/g, "")?.trim();
+console.log("Fetch Current Github User...");
+const user = (await gh.users.getAuthenticated()).data;
+const FORK_OWNER =
+  process.env.FORK_OWNER?.replace(/"/g, "")?.trim() ||
+  process.env.FORK_OWNER?.replace(/"/g, "")?.trim() ||
+  user.name;
 const FORK_PREFIX = process.env.FORK_PREFIX?.replace(/"/g, "")?.trim();
 if (!FORK_OWNER) throw new Error("Missing FORK_OWNER");
 if (!FORK_PREFIX) throw new Error("Missing FORK_PREFIX");
-// console.log(process.argv);
 const dstUrl = process.env.REPO || process.argv[3] || process.argv[2];
 if (!dstUrl) throw new Error("Missing dstUrl");
-
-console.log("Fetch Current Github User...");
-const user = (await gh.users.getAuthenticated()).data;
 console.log("GIT_USER: ", user.name, user.email);
+
+// main
 {
   // Repo Define
   // TODO: add a confirmation
   const dst = parseOwnerRepo(dstUrl);
-  const salt = process.env.PR_SALT || "m3KMgZ2AeZGWYh7W";
+  const salt = process.env.SALT || "m3KMgZ2AeZGWYh7W";
   const repo_hash = md5(`${salt}-${user.name}-${dst.owner}/${dst.repo}`).slice(
     0,
     8
@@ -36,7 +41,6 @@ console.log("GIT_USER: ", user.name, user.email);
 
   console.log("Cleaning the pr before run");
   const dir = `prs/${src.repo}`;
-  // await $`rm -rf ${dir}`;
   await rm(dir, { recursive: true }).catch(() => null);
 
   //   FORK
@@ -99,16 +103,23 @@ async function add_pyproject(dir: string, pullUrl: string, pushUrl: string) {
   const repo = parseOwnerRepo(pushUrl);
   if (await gh.repos.getBranch({ ...repo, branch }).catch(() => null))
     return { title, body, branch };
-  
+
   const cwd = `${dir}/${branch}`;
   await $`git clone ${pullUrl} ${cwd}`;
   await $({ cwd })`
-    git config user.name ${process.env.GIT_CONFIG_USER_NAME || user.name}
-    git config user.email ${process.env.GIT_CONFIG_USER_EMAIL || user.email}
-    git checkout -b ${branch}
+  git config user.name ${process.env.GIT_USERNAME || (user.email && user.name)}
+  git config user.email ${
+    process.env.GIT_USEREMAIL || (user.email && user.email)
+  }
+  git checkout -b ${branch}
+  `;
 
-    comfy node init
-
+  const p = $({ cwd })`comfy node init`;
+  p.stdin.write("y"), p.stdin.end();
+  p.stdout.pipe(process.stdout);
+  p.stderr.pipe(process.stderr);
+  await p;
+  await $({ cwd })`
     git add .
     git commit -am "chore(${branch}): ${title}"
     git push "${pushUrl}" ${branch}:${branch}
@@ -133,12 +144,12 @@ async function add_publish(dir: string, pullUrl: string, pushUrl: string) {
   const cwd = `${dir}/${branch}`;
   await $`git clone ${pullUrl} ${cwd}`;
   await $({ cwd })`
-  git config user.name ${process.env.GIT_CONFIG_USER_NAME || user.name}
-  git config user.email ${process.env.GIT_CONFIG_USER_EMAIL || user.email}
-  git checkout -b ${branch}
-  `;
-  await mkdir(dirname(file), {recursive: true})
-  await writeFile( file, await readFile( src, 'utf8'))
+    git config user.name ${process.env.GIT_CONFIG_USER_NAME || user.name}
+    git config user.email ${process.env.GIT_CONFIG_USER_EMAIL || user.email}
+    git checkout -b ${branch}
+    `;
+  await mkdir(dirname(file), { recursive: true });
+  await writeFile(file, await readFile(src, "utf8"));
   await $({ cwd })`
     git add .
     git commit -am "chore(${branch}): ${title}"

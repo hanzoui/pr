@@ -2,8 +2,9 @@
 services:
   crpr:
     image: snomiao/comfy-registry-pr
-    # command: https://github.com/Kosinkadink/ComfyUI-AnimateDiff-Evolved
     build: .
+    volumes:
+      - $HOME/.ssh:/root/.ssh:ro
     env_file:
       - .env
 
