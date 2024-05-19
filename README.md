@@ -49,7 +49,7 @@ Ways to run this script
 
 #### 1. Local native usage.
 
-##### Linux/MacOS Run here
+##### Unix/Linux/MacOS/WSL Run here
 
 ```sh
 git clone https://github.com/drip-art/Comfy-Registry-PR
@@ -73,7 +73,6 @@ bun index.ts [REPO_PATH_NEED_TO_PR]
 bun index.ts https://github.com/snomiao/ComfyNode-Registry-test
 
 ```
-
 
 ##### Windows Run here
 

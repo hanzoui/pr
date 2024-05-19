@@ -2,12 +2,11 @@ FROM node
 
 WORKDIR /app
 
-# install python
 RUN apt update -y && \
-    apt install -y python3 python3-pip python3-venv
-
-# prepare bun
-RUN npm i -g bun
+    # install python
+    apt install -y python3 python3-pip python3-venv \
+    # prepare bun
+    apt install unzip && curl -fsSL https://bun.sh/install | bash && ln -s $(which bun) /usr/bin
 COPY package.json .
 RUN bun i
 

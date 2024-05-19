@@ -1,12 +1,13 @@
 #!/usr/bin/env zx
 // import "zx/globals";
 import "dotenv/config";
+
 import md5 from "md5";
 import path, { basename, dirname } from "path";
 import { gh } from "./scripts/gh.js";
-import { readFile } from "fs/promises";
+import { readFile, unlink, rmdir, rm } from "fs/promises";
 import { execaCommand } from "execa";
-import snorun from 'snorun'
+import snorun from "snorun";
 // read env/parameters
 const FORK_ORG = process.env.FORK_ORG?.replace(/"/g, "")?.trim();
 const FORK_PREFIX = process.env.FORK_PREFIX?.replace(/"/g, "")?.trim();
@@ -35,9 +36,10 @@ console.log("GIT_USER: ", user.name, user.email);
   console.log("PR_DST: ", dstUrl);
   console.log(srcUrl);
 
-  // clean the repo before run
+  console.log('Cleaning the pr before run')
   const dir = `prs/${src.repo}`;
-  await sh(`rm -rf ${dir}`);
+  // await sh(`rm -rf ${dir}`);
+  await rm(dir, { recursive: true }).catch(()=>null);
 
   //   FORK
   await fork(dst, src);
@@ -70,7 +72,7 @@ async function pr({
   dst: { owner: string; repo: string };
 }) {
   const repo = (await gh.repos.get({ ...dst })).data;
-  await gh.pulls
+  const pr_result = await gh.pulls
     .create({
       // pr info
       title,
@@ -89,6 +91,7 @@ async function pr({
       if (e.message.match("A pull request already exists for")) return null;
       throw e;
     });
+  console.log("PR OK", pr_result?.data.url);
 }
 
 async function add_pyproject(dir: string, pullUrl: string, pushUrl: string) {
@@ -104,7 +107,7 @@ async function add_pyproject(dir: string, pullUrl: string, pushUrl: string) {
     // .\\.venv\\Scripts\\activate
     // ./.venv/bin/activate ||
     await sh(`
-    git clone ${pullUrl} ${dir}/${branch}
+    git clone ${pushUrl} ${dir}/${branch}
     cd ${dir}/${branch}
     git config user.name ${process.env.GIT_CONFIG_USER_NAME || user.name}
     git config user.email ${process.env.GIT_CONFIG_USER_EMAIL || user.email}
@@ -136,7 +139,7 @@ async function add_publish(dir: string, pullUrl: string, pushUrl: string) {
   console.log(
     // TODO: streaming process stdio
     await sh(`
-    git clone ${pullUrl} ${dir}/${branch}
+    git clone ${pushUrl} ${dir}/${branch}
     cd ${dir}/${branch}
     git config user.name ${process.env.GIT_CONFIG_USER_NAME || user.name}
     git config user.email ${process.env.GIT_CONFIG_USER_EMAIL || user.email}
@@ -158,7 +161,7 @@ async function fork(
   from: { owner: string; repo: string },
   to: { owner: string; repo: string }
 ) {
-  await gh.repos
+  const forkResult = await gh.repos
     .createFork({
       organization: to.owner,
       name: to.repo,
@@ -169,7 +172,7 @@ async function fork(
       if (e.message.match("Name already exists on this account")) return null;
       throw e;
     });
-  console.log("Fork OK");
+  console.log("FORK OK ", forkResult?.data.url);
 }
 
 function parseOwnerRepo(name: string) {
@@ -187,8 +190,8 @@ function parseTitleBodyOfMarkdown(tmpl: string) {
 async function sh(s: string) {
   for await (const x of s.split("\n")) {
     // console.log((await execaCommand(x)).all);
-    if(!x) continue
-    await snorun(x) 
+    if (!x) continue;
+    await snorun(x);
   }
   // for await (const x of s.split("\n")) {
   //   console.log((await execaCommand(x)).all);
