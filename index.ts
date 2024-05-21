@@ -1,4 +1,4 @@
-#!/usr/bin/env zx
+#!/usr/bin/env bun
 import "dotenv/config";
 import { mkdir, readFile, rm, writeFile } from "fs/promises";
 import md5 from "md5";

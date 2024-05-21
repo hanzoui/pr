@@ -1,4 +1,4 @@
-# Comfy-Registry-PR
+# Comfy-PR
 
 Make PRs that publishes ComfyUI Custom Nodes to [ComfyUI Registry]( https://www.comfyregistry.org/ ).
 
@@ -13,7 +13,12 @@ Make PRs that publishes ComfyUI Custom Nodes to [ComfyUI Registry]( https://www.
 
 - [ ] Delete the repo which is Done (merged or rejected)
 
-## Usage
+## Get Started
+
+
+```
+bunx comfy-pr
+```
 
 ### 1. Setup Envs
 
