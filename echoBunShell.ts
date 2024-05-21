@@ -1,4 +1,4 @@
-import { $ as bunShell, ShellPromise, type ShellExpression } from "bun";
+import { $ as bunSh, ShellPromise, type ShellExpression } from "bun";
 
 export function $(
   strings: TemplateStringsArray,
@@ -13,5 +13,5 @@ export function $(
       .map((e, i) => (i === 0 ? "$ " : "> ") + e)
       .join("\n")
   );
-  return bunShell(strings, ...expressions);
+  return bunSh(strings, ...expressions);
 }

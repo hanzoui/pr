@@ -1,14 +1,15 @@
 #!/usr/bin/env bun
 
+import { $ as bunSh } from "bun";
 import "dotenv/config";
-import { mkdir, readFile, rm, writeFile } from "fs/promises";
+import { readFile, rm } from "fs/promises";
 import md5 from "md5";
 import { basename, dirname } from "path";
-import { $ as zx, question, chalk } from "zx";
-import { DIE } from "./DIE";
-import { gh } from "./scripts/gh";
-import { $ } from "./echoBunShell";
 import yaml from "yaml";
+import { chalk, os, question, $ as zx } from "zx";
+import { DIE } from "./DIE";
+import { $ } from "./echoBunShell";
+import { gh } from "./scripts/gh";
 zx.verbose = true;
 // read env/parameters
 console.log("Fetch Current Github User...");
@@ -44,6 +45,22 @@ const upstreamUrl =
   (await question("Input the PR target env.REPO: ")) ||
   DIE("Missing env.REPO");
 
+const activate =
+  os.platform() === "win32" ? ".venv\\Scripts\\activate" : ".venv/bin/activate";
+if (!(await bunSh`comfy --help`.catch(() => null))) {
+  DIE(
+    `
+Cound not found comfy-cli.
+Please install comfy-cli before run "bunx comfy-pr" here.
+
+$ >>>>>>>>>>>>>>>>>>>>>>>>>>
+python -m venv .venv
+${activate}
+pip install comfy-cli
+comfy-cli --help
+`.trim()
+  );
+}
 console.log("GIT_USER: ", user.name, user.email);
 
 // main
@@ -209,19 +226,13 @@ async function add_pyproject(
 git clone ${upstreamUrl} ${cwd}
 
 cd ${cwd}
-source ${
-    process.cwd() + "/.venv/bin/activate"
-  } || echo Did not activate venv on Linux.
-${
-  process.cwd() + "\\.venv\\Scripts\\activate"
-} || echo Did not activate venv on Windows.
-comfy node init
+echo N | comfy node init
 
-git config user.name ${GIT_USERNAME}
-git config user.email ${GIT_USEREMAIL}
-git checkout -b ${branch}
-git add .
-git commit -am ${`chore(${branch}): ${title}`}
+git config user.name ${GIT_USERNAME} && \
+git config user.email ${GIT_USEREMAIL} && \
+git checkout -b ${branch} && \
+git add . && \
+git commit -am ${`chore(${branch}): ${title}`} && \
 git push "${forkUrl}" ${branch}:${branch}
 `;
   const branchUrl = `https://github.com/${repo.owner}/${repo.repo}/tree/${branch}`;
@@ -255,11 +266,11 @@ cat ${publishYmlPath} > ${file}
 
 cd ${cwd}
 
-git config user.name ${GIT_USERNAME}
-git config user.email ${GIT_USEREMAIL}
-git checkout -b ${branch}
-git add .
-git commit -am "chore(${branch}): ${title}"
+git config user.name ${GIT_USERNAME} && \
+git config user.email ${GIT_USEREMAIL} && \
+git checkout -b ${branch} && \
+git add . && \ 
+git commit -am "chore(${branch}): ${title}" && \
 git push "${forkUrl}" ${branch}:${branch}
     `;
 
