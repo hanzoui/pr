@@ -103,7 +103,7 @@ async function add_pyproject(dir: string, pullUrl: string, pushUrl: string) {
     return { title, body, branch };
 
   const cwd = `${dir}/${branch}`;
-  await $`git clone ${pullUrl} ${cwd}`;
+  await $`git clone ${pushUrl} ${cwd}`;
   await $({ cwd })`
   git config user.name ${process.env.GIT_USERNAME || (user.email && user.name)}
   git config user.email ${
@@ -140,7 +140,7 @@ async function add_publish(dir: string, pullUrl: string, pushUrl: string) {
   console.log(src);
   // TODO: streaming process stdio
   const cwd = `${dir}/${branch}`;
-  await $`git clone ${pullUrl} ${cwd}`;
+  await $`git clone ${pushUrl} ${cwd}`;
   await $({ cwd })`
     git config user.name ${process.env.GIT_CONFIG_USER_NAME || user.name}
     git config user.email ${process.env.GIT_CONFIG_USER_EMAIL || user.email}
