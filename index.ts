@@ -47,7 +47,7 @@ const upstreamUrl =
 
 const activate =
   os.platform() === "win32" ? ".venv\\Scripts\\activate" : ".venv/bin/activate";
-if (!(await bunSh`comfy --help`.catch(() => null))) {
+if (!(await bunSh`comfy --help`.quiet().catch(() => null))) {
   DIE(
     `
 Cound not found comfy-cli.
