@@ -127,7 +127,10 @@ async function pr({
       // draft: true,
     })
     .catch((e) => {
-      if (e.message.match("A pull request already exists for")) return null;
+      if (e.message.match("A pull request already exists for")) {
+        console.log("PR Existed ", e);
+        return null;
+      }
       throw e;
     });
   console.log("PR OK", pr_result?.data.html_url);
