@@ -1,5 +1,7 @@
 # Comfy-Registry-PR
 
+Make PRs that publishes ComfyUI Custom Nodes to [ComfyUI Registry]( https://www.comfyregistry.org/ ).
+
 ## Project Goals: (aka roadmap)
 
 - [x] fork repo

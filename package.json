@@ -5,6 +5,9 @@
   "bin": {
     "comfy-pr": "index.ts"
   },
+  "scripts": {
+    "release": "npm version patch && npm publish"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/md5": "^2.3.5"
@@ -26,11 +29,8 @@
     "zx": "^8.1.0"
   },
   "version": "0.0.2",
-  "description": "## Project Goals: (aka roadmap)",
-  "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
+  "description": "Make PRs that publishes ComfyUI Custom Nodes to [ComfyUI Registry]( https://www.comfyregistry.org/ ).",
+  "main": "index.ts",
   "keywords": [],
   "author": "",
   "license": "ISC"
