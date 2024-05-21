@@ -83,16 +83,15 @@ async function ComfyRegistryPR() {
   //   FORK
   await fork(upstream, src);
 
-  // tasks
-  const [pyproject_info, publish_info] = await Promise.all([
-    await add_pyproject(dir, upstreamUrl, forkSSHUrl),
+  // prInfos
+  const prInfos = await Promise.all([
     await add_publish(dir, upstreamUrl, forkSSHUrl),
+    await add_pyproject(dir, upstreamUrl, forkSSHUrl),
   ]);
   // prs
-  await Promise.all([
-    pr({ ...pyproject_info, src, dst: upstream }),
-    pr({ ...publish_info, src, dst: upstream }),
-  ]);
+  await Promise.all(
+    prInfos.map((prInfo) => pr({ ...prInfo, src, dst: upstream }))
+  );
 
   console.log("ALL DONE");
 }
@@ -155,23 +154,14 @@ async function add_pyproject(
 
   // make changes
   // try linux first
+  await $({ cwd })`comfy node init`;
   await $({ cwd })`
 source ${process.cwd() + "/.venv/bin/activate"}
 comfy node init
-  `.catch(
-    // then try windows
-    () =>
-      $({ cwd })`
-${process.cwd() + "\\.venv\\Scripts\\activate"}
+  `;
+  await $({ cwd })`${process.cwd() + "\\.venv\\Scripts\\activate"}
 comfy node init
-    `.catch(
-        // then try directly
-        () => $({ cwd })`
-comfy node init
-      `
-      )
-  );
-
+    `;
   // commit changes
   await $({ cwd })`
 git config user.name ${GIT_USERNAME}
