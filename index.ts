@@ -1,12 +1,15 @@
 #!/usr/bin/env bun
+
 import "dotenv/config";
 import { mkdir, readFile, rm, writeFile } from "fs/promises";
 import md5 from "md5";
 import { basename, dirname } from "path";
-import { $, question } from "zx";
+import { $ as zx, question, chalk } from "zx";
 import { DIE } from "./DIE";
 import { gh } from "./scripts/gh";
-$.verbose = true;
+import { $ } from "./echoBunShell";
+import yaml from "yaml";
+zx.verbose = true;
 // read env/parameters
 console.log("Fetch Current Github User...");
 const user = (await gh.users.getAuthenticated()).data;
@@ -84,14 +87,17 @@ async function ComfyRegistryPR() {
   await fork(upstream, src);
 
   // prInfos
-  const prInfos = await Promise.all([
-    await add_publish(dir, upstreamUrl, forkSSHUrl),
-    await add_pyproject(dir, upstreamUrl, forkSSHUrl),
-  ]);
+  const PR_REQUESTS = (
+    await Promise.all([
+      add_publish(dir, upstreamUrl, forkSSHUrl),
+      add_pyproject(dir, upstreamUrl, forkSSHUrl),
+    ])
+  ).map((content) => ({ ...content, src, dst: upstream }));
+
+  console.log("PR Infos");
+  console.log(chalk.green(yaml.stringify({ PR_REQUESTS })));
   // prs
-  await Promise.all(
-    prInfos.map((prInfo) => pr({ ...prInfo, src, dst: upstream }))
-  );
+  await Promise.all(PR_REQUESTS.map((prInfo) => pr({ ...prInfo })));
 
   console.log("ALL DONE");
 }
@@ -110,6 +116,28 @@ async function pr({
   dst: { owner: string; repo: string };
 }) {
   const repo = (await gh.repos.get({ ...dst })).data;
+
+  // TODO: seems has bugs on head_repo
+  const existedList = (
+    await gh.pulls.list({
+      // source repo
+      state: "all",
+      head_repo: src.owner + "/" + src.repo,
+      head: src.owner + ":" + branch,
+      // pr will merge into
+      owner: dst.owner,
+      repo: dst.repo,
+      base: repo.default_branch,
+    })
+  ).data;
+  if (existedList.length) {
+    const msg = {
+      PR_Existed: existedList.map((e) => ({ url: e.html_url, title: e.title })),
+    };
+    console.log(chalk.red(yaml.stringify(msg)));
+    return;
+  }
+
   const pr_result = await gh.pulls
     .create({
       // pr info
@@ -125,9 +153,33 @@ async function pr({
       maintainer_can_modify: true,
       // draft: true,
     })
-    .catch((e) => {
+    .catch(async (e) => {
       if (e.message.match("A pull request already exists for")) {
         console.log("PR Existed ", e);
+        // WARN: will search all prs
+        const existedList = (
+          await gh.pulls.list({
+            // source repo
+            state: "open",
+            head_repo: src.owner + "/" + src.repo,
+            // head: src.owner + ":" + branch,
+            // pr will merge into
+            owner: dst.owner,
+            repo: dst.repo,
+            base: repo.default_branch,
+          })
+        ).data;
+        if (existedList.length) {
+          const msg = {
+            PR_Existed: existedList.map((e) => ({
+              url: e.html_url,
+              title: e.title,
+            })),
+          };
+          console.log(chalk.red(yaml.stringify(msg)));
+          return;
+        }
+
         return null;
       }
       throw e;
@@ -145,32 +197,33 @@ async function add_pyproject(
   const { title, body } = parseTitleBodyOfMarkdown(tmpl);
   const repo = parseOwnerRepo(forkUrl);
 
-  if (await gh.repos.getBranch({ ...repo, branch }).catch(() => null))
-    return { title, body, branch }; // skip if branch existed
+  if (await gh.repos.getBranch({ ...repo, branch }).catch(() => null)) {
+    console.log("Skip changes as branch existed: " + branch);
+    return { title, body, branch };
+  }
 
   const src = parseOwnerRepo(upstreamUrl);
   const cwd = `${dir}/${branch}/${src.repo}`; // src.repo is for keep correct directory name
-  await $`git clone ${upstreamUrl} ${cwd}`;
-
-  // make changes
-  // try linux first
-  await $({ cwd })`comfy node init`;
-  await $({ cwd })`
-source ${process.cwd() + "/.venv/bin/activate"}
-comfy node init
-  `;
-  await $({ cwd })`${process.cwd() + "\\.venv\\Scripts\\activate"}
-comfy node init
-    `;
   // commit changes
-  await $({ cwd })`
+  await $`
+git clone ${upstreamUrl} ${cwd}
+
+cd ${cwd}
+source ${
+    process.cwd() + "/.venv/bin/activate"
+  } || echo Did not activate venv on Linux.
+${
+  process.cwd() + "\\.venv\\Scripts\\activate"
+} || echo Did not activate venv on Windows.
+comfy node init
+
 git config user.name ${GIT_USERNAME}
 git config user.email ${GIT_USEREMAIL}
 git checkout -b ${branch}
 git add .
 git commit -am ${`chore(${branch}): ${title}`}
 git push "${forkUrl}" ${branch}:${branch}
-  `;
+`;
   const branchUrl = `https://github.com/${repo.owner}/${repo.repo}/tree/${branch}`;
   console.log(`Branch Push OK: ${branchUrl}`);
   return { title, body, branch };
@@ -182,23 +235,28 @@ async function add_publish(dir: string, upstreamUrl: string, forkUrl: string) {
   const { title, body } = parseTitleBodyOfMarkdown(tmpl);
   const repo = parseOwnerRepo(forkUrl);
 
-  if (await gh.repos.getBranch({ ...repo, branch }).catch(() => null))
-    return { title, body, branch }; // skip if branch existed
+  if (await gh.repos.getBranch({ ...repo, branch }).catch(() => null)) {
+    console.log("Skip changes as branch existed: " + branch);
+    return { title, body, branch };
+  }
 
   const src = parseOwnerRepo(upstreamUrl);
   const cwd = `${dir}/${branch}/${src.repo}`; // src.repo is for keep correct directory name
 
-  await $`git clone ${upstreamUrl} ${cwd}`;
-  // make changes
   const file = `${cwd}/.github/workflows/publish.yml`;
   const publishYmlPath = "./templates/publish.yaml";
-  console.log("Copying ", publishYmlPath, "to", file);
-  await mkdir(dirname(file), { recursive: true });
-  await writeFile(file, await readFile(publishYmlPath, "utf8"));
+
   // commit & push changes
-  await $({ cwd })`
-git config user.name ${process.env.GIT_CONFIG_USER_NAME || user.name}
-git config user.email ${process.env.GIT_CONFIG_USER_EMAIL || user.email}
+  await $`
+git clone ${upstreamUrl} ${cwd}
+
+mkdir -p ${dirname(file)}
+cat ${publishYmlPath} > ${file}
+
+cd ${cwd}
+
+git config user.name ${GIT_USERNAME}
+git config user.email ${GIT_USEREMAIL}
 git checkout -b ${branch}
 git add .
 git commit -am "chore(${branch}): ${title}"
