@@ -3,56 +3,86 @@ import "dotenv/config";
 import { mkdir, readFile, rm, writeFile } from "fs/promises";
 import md5 from "md5";
 import { basename, dirname } from "path";
-import "zx/globals";
-import { gh } from "./scripts/gh.js";
-
+import { $ } from "zx/core";
+import { gh } from "./scripts/gh";
+$.verbose = true;
 // read env/parameters
 console.log("Fetch Current Github User...");
 const user = (await gh.users.getAuthenticated()).data;
+
+const GIT_USERNAME =
+  process.env.GIT_USERNAME ||
+  (user.email && user.name) ||
+  DIE("Missing env.GIT_USERNAME");
+
+const GIT_USEREMAIL =
+  process.env.GIT_USEREMAIL ||
+  (user.email && user.email) ||
+  DIE("Missing env.GIT_USEREMAIL");
+
 const FORK_OWNER =
   process.env.FORK_OWNER?.replace(/"/g, "")?.trim() ||
   process.env.FORK_OWNER?.replace(/"/g, "")?.trim() ||
-  user.name;
-const FORK_PREFIX = process.env.FORK_PREFIX?.replace(/"/g, "")?.trim();
-if (!FORK_OWNER) throw new Error("Missing FORK_OWNER");
-if (!FORK_PREFIX) throw new Error("Missing FORK_PREFIX");
-const dstUrl = process.env.REPO || process.argv[3] || process.argv[2];
-if (!dstUrl) throw new Error("Missing dstUrl");
+  user.name ||
+  DIE("Missing env.FORK_OWNER");
+const FORK_PREFIX =
+  process.env.FORK_PREFIX?.replace(/"/g, "")?.trim() ??
+  DIE('Missing env.FORK_PREFIX, if you want empty maybe try FORK_PREFIX=""');
+
+const upstreamUrl =
+  process.env.REPO ||
+  process.argv[3] ||
+  process.argv[2] ||
+  DIE("Missing env.REPO");
+
 console.log("GIT_USER: ", user.name, user.email);
 
 // main
 {
   // Repo Define
   // TODO: add a confirmation
-  const dst = parseOwnerRepo(dstUrl);
+  const upstream = parseOwnerRepo(upstreamUrl);
   const salt = process.env.SALT || "m3KMgZ2AeZGWYh7W";
-  const repo_hash = md5(`${salt}-${user.name}-${dst.owner}/${dst.repo}`).slice(
-    0,
-    8
-  );
-
-  const srcUrl = `git@github.com:${FORK_OWNER}/${FORK_PREFIX}${dst.repo}-${repo_hash}`;
-  const src = parseOwnerRepo(srcUrl);
-  console.log("PR_SRC: ", srcUrl);
-  console.log("PR_DST: ", dstUrl);
-  console.log(srcUrl);
+  const repo_hash = md5(
+    `${salt}-${user.name}-${upstream.owner}/${upstream.repo}`
+  ).slice(0, 8);
+  const forkRepoName =
+    (FORK_PREFIX && `${FORK_PREFIX}${upstream.repo}-${repo_hash}`) ||
+    upstream.repo;
+  const forkDst = `${FORK_OWNER}/${forkRepoName}`;
+  const forkSSHUrl = `git@github.com:${forkDst}`;
+  const forkHTTPSUrl = `https://github.com/${forkDst}`;
+  const src = parseOwnerRepo(forkSSHUrl);
+  // console.log("PR_SRC: ", forkSSHUrl);
+  // console.log("PR_DST: ", upstreamUrl);
+  // console.log(forkSSHUrl);
 
   console.log("Cleaning the pr before run");
   const dir = `prs/${src.repo}`;
   await rm(dir, { recursive: true }).catch(() => null);
 
+  //   const choose = await question(
+  //     `
+  // Prepare to fork...
+  // From: ${upstreamUrl}
+  //   To: ${forkHTTPSUrl}
+  // Are you ready to fork (y/N)?
+  // `.trim()
+  //   );
+  //   choose.match(/y/i) || DIE("User Aborted");
+
   //   FORK
-  await fork(dst, src);
+  await fork(upstream, src);
 
   // tasks
   const [pyproject_info, publish_info] = await Promise.all([
-    add_pyproject(dir, dstUrl, srcUrl),
-    add_publish(dir, dstUrl, srcUrl),
+    await add_pyproject(dir, upstreamUrl, forkSSHUrl),
+    await add_publish(dir, upstreamUrl, forkSSHUrl),
   ]);
   // prs
   await Promise.all([
-    pr({ ...pyproject_info, src, dst }),
-    pr({ ...publish_info, src, dst }),
+    pr({ ...pyproject_info, src, dst: upstream }),
+    pr({ ...publish_info, src, dst: upstream }),
   ]);
 
   console.log("ALL DONE");
@@ -91,70 +121,92 @@ async function pr({
       if (e.message.match("A pull request already exists for")) return null;
       throw e;
     });
-  console.log("PR OK", pr_result?.data.url);
+  console.log("PR OK", pr_result?.data.html_url);
 }
 
-async function add_pyproject(dir: string, pullUrl: string, pushUrl: string) {
+async function add_pyproject(
+  dir: string,
+  upstreamUrl: string,
+  forkUrl: string
+) {
   const branch = "pyproject";
   const tmpl = await readFile("./templates/add-toml.md", "utf8");
   const { title, body } = parseTitleBodyOfMarkdown(tmpl);
-  const repo = parseOwnerRepo(pushUrl);
+  const repo = parseOwnerRepo(forkUrl);
+
   if (await gh.repos.getBranch({ ...repo, branch }).catch(() => null))
-    return { title, body, branch };
+    return { title, body, branch }; // skip if branch existed
 
-  const cwd = `${dir}/${branch}`;
-  await $`git clone ${pushUrl} ${cwd}`;
-  await $({ cwd })`
-  git config user.name ${process.env.GIT_USERNAME || (user.email && user.name)}
-  git config user.email ${
-    process.env.GIT_USEREMAIL || (user.email && user.email)
-  }
-  git checkout -b ${branch}
-  `;
+  const src = parseOwnerRepo(upstreamUrl);
+  const cwd = `${dir}/${branch}/${src.repo}`; // src.repo is for keep correct directory name
+  await $`git clone ${upstreamUrl} ${cwd}`;
 
-  const p = $({ cwd })`comfy node init`;
-  p.stdin.write("y"), p.stdin.end();
-  p.stdout.pipe(process.stdout);
-  p.stderr.pipe(process.stderr);
-  await p;
+  // make changes
+
+  // try linux first
   await $({ cwd })`
-    git add .
-    git commit -am "chore(${branch}): ${title}"
-    git push "${pushUrl}" ${branch}:${branch}
+source ${process.cwd() + "/.venv/bin/activate"}
+comfy node init
+  `
+    .catch(
+      // then try windows
+      () => $({ cwd })`
+${process.cwd() + "\\.venv\\Scripts\\activate"}
+comfy node init
+    `
+    )
+    .catch(
+      // then try directly
+      () => $({ cwd })`
+comfy node init
+      `
+    );
+
+  // commit changes
+  await $({ cwd })`
+git config user.name ${GIT_USERNAME}
+git config user.email ${GIT_USEREMAIL}
+git checkout -b ${branch}
+git add .
+git commit -am ${`chore(${branch}): ${title}`}
+git push "${forkUrl}" ${branch}:${branch}
   `;
-  console.log("Creating branch: pyproject OK");
+  const branchUrl = `https://github.com/${repo.owner}/${repo.repo}/tree/${branch}`;
+  console.log(`Branch Push OK: ${branchUrl}`);
   return { title, body, branch };
 }
 
-async function add_publish(dir: string, pullUrl: string, pushUrl: string) {
+async function add_publish(dir: string, upstreamUrl: string, forkUrl: string) {
   const branch = "publish";
   const tmpl = await readFile("./templates/add-action.md", "utf8");
   const { title, body } = parseTitleBodyOfMarkdown(tmpl);
-  const repo = parseOwnerRepo(pushUrl);
+  const repo = parseOwnerRepo(forkUrl);
+
   if (await gh.repos.getBranch({ ...repo, branch }).catch(() => null))
-    return { title, body, branch };
+    return { title, body, branch }; // skip if branch existed
 
-  const file = `${dir}/${branch}/.github/workflows/publish.yml`;
-  const src = "./templates/publish.yaml";
-  //           ./prs/repo/branch/
-  console.log(src);
-  // TODO: streaming process stdio
-  const cwd = `${dir}/${branch}`;
-  await $`git clone ${pushUrl} ${cwd}`;
-  await $({ cwd })`
-    git config user.name ${process.env.GIT_CONFIG_USER_NAME || user.name}
-    git config user.email ${process.env.GIT_CONFIG_USER_EMAIL || user.email}
-    git checkout -b ${branch}
-    `;
+  const src = parseOwnerRepo(upstreamUrl);
+  const cwd = `${dir}/${branch}/${src.repo}`; // src.repo is for keep correct directory name
+
+  await $`git clone ${upstreamUrl} ${cwd}`;
+  // make changes
+  const file = `${cwd}/.github/workflows/publish.yml`;
+  const publishYmlPath = "./templates/publish.yaml";
+  console.log("Copying ", publishYmlPath, "to", file);
   await mkdir(dirname(file), { recursive: true });
-  await writeFile(file, await readFile(src, "utf8"));
+  await writeFile(file, await readFile(publishYmlPath, "utf8"));
+  // commit & push changes
   await $({ cwd })`
-    git add .
-    git commit -am "chore(${branch}): ${title}"
-    git push "${pushUrl}" ${branch}:${branch}
+git config user.name ${process.env.GIT_CONFIG_USER_NAME || user.name}
+git config user.email ${process.env.GIT_CONFIG_USER_EMAIL || user.email}
+git checkout -b ${branch}
+git add .
+git commit -am "chore(${branch}): ${title}"
+git push "${forkUrl}" ${branch}:${branch}
     `;
 
-  console.log("Creating branch: publish OK");
+  const branchUrl = `https://github.com/${repo.owner}/${repo.repo}/tree/${branch}`;
+  console.log(`Branch Push OK: ${branchUrl}`);
   return { title, body, branch };
 }
 
@@ -173,7 +225,10 @@ async function fork(
       if (e.message.match("Name already exists on this account")) return null;
       throw e;
     });
-  console.log("FORK OK ", forkResult?.data.url);
+  const forkedUrl =
+    forkResult?.data.html_url ??
+    "https://github.com/" + to.owner + "/" + to.repo;
+  console.log("FORK OK ", forkedUrl);
 }
 
 function parseOwnerRepo(name: string) {
@@ -187,4 +242,8 @@ function parseTitleBodyOfMarkdown(tmpl: string) {
   const title = tmpl.split("\n")[0].slice(1).trim();
   const body = tmpl.split("\n").slice(1).join("\n").trim();
   return { title, body };
+}
+
+function DIE(reason?: string | Error): never {
+  throw reason;
 }

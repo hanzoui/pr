@@ -10,11 +10,13 @@
     "typescript": "^5.4.5"
   },
   "dependencies": {
+    "@snomiao/die": "^1.0.4",
     "axios": "^1.6.8",
     "dotenv": "^16.4.5",
     "execa": "^9.1.0",
     "md5": "^2.3.0",
     "octokit": "^4.0.2",
+    "rambda": "^9.2.0",
     "snorun": "^1.1.17",
     "toml": "^3.0.0",
     "yargs": "^17.7.2",
