@@ -1,7 +1,10 @@
 {
-  "name": "@snomiao/comfy-registry-pr",
+  "name": "comfy-pr",
   "module": "index.ts",
   "type": "module",
+  "bin": {
+    "comfy-pr": "index.ts"
+  },
   "devDependencies": {
     "@types/bun": "latest",
     "@types/md5": "^2.3.5"
@@ -22,5 +25,13 @@
     "yargs": "^17.7.2",
     "zx": "^8.1.0"
   },
-  "version": "0.0.1"
+  "version": "0.0.1",
+  "description": "## Project Goals: (aka roadmap)",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
 }
