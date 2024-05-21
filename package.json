@@ -29,7 +29,7 @@
     "yargs": "^17.7.2",
     "zx": "^8.1.0"
   },
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Make PRs that publishes ComfyUI Custom Nodes to [ComfyUI Registry]( https://www.comfyregistry.org/ ).",
   "main": "index.ts",
   "keywords": [],
