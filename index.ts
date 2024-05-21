@@ -3,7 +3,8 @@ import "dotenv/config";
 import { mkdir, readFile, rm, writeFile } from "fs/promises";
 import md5 from "md5";
 import { basename, dirname } from "path";
-import { $ } from "zx/core";
+import { $, question } from "zx";
+import { DIE } from "./DIE";
 import { gh } from "./scripts/gh";
 $.verbose = true;
 // read env/parameters
@@ -13,36 +14,46 @@ const user = (await gh.users.getAuthenticated()).data;
 const GIT_USERNAME =
   process.env.GIT_USERNAME ||
   (user.email && user.name) ||
+  (await question("Input env.GIT_USERNAME: ")) ||
   DIE("Missing env.GIT_USERNAME");
-
 const GIT_USEREMAIL =
   process.env.GIT_USEREMAIL ||
   (user.email && user.email) ||
+  (await question("Input env.GIT_USEREMAIL: ")) ||
   DIE("Missing env.GIT_USEREMAIL");
 
 const FORK_OWNER =
   process.env.FORK_OWNER?.replace(/"/g, "")?.trim() ||
-  process.env.FORK_OWNER?.replace(/"/g, "")?.trim() ||
   user.name ||
+  (await question(
+    "Input env.FORK_OWNER (for example FORK_OWNER=ComfyNodePRs, will fork into https://github.com/ComfyNodePRs): "
+  )) ||
   DIE("Missing env.FORK_OWNER");
 const FORK_PREFIX =
-  process.env.FORK_PREFIX?.replace(/"/g, "")?.trim() ??
+  (process.env.FORK_PREFIX?.replace(/"/g, "")?.trim() ||
+    (await question(
+      "Input env.FORK_PREFIX ('PR-' is Recommened, but also it could be empty): "
+    ))) ??
   DIE('Missing env.FORK_PREFIX, if you want empty maybe try FORK_PREFIX=""');
 
 const upstreamUrl =
   process.env.REPO ||
-  process.argv[3] ||
-  process.argv[2] ||
+  (await question("Input the PR target env.REPO: ")) ||
   DIE("Missing env.REPO");
 
 console.log("GIT_USER: ", user.name, user.email);
 
 // main
 {
+  await ComfyRegistryPR();
+  // todo: build and publish to npm
+}
+
+async function ComfyRegistryPR() {
   // Repo Define
-  // TODO: add a confirmation
   const upstream = parseOwnerRepo(upstreamUrl);
   const salt = process.env.SALT || "m3KMgZ2AeZGWYh7W";
+  console.log(`* Change env.SALT=${salt} will fork into a different repo`);
   const repo_hash = md5(
     `${salt}-${user.name}-${upstream.owner}/${upstream.repo}`
   ).slice(0, 8);
@@ -56,7 +67,6 @@ console.log("GIT_USER: ", user.name, user.email);
   // console.log("PR_SRC: ", forkSSHUrl);
   // console.log("PR_DST: ", upstreamUrl);
   // console.log(forkSSHUrl);
-
   console.log("Cleaning the pr before run");
   const dir = `prs/${src.repo}`;
   await rm(dir, { recursive: true }).catch(() => null);
@@ -70,7 +80,6 @@ console.log("GIT_USER: ", user.name, user.email);
   // `.trim()
   //   );
   //   choose.match(/y/i) || DIE("User Aborted");
-
   //   FORK
   await fork(upstream, src);
 
@@ -242,8 +251,4 @@ function parseTitleBodyOfMarkdown(tmpl: string) {
   const title = tmpl.split("\n")[0].slice(1).trim();
   const body = tmpl.split("\n").slice(1).join("\n").trim();
   return { title, body };
-}
-
-function DIE(reason?: string | Error): never {
-  throw reason;
 }

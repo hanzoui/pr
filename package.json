@@ -1,5 +1,5 @@
 {
-  "name": "comfy-registry-pr",
+  "name": "@snomiao/comfy-registry-pr",
   "module": "index.ts",
   "type": "module",
   "devDependencies": {
