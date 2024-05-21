@@ -154,25 +154,23 @@ async function add_pyproject(
   await $`git clone ${upstreamUrl} ${cwd}`;
 
   // make changes
-
   // try linux first
   await $({ cwd })`
 source ${process.cwd() + "/.venv/bin/activate"}
 comfy node init
-  `
-    .catch(
-      // then try windows
-      () => $({ cwd })`
+  `.catch(
+    // then try windows
+    () =>
+      $({ cwd })`
 ${process.cwd() + "\\.venv\\Scripts\\activate"}
 comfy node init
-    `
-    )
-    .catch(
-      // then try directly
-      () => $({ cwd })`
+    `.catch(
+        // then try directly
+        () => $({ cwd })`
 comfy node init
       `
-    );
+      )
+  );
 
   // commit changes
   await $({ cwd })`
