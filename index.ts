@@ -93,7 +93,7 @@ async function checkComfyActivated() {
   const activate =
     os.platform() === "win32"
       ? ".venv\\Scripts\\activate"
-      : ".venv/bin/activate";
+      : "source .venv/bin/activate";
   if (!(await bunSh`comfy --help`.quiet().catch(() => null))) {
     DIE(
       `
