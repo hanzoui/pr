@@ -13,6 +13,19 @@ import { gh } from "./scripts/gh";
 import { F, fromPairs, groupBy } from "rambda";
 import toml from "toml";
 
+
+if (argv.help) {
+  console.log(`
+
+bunx comfy-pr --repolist repos.txt       one repo per-line
+
+bunx comfy-pr [...GITHUB_REPO_URLS]      github repos
+
+bunx cross-env REPO=https://github.com/OWNER/REPO bunx comfy-pr
+  
+  `.trim());
+}
+
 zx.verbose = true;
 
 const repoDescriptionPromise = fetchRepoDescriptionMap();
@@ -51,17 +64,6 @@ console.log("GIT_USER: ", user.name, user.email);
 
 // main
 {
-  if (argv.help) {
-    console.log(`
-
-bunx comfy-pr --repolist repos.txt       one repo per-line
-
-bunx comfy-pr [...GITHUB_REPO_URLS]      github repos
-
-bunx cross-env REPO=https://github.com/OWNER/REPO bunx comfy-pr
-    
-    `.trim());
-  }
   const envRepos =
     process.env.REPO?.split("\n")
       .map((e) => e.trim())
