@@ -6,40 +6,21 @@ import { writeFile, readFile, rm } from "fs/promises";
 import md5 from "md5";
 import { basename, dirname } from "path";
 import yaml from "yaml";
-import { chalk, os, question, $ as zx } from "zx";
+import { argv, chalk, os, question, updateArgv, $ as zx } from "zx";
 import { DIE } from "./DIE";
 import { $ } from "./echoBunShell";
 import { gh } from "./scripts/gh";
-import { fromPairs, groupBy } from "rambda";
+import { F, fromPairs, groupBy } from "rambda";
 import toml from "toml";
 
 zx.verbose = true;
+
+const repoDescriptionPromise = fetchRepoDescriptionMap();
+await checkComfyActivated();
+
 // read env/parameters
 console.log("Fetch Current Github User...");
 const user = (await gh.users.getAuthenticated()).data;
-
-const customNodeListSource =
-  process.env.CUSTOM_LIST_SOURCE ||
-  "https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/custom-node-list.json";
-const nodeList = (await fetch(customNodeListSource).then((e) => e.json())) as {
-  custom_nodes: {
-    author: "Dr.Lt.Data" | string;
-    title: "ComfyUI-Manager" | string;
-    id: "manager" | string;
-    reference: "https://github.com/ltdrdata/ComfyUI-Manager" | string;
-    files: ["https://github.com/ltdrdata/ComfyUI-Manager"] | string[];
-    install_type: "git-clone" | string;
-    description: "ComfyUI-Manager itself is also a custom node." | string;
-  }[];
-};
-const custom_nodes = nodeList.custom_nodes;
-const repoDescriptionMap = fromPairs(
-  nodeList.custom_nodes.map((e) => [e.reference, e.description])
-);
-repoDescriptionMap["https://github.com/snomiao/ComfyNode-Registry-test"] =
-  "ComfyNode-Registry-test-description";
-
-console.log("Fetched " + custom_nodes.length);
 
 const GIT_USERNAME =
   process.env.GIT_USERNAME ||
@@ -66,17 +47,53 @@ const FORK_PREFIX =
     ))) ??
   DIE('Missing env.FORK_PREFIX, if you want empty maybe try FORK_PREFIX=""');
 
-const upstreamUrl =
-  process.env.REPO ||
-  process.argv[2] ||
-  (await question("Input the PR target env.REPO: ")) ||
-  DIE("Missing env.REPO");
+console.log("GIT_USER: ", user.name, user.email);
 
-const activate =
-  os.platform() === "win32" ? ".venv\\Scripts\\activate" : ".venv/bin/activate";
-if (!(await bunSh`comfy --help`.quiet().catch(() => null))) {
-  DIE(
-    `
+// main
+{
+  if (argv.help) {
+    console.log(`
+
+bunx comfy-pr --repolist repos.txt       one repo per-line
+
+bunx comfy-pr [...GITHUB_REPO_URLS]      github repos
+
+bunx cross-env REPO=https://github.com/OWNER/REPO bunx comfy-pr
+    
+    `.trim());
+  }
+  const envRepos =
+    process.env.REPO?.split("\n")
+      .map((e) => e.trim())
+      .filter(Boolean) || [];
+  const argvRepos = argv._.filter((a) => !a.endsWith(import.meta.filename));
+  const listRepos =
+    (await readFile(argv.repolist, "utf8").catch(() => ""))
+      .split("\n")
+      .map((e) => e.trim())
+      .filter(Boolean) ||
+    [] ||
+    [];
+  const repos = (listRepos.length && listRepos) ||
+    (argvRepos.length && argvRepos) ||
+    (envRepos.length && envRepos) || [
+      (await question("Input the PR target env.REPO: ")) ||
+        DIE("Missing env.REPO"),
+    ];
+  for await (const upstreamUrl of repos) {
+    await ComfyRegistryPR(upstreamUrl);
+  }
+}
+
+async function checkComfyActivated() {
+  console.log("Checking ComfyUI Activated...");
+  const activate =
+    os.platform() === "win32"
+      ? ".venv\\Scripts\\activate"
+      : ".venv/bin/activate";
+  if (!(await bunSh`comfy --help`.quiet().catch(() => null))) {
+    DIE(
+      `
 Cound not found comfy-cli.
 Please install comfy-cli before run "bunx comfy-pr" here.
 
@@ -86,17 +103,39 @@ ${activate}
 pip install comfy-cli
 comfy-cli --help
 `.trim()
+    );
+  }
+}
+
+async function fetchRepoDescriptionMap() {
+  const customNodeListSource =
+    process.env.CUSTOM_LIST_SOURCE ||
+    "https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/custom-node-list.json";
+  const nodeList = (await fetch(customNodeListSource).then((e) =>
+    e.json()
+  )) as {
+    custom_nodes: {
+      author: "Dr.Lt.Data" | string;
+      title: "ComfyUI-Manager" | string;
+      id: "manager" | string;
+      reference: "https://github.com/ltdrdata/ComfyUI-Manager" | string;
+      files: ["https://github.com/ltdrdata/ComfyUI-Manager"] | string[];
+      install_type: "git-clone" | string;
+      description: "ComfyUI-Manager itself is also a custom node." | string;
+    }[];
+  };
+  const custom_nodes = nodeList.custom_nodes;
+  const repoDescriptionMap = fromPairs(
+    nodeList.custom_nodes.map((e) => [e.reference, e.description])
   );
-}
-console.log("GIT_USER: ", user.name, user.email);
+  repoDescriptionMap["https://github.com/snomiao/ComfyNode-Registry-test"] =
+    "ComfyNode-Registry-test-description";
 
-// main
-{
-  await ComfyRegistryPR();
-  // todo: build and publish to npm
+  console.log("Fetched " + custom_nodes.length + " CustomNode descriptions");
+  return repoDescriptionMap;
 }
 
-async function ComfyRegistryPR() {
+async function ComfyRegistryPR(upstreamUrl: string) {
   // Repo Define
   const upstream = parseOwnerRepo(upstreamUrl);
   const salt = process.env.SALT || "m3KMgZ2AeZGWYh7W";
@@ -278,6 +317,7 @@ git push "${forkUrl}" ${branch}:${branch}
 }
 
 async function fillDescription(referenceUrl: string, pyprojectToml: string) {
+  const repoDescriptionMap = await repoDescriptionPromise;
   const matchedDescription =
     repoDescriptionMap[referenceUrl]?.toString() ||
     DIE("Warn: missing description for " + referenceUrl);
