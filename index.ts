@@ -2,7 +2,7 @@
 
 import { $ as bunSh } from "bun";
 import "dotenv/config";
-import { readFile, rm } from "fs/promises";
+import { writeFile, readFile, rm } from "fs/promises";
 import md5 from "md5";
 import { basename, dirname } from "path";
 import yaml from "yaml";
@@ -10,10 +10,36 @@ import { chalk, os, question, $ as zx } from "zx";
 import { DIE } from "./DIE";
 import { $ } from "./echoBunShell";
 import { gh } from "./scripts/gh";
+import { fromPairs, groupBy } from "rambda";
+import toml from "toml";
+
 zx.verbose = true;
 // read env/parameters
 console.log("Fetch Current Github User...");
 const user = (await gh.users.getAuthenticated()).data;
+
+const customNodeListSource =
+  process.env.CUSTOM_LIST_SOURCE ||
+  "https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/custom-node-list.json";
+const nodeList = (await fetch(customNodeListSource).then((e) => e.json())) as {
+  custom_nodes: {
+    author: "Dr.Lt.Data" | string;
+    title: "ComfyUI-Manager" | string;
+    id: "manager" | string;
+    reference: "https://github.com/ltdrdata/ComfyUI-Manager" | string;
+    files: ["https://github.com/ltdrdata/ComfyUI-Manager"] | string[];
+    install_type: "git-clone" | string;
+    description: "ComfyUI-Manager itself is also a custom node." | string;
+  }[];
+};
+const custom_nodes = nodeList.custom_nodes;
+const repoDescriptionMap = fromPairs(
+  nodeList.custom_nodes.map((e) => [e.reference, e.description])
+);
+repoDescriptionMap["https://github.com/snomiao/ComfyNode-Registry-test"] =
+  "ComfyNode-Registry-test-description";
+
+console.log("Fetched " + custom_nodes.length);
 
 const GIT_USERNAME =
   process.env.GIT_USERNAME ||
@@ -42,6 +68,7 @@ const FORK_PREFIX =
 
 const upstreamUrl =
   process.env.REPO ||
+  process.argv[2] ||
   (await question("Input the PR target env.REPO: ")) ||
   DIE("Missing env.REPO");
 
@@ -227,7 +254,17 @@ git clone ${upstreamUrl} ${cwd}
 
 cd ${cwd}
 echo N | comfy node init
+`;
 
+  // Try fill description from ComfyUI-manager
+  const referenceUrl = `https://github.com/${src.owner}/${src.repo}`;
+  const pyprojectToml = cwd + "/pyproject.toml";
+  await fillDescription(referenceUrl, pyprojectToml).catch((e) => {
+    console.error(e);
+  });
+
+  await $`
+cd ${cwd}
 git config user.name ${GIT_USERNAME} && \
 git config user.email ${GIT_USEREMAIL} && \
 git checkout -b ${branch} && \
@@ -238,6 +275,19 @@ git push "${forkUrl}" ${branch}:${branch}
   const branchUrl = `https://github.com/${repo.owner}/${repo.repo}/tree/${branch}`;
   console.log(`Branch Push OK: ${branchUrl}`);
   return { title, body, branch };
+}
+
+async function fillDescription(referenceUrl: string, pyprojectToml: string) {
+  const matchedDescription =
+    repoDescriptionMap[referenceUrl]?.toString() ||
+    DIE("Warn: missing description for " + referenceUrl);
+  const replaced = (await readFile(pyprojectToml, "utf8")).replace(
+    `description = ""`,
+    `description = ${JSON.stringify(matchedDescription)}`
+  );
+  // check validity
+  toml.parse(replaced);
+  await writeFile(pyprojectToml, replaced);
 }
 
 async function add_publish(dir: string, upstreamUrl: string, forkUrl: string) {
