@@ -141,7 +141,7 @@ async function fetchRepoDescriptionMap() {
 async function ComfyRegistryPR(upstreamUrl: string) {
   // Repo Define
   const upstream = parseOwnerRepo(upstreamUrl);
-  const salt = process.env.SALT || "m3KMgZ2AeZGWYh7W";
+  const salt = argv.salt || process.env.SALT || "m3KMgZ2AeZGWYh7W";
   console.log(`* Change env.SALT=${salt} will fork into a different repo`);
   const repo_hash = md5(
     `${salt}-${user.name}-${upstream.owner}/${upstream.repo}`
