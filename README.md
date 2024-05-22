@@ -1,6 +1,6 @@
 # Comfy-PR
 
-Make PRs that publishes ComfyUI Custom Nodes to [ComfyUI Registry]( https://www.comfyregistry.org/ ).
+Make PRs that publishes ComfyUI Custom Nodes to [ComfyUI Registry](https://www.comfyregistry.org/).
 
 ## Project Goals: (aka roadmap)
 
@@ -13,11 +13,10 @@ Make PRs that publishes ComfyUI Custom Nodes to [ComfyUI Registry]( https://www.
 
 - [ ] Delete the repo which is Done (merged or rejected)
 
-## Get Started
-
+## Get Started by
 
 ```
-bunx comfy-pr
+bunx comfy-pr [...GITHUB_REPO_URLS]
 ```
 
 ### 1. Setup Envs
@@ -25,10 +24,14 @@ bunx comfy-pr
 A demo .env should be sth like:
 
 ```sh
+# your github token
 GH_TOKEN=ghp_WWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWWW
-FORK_OWNER="drip-art" #
+
+# the pr source organization/ leave it blank to use yourself's account.
+FORK_OWNER="ComfyNodePRs"
+
+# PR prefix
 FORK_PREFIX="PR-"
-REPO=https://github.com/snomiao/ComfyNode-Registry-test
 ```
 
 #### Github API Token (GH_TOKEN)
