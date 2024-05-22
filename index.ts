@@ -61,7 +61,7 @@ const FORK_PREFIX =
     ))) ??
   DIE('Missing env.FORK_PREFIX, if you want empty maybe try FORK_PREFIX=""');
 
-console.log("GIT_USER: ", user.name, user.email);
+console.log(`GIT_USER: ${GIT_USERNAME} <${GIT_USEREMAIL}>`);
 
 // main
 {
