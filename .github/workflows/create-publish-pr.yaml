@@ -1,4 +1,4 @@
-name: Create Registry Publish PR
+name: Create Registry Publish PR by manual trigger (for testing)
 
 on:
   workflow_dispatch:
