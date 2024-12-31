@@ -25,13 +25,14 @@ export async function makePublishcrBranch(upstreamUrl: string, forkUrl: Readonly
   const repo = parseUrlRepoOwner(origin);
 
   if (await gh.repos.getBranch({ ...repo, branch }).catch(() => null)) {
+    // prevent unrelated history
     console.log("Skip changes as branch existed: " + branch);
     return { type, title, body, branch };
   }
 
   const cwd = await getBranchWorkingDir(upstreamUrl, forkUrl, branch);
   const upsreamOwner = parseUrlRepoOwner(upstreamUrl).owner;
-  const file = `${cwd}/.github/workflows/publish.yml`;
+  const file = `.github/workflows/publish.yml`;
   const publishYmlPath = "./templates/publish.yaml";
   const publishYmlTemplate = await readFile(publishYmlPath, "utf8");
   const repalcedContent = publishYmlTemplate.replace("NODE_AUTHOR_OWNER", upsreamOwner);
@@ -40,17 +41,17 @@ export async function makePublishcrBranch(upstreamUrl: string, forkUrl: Readonly
   await $`
 git clone ${upstreamUrl} ${cwd}
 
+cd ${cwd}
+
 mkdir -p ${dirname(file)}
 echo "${repalcedContent}" > ${file}
-
-cd ${cwd}
 
 git config user.name ${GIT_USERNAME} && \
 git config user.email ${GIT_USEREMAIL} && \
 git checkout -b ${branch} && \
 git add . && \ 
 git commit -am "chore(${branch}): ${title}" && \
-git push "${origin}" ${branch}:${branch}
+git push -f "${origin}" ${branch}:${branch}
 `;
 
   const branchUrl = `${stringifyGithubRepoUrl(repo)}/tree/${branch}`;
