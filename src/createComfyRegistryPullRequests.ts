@@ -1,32 +1,23 @@
 import pMap from "p-map";
-// import { chalk } from "zx";
 import { clone_modify_push_Branches } from "./clone_modify_push_Branches";
 import { createGithubForkForRepo } from "./createGithubForkForRepo";
 import { createGithubPullRequest } from "./createGithubPullRequest";
 import type { GithubPull } from "./gh/GithubPull";
-import { makeUpdateTomlLicenseBranch } from "./makeUpdateTomlLicenseBranch";
 import { parsePulls } from "./parsePullsState";
-
+if (import.meta.main) {
+  // test repo
+  const test_repo = "https://github.com/snomiao/ComfyNode-Registry-test";
+  console.info(await createComfyRegistryPullRequests(test_repo));
+}
 export async function createComfyRegistryPullRequests(upstreamRepoUrl: string) {
+  console.log("forking " + upstreamRepoUrl);
   const forkedRepo = await createGithubForkForRepo(upstreamRepoUrl);
 
+  console.log("modifing " + forkedRepo.html_url);
   const PR_REQUESTS = await clone_modify_push_Branches(upstreamRepoUrl, forkedRepo.html_url);
   const prs = await pMap(PR_REQUESTS, async ({ type, ...prInfo }) => await createGithubPullRequest({ ...prInfo }));
 
   console.log("Registry PRs DONE");
 
   return ([...prs] as GithubPull[]).map((e) => parsePulls([e])[0]);
-}
-
-export async function clone_modify_push_Branches_for_updateTomlLicense(upstreamUrl: string, forkUrl: string) {
-  return (await Promise.all([makeUpdateTomlLicenseBranch(upstreamUrl, forkUrl)]))
-    .flatMap((e) => (e ? [e] : []))
-    .map(({ body, branch, title, type }) => ({
-      body,
-      branch,
-      title,
-      type,
-      srcUrl: forkUrl,
-      dstUrl: upstreamUrl,
-    }));
 }
