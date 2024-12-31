@@ -1,3 +1,4 @@
+import minimist from "minimist";
 import pMap from "p-map";
 import { clone_modify_push_Branches } from "./clone_modify_push_Branches";
 import { createGithubForkForRepo } from "./createGithubForkForRepo";
@@ -6,7 +7,8 @@ import type { GithubPull } from "./gh/GithubPull";
 import { parsePulls } from "./parsePullsState";
 if (import.meta.main) {
   // test repo
-  const test_repo = "https://github.com/snomiao/ComfyNode-Registry-test";
+  const default_test_repo = "https://github.com/snomiao/ComfyNode-Registry-test";
+  const test_repo = minimist(process.argv.slice(2)).argv || default_test_repo;
   console.info(await createComfyRegistryPullRequests(test_repo));
 }
 export async function createComfyRegistryPullRequests(upstreamRepoUrl: string) {
