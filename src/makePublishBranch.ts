@@ -1,10 +1,9 @@
 import { readFile } from "fs/promises";
 import { dirname } from "path";
-import { GIT_USEREMAIL } from "./GIT_USEREMAIL";
-import { GIT_USERNAME } from "./GIT_USERNAME";
 import { $ } from "./cli/echoBunShell";
 import { getBranchWorkingDir } from "./getBranchWorkingDir";
 import { gh } from "./gh";
+import { GIT_USEREMAIL, GIT_USERNAME } from "./ghUser";
 import { parseUrlRepoOwner, stringifyGithubOrigin, stringifyGithubRepoUrl } from "./parseOwnerRepo";
 import { parseTitleBodyOfMarkdown } from "./parseTitleBodyOfMarkdown";
 
@@ -26,31 +25,34 @@ export async function makePublishcrBranch(upstreamUrl: string, forkUrl: Readonly
   const repo = parseUrlRepoOwner(origin);
 
   if (await gh.repos.getBranch({ ...repo, branch }).catch(() => null)) {
+    // prevent unrelated history
     console.log("Skip changes as branch existed: " + branch);
     return { type, title, body, branch };
   }
 
   const cwd = await getBranchWorkingDir(upstreamUrl, forkUrl, branch);
-
-  const file = `${cwd}/.github/workflows/publish.yml`;
+  const upsreamOwner = parseUrlRepoOwner(upstreamUrl).owner;
+  const file = `.github/workflows/publish.yml`;
   const publishYmlPath = "./templates/publish.yaml";
-
+  const publishYmlTemplate = await readFile(publishYmlPath, "utf8");
+  const repalcedContent = publishYmlTemplate.replace("NODE_AUTHOR_OWNER", upsreamOwner);
+  if (publishYmlTemplate === repalcedContent) throw new Error("fail to replace NODE_AUTHOR_OWNER");
   // commit & push changes
   await $`
 git clone ${upstreamUrl} ${cwd}
 
-mkdir -p ${dirname(file)}
-cat ${publishYmlPath} > ${file}
-
 cd ${cwd}
+
+mkdir -p ${dirname(file)}
+echo "${repalcedContent}" > ${file}
 
 git config user.name ${GIT_USERNAME} && \
 git config user.email ${GIT_USEREMAIL} && \
 git checkout -b ${branch} && \
 git add . && \ 
 git commit -am "chore(${branch}): ${title}" && \
-git push "${origin}" ${branch}:${branch}
-    `;
+git push -f "${origin}" ${branch}:${branch}
+`;
 
   const branchUrl = `${stringifyGithubRepoUrl(repo)}/tree/${branch}`;
   console.log(`Branch Push OK: ${branchUrl}`);
