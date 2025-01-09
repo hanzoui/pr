@@ -39,6 +39,7 @@ export type CRPull = RelatedPull & {
 };
 // TODO: refactor into interface to improve performance
 export type CustomNodeRepo = {
+  
   repository: string;
   info?: Task<Pick<GithubRepo, "html_url" | "archived" | "default_branch" | "private">>;
 
@@ -66,13 +67,13 @@ export type CustomNodeRepo = {
   // createFork?: Task<GithubRepo>;
   // createBranches?: Task<{ type: CRType; assigned: Worker } & PushedBranch>[];
 
-  /** @deprecated use CRPulls.pull */
+  /** TODO: @deprecated use CRPulls.pull */
   createdPulls?: Task<GithubPullParsed[]>;
 };
 export type CNRepo = CustomNodeRepo;
 export const CNRepos = db.collection<CNRepo>("CNRepos");
 
-CNRepos.createIndex({ repository: 1 }, { unique: true }).catch(nil);
+await CNRepos.createIndex({ repository: 1 }, { unique: true }).catch(nil);
 
 // fix cr null, it should be not exists
 // await CNRepos.updateMany({ cr: null as unknown as WithId<CRNode> }, { $unset: { cr: 1 } });
