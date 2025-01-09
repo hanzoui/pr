@@ -1,7 +1,7 @@
 import { $pipeline } from "@/packages/mongodb-pipeline-ts/$pipeline";
 import type { ObjectId } from "mongodb";
-import pMap from "p-map";
 import { peekYaml } from "peek-log";
+import { sf } from "sflow";
 import { CNRepos } from "./CNRepos";
 import { db } from "./db";
 import { fetchCRNodes } from "./fetchComfyRegistryNodes";
@@ -16,12 +16,12 @@ await CRNodes.createIndex({ id: 1 }, { unique: true });
 await CRNodes.createIndex({ repository: 1 }, { unique: false }); // WARN: duplicate is allowed
 
 if (import.meta.main) {
-  const r = await pMap(
+  // peek cr nodes
+  const r = await sf(
     $pipeline(CNRepos)
       .match({ cr: { $exists: true } })
       .replaceRoot({ newRoot: "$cr" })
       .aggregate(),
-    (e) => e,
-  );
+  ).toArray();
   peekYaml({ r, len: r.length });
 }
