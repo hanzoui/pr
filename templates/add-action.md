@@ -1,6 +1,6 @@
 # Add Github Action for Publishing to Comfy Registry
 
-This PR adds a Github Action (publish-node-action) that will publish an updated version of your custom node to the [registry](https://registry.comfy.org/) whenever the `pyproject.toml` file changes. The pyproject.toml defines the custom node version you want to publish (added in another PR).
+This PR adds a Github Action (publish-node-action) that will publish an updated version of your custom node to the [registry](https://registry.comfy.org/) whenever the `pyproject.toml` file changes. The pyproject.toml defines the custom node version you want to publish (added in another PR). Make sure you update the version number in `pyproject.toml` when you make a change that should be published to everyone!
 
 Action Required:
 
