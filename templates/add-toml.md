@@ -2,7 +2,7 @@
 
 Hey! My name is Robin and I'm from [comfy-org](https://comfy.org/)! We would love to have you join the Comfy Registry, a public collection of custom nodes which lets authors publish nodes by version and automate testing against existing workflows. 
 
-Eventually, the registry will be integrated as a backend for the UI-manager where all nodes will go through a security scan. Nodes that pass these checks will have a verification flag (✅) beside their name on the UI-manager. Feel free to read up more on the registry [here](https://docs.comfy.org/registry/overview#introduction)
+The registry is already integrated with ComfyUI-Manager, and we want it to be the default place users install nodes from eventually. We do a security-scan of every node to improve safety. Feel free to read up more on the registry [here](https://docs.comfy.org/registry/overview#introduction)
 
 Action Required:
 
