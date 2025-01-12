@@ -12,10 +12,10 @@ RUN npm i -g bun && bun i && ln -s $(which bun) /usr/bin
 
 # setup envs
 ENV SALT=Q51fPMvQ7VdJnQjX
-ENV GIT_USEREMAIL=comfy-ci@drip.art
-ENV GIT_USERNAME=comfy-ci
+ENV GIT_USEREMAIL=comfy-pr-bot@github.com
+ENV GIT_USERNAME=comfy-pr-bot
 ENV FORK_PREFIX=PR-
-ENV FORK_OWNER=drip-art
+ENV FORK_OWNER=comfy-pr-bot
 ENV GH_TOKEN=
 
 RUN python3 -m venv .venv && \

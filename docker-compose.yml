@@ -1,5 +1,8 @@
+# volumes:
+  # venv:
+  # test_db_data:
 volumes:
-  venv:
+  dotnext:
   test_db_data:
 
 # dev server
@@ -7,12 +10,15 @@ services:
   comfy-pr:
     # image: oven/bun
     # command: bun dev
-    # volumes: [ ./:/home/bun/app ]
     image: node
     command: npx -y bun dev
-    working_dir: /home/bun/app
-    volumes: [ ./:/home/bun/app ]
-    environment: [ PORT=80 ]
+    #
+    working_dir: /app
+    volumes:
+      - ./:/app
+      - dotnext:/app/.next
+    environment:
+      PORT: 80
   # comfy-pr:
   #   restart: always
   #   image: snomiao/comfy-registry-pr
@@ -24,8 +30,9 @@ services:
   #   env_file:
   #     - .env
   #     - .env.test
-  mongodb:
-    restart: always
-    image: mongo
-    ports: ["27017:27017"]
-    volumes: [test_db_data:/data/db]
+  # use .override.yml to enable test mongodb
+  # mongodb:
+  #   restart: always
+  #   image: mongo
+  #   ports: ["27017:27017"]
+  #   volumes: [test_db_data:/data/db]
