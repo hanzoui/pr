@@ -100,7 +100,7 @@
     "trpc-openapi": "^1.2.0",
     "ts-pattern": "^5.2.0",
     "unwind-array": "^1.1.4",
-    "use-swr-component": "^0.0.5",
+    "use-swr-component": "^0.0.7",
     "vercel": "^34.4.0",
     "yaml": "^2.5.0",
     "zod": "^3.23.8",
