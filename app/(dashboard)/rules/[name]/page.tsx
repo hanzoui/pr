@@ -5,7 +5,8 @@ import { notFound } from "next/navigation";
 import RuleSetWhirler from "./RuleSetWhirler";
 // const RuleSetWhirler = dynamicComponent(() => import("./RuleSetWhirler"));
 export const dynamic = "force-dynamic";
-export default async function FollowRulesPage({ params: { name = "default" } }) {
+export default async function FollowRulesPage({ params }: { params: Promise<{ name: string }> }) {
+  const { name = "default" } = await params;
   const followRuleSet = (await FollowRuleSets.findOne({ name })) ?? notFound();
   const defaultYaml = followRuleSet.yaml;
   // const defaultRules = TaskDataOrNull(followRuleSet.rules);
