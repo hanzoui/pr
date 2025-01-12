@@ -7,7 +7,9 @@ export const dynamic = "force-dynamic";
  *
  * @author: snomiao <snomiao@gmail.com>
  */
-export default function DetailsPage({ searchParams: { skip = 0, limit = 0 } }) {
+export default function DetailsPage() {
+  const skip = 0;
+  const limit = 0;
   return (
     <div className="card overflow-hidden">
       <Markdown>{`
@@ -15,7 +17,7 @@ export default function DetailsPage({ searchParams: { skip = 0, limit = 0 } }) {
 2. [Admin: Check Default Follow-up rule](/rules/default)
 `}</Markdown>
 
-      <UseSWRComponent props={{ skip, limit }} Component={DetailsTable} refreshInterval={60e3}>
+      <UseSWRComponent props={{ skip, limit }} Component={DetailsTable} refreshInterval={60e3} fallbackData={<DetailsTable {...{ skip, limit }} />}>
         {<DetailsTable {...{ skip, limit }} />}
       </UseSWRComponent>
     </div>
