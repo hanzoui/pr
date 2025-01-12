@@ -1,3 +1,4 @@
+'use client'
 import { FollowRuleSets } from "@/src/FollowRules";
 import { updateFollowRuleSet } from "@/src/updateFollowRuleSet";
 import dynamicComponent from "next/dynamic";
@@ -18,7 +19,7 @@ export default async function FollowRulesPage({ params: { name = "default" } }) 
         <RuleSetWhirler
           name={name}
           updateFollowRuleSet={updateFollowRuleSet}
-          defaultYaml={defaultYaml}
+          defaultYaml={defaultYaml}i
           defaultMatchResults={await updateFollowRuleSet({ yaml: defaultYaml, name })}
           enabled={enabled}
         />
