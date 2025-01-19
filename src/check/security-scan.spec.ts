@@ -1,12 +1,12 @@
 import { $, file } from "bun";
 import { tmpdir } from "os";
-import { fromWritable } from "snoflow/fromNodeStream";
+import { fromWritable } from "sflow/fromNodeStream";
 // await rm(outfile).catch(nil)
 import { createWriteStream } from "fs";
 import "openai";
 import OpenAI from "openai";
 import PolyfillTextDecoderStream from "polyfill-text-decoder-stream";
-import { sf } from "snoflow";
+import { sf } from "sflow";
 it.skip("works", async () => {
   const ignores = ".git,*.log,cache,node_modules,.next,.venv,dist,bun.lockb,tsconfig.tsbuildinfo,*.ico,*.png";
 

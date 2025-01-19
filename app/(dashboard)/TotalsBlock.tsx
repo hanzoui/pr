@@ -5,7 +5,7 @@ import { updateComfyTotals } from "@/src/updateComfyTotals";
 import { yaml } from "@/src/utils/yaml";
 import { flatten } from "flat";
 import Markdown from "react-markdown";
-import { sf } from "snoflow";
+import { sf } from "sflow";
 import { TotalsChart } from "./TotalsChart";
 
 function getTotalsData() {

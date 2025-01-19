@@ -21,8 +21,6 @@
   ],
   "scripts": {
     "_postinstall": "bun ./src/muteInstances.ts",
-    "vercel:dev": "vercel dev",
-    "vercel:build": "vercel build",
     "build": "next build",
     "build:worker": "bun build . --define 'import.meta.main=false' --define 'import.meta.env.IS_BUNDLE=true' --target=bun > dist/index.js",
     "predev": "bun i",
@@ -32,7 +30,9 @@
     "prerelease": "bun run build && bun run test && vercel --prod",
     "release": "bunx standard-version && npm publish",
     "start": "next start",
-    "test": "bun test"
+    "test": "bun test",
+    "vercel:build": "vercel build",
+    "vercel:dev": "vercel dev"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.4.2",
@@ -42,12 +42,6 @@
     "@slack/web-api": "^7.3.1",
     "@snomiao/die": "^1.2.3",
     "@trpc/server": "^10.45.2",
-    "@types/d3": "^7.4.3",
-    "@types/file-saver": "^2.0.7",
-    "@types/git-diff": "^2.0.7",
-    "@types/jest": "^29.5.12",
-    "@types/markdown-it": "^14.1.2",
-    "@types/open": "^6.2.1",
     "bun": "^1.1.21",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
@@ -91,8 +85,7 @@
     "react-hook-form": "^7.52.1",
     "react-hot-toast": "^2.4.1",
     "react-markdown": "^9.0.1",
-    "sflow": "^1.19.0",
-    "snoflow": "^1.9.1",
+    "sflow": "^1.19.1",
     "sparse-bitfield": "^3.0.3",
     "tailwind-merge": "^2.4.0",
     "tailwindcss-animate": "^1.0.7",
@@ -107,14 +100,21 @@
     "zx": "^8.1.4"
   },
   "devDependencies": {
+    "@next/bundle-analyzer": "^15.1.5",
     "@types/bun": "^1.1.6",
+    "@types/d3": "^7.4.3",
+    "@types/file-saver": "^2.0.7",
+    "@types/git-diff": "^2.0.7",
+    "@types/jest": "^29.5.12",
     "@types/js-yaml": "^4.0.9",
     "@types/json-stable-stringify": "^1.0.36",
     "@types/lodash-es": "^4.17.12",
+    "@types/markdown-it": "^14.1.2",
     "@types/md5": "^2.3.5",
     "@types/minimist": "^1.2.5",
     "@types/node": "^20.14.13",
     "@types/nodemailer": "^6.4.15",
+    "@types/open": "^6.2.1",
     "@types/react": "19.0.4",
     "@types/react-dom": "19.0.2",
     "eslint": "^8.57.0",
@@ -132,9 +132,9 @@
   "peerDependencies": {
     "typescript": "^5.4.5"
   },
-  "title": "Comfy-PR",
   "overrides": {
     "@types/react": "19.0.4",
     "@types/react-dom": "19.0.2"
-  }
+  },
+  "title": "Comfy-PR"
 }

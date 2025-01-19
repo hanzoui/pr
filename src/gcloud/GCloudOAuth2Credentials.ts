@@ -2,7 +2,7 @@ import DIE from "@snomiao/die";
 import type { Credentials } from "google-auth-library";
 import type { OAuth2Client } from "googleapis-common";
 import { uniq } from "rambda";
-import { sf } from "snoflow";
+import { sf } from "sflow";
 import { db } from "../db";
 import type { Awaitable } from "../types/Awaitable";
 import { getAuthenticatedClient } from "./getAuthenticatedClient";

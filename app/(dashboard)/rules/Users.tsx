@@ -1,5 +1,5 @@
 import { db } from "@/src/db";
-import { snoflow } from "snoflow";
+import sflow from "sflow";
 
 export const Users = db.collection<{
   email: string;
@@ -7,6 +7,6 @@ export const Users = db.collection<{
 }>("Users");
 
 // setup admins
-await snoflow(process.env.AUTH_ADMINS?.split(",").map((e) => e.toLowerCase()) ?? [])
+await sflow(process.env.AUTH_ADMINS?.split(",").map((e) => e.toLowerCase()) ?? [])
   .pMap((email) => Users.updateOne({ email }, { $set: { email, admin: true } }, { upsert: true }))
   .toCount();
