@@ -3,7 +3,7 @@ import { $elemMatch } from "@/packages/mongodb-pipeline-ts/$elemMatch";
 import { TaskDataOrNull, type Task } from "@/packages/mongodb-pipeline-ts/Task";
 import DIE from "@snomiao/die";
 import pMap from "p-map";
-import { snoflow } from "snoflow";
+import { sflow } from "sflow";
 import type { z } from "zod";
 import type { PullStatusShown } from "./analyzePullsStatus";
 import { CNRepos } from "./CNRepos";
@@ -27,7 +27,7 @@ export async function sendEmailAction({
     TaskDataOrNull(matched) ?? DIE("NO-PAYLOAD-AVAILABLE"),
     async (payload) => {
       if (action.provider !== "google") DIE("Currently we only support gmail sender");
-      const loadedAction = await snoflow([action])
+      const loadedAction = await sflow([action])
         .map((e) => yaml.stringify(e))
         .map((e) =>
           // replace {{var}} s

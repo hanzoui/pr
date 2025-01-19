@@ -22,7 +22,7 @@ export async function updateCRNodes() {
 
   // check src duplicated
   const group = groupBy((e) => e.repository, nodes);
-  const duplicates = filter((e) => e.length > 1, group);
+  const duplicates = filter((e) => (e?.length ?? 0) > 1, group);
   if (values(duplicates).length) {
     const msg =
       "[WARN] Same repo but different ids found in comfyregistry:\n" + "```\n" + YAML.stringify(duplicates) + "\n```";

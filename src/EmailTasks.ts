@@ -1,7 +1,7 @@
 import DIE from "@snomiao/die";
 import markdownIt from "markdown-it";
 import type { WithId } from "mongodb";
-import { sf } from "snoflow";
+import { sf } from "sflow";
 import type { z } from "zod";
 import { $stale, db } from "./db";
 import type { zSendEmailAction } from "./followRuleSchema";

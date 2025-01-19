@@ -1,12 +1,12 @@
 import { $pipeline } from "@/packages/mongodb-pipeline-ts/$pipeline";
-import { snoflow } from "snoflow";
+import { sflow } from "sflow";
 import { Authors } from "./Authors";
 import { CNRepos } from "./CNRepos";
 import { $filaten } from "./db";
 
 /** Update authors for gh users, collecting emails/username/hireable */
 export async function updateAuthorsFromCNRepo() {
-  return await snoflow(
+  return await sflow(
     $pipeline(CNRepos)
       .match($filaten({ info: { data: { owner: { login: { $exists: true } } } } }))
       .group({

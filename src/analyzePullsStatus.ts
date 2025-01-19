@@ -1,7 +1,7 @@
 import { $pipeline, type Pipeline } from "@/packages/mongodb-pipeline-ts/$pipeline";
 import type { ObjectId } from "mongodb";
 import prettyMs from "pretty-ms";
-import { snoflow } from "snoflow";
+import { sflow } from "sflow";
 import type { z } from "zod";
 import type { Task } from "../packages/mongodb-pipeline-ts/Task";
 import type { Author } from "./Authors";
@@ -26,7 +26,7 @@ if (import.meta.main) {
   // await writeFile("src/zPullsStatus.ts", jsonToZod(await analyzePullsStatus({ limit: 1 }), "zPullsStatus", true));
 
   // analyzePullsStatusPipeline
-  await snoflow(analyzePullsStatusPipeline().aggregate())
+  await sflow(analyzePullsStatusPipeline().aggregate())
     .filter((e) => e.email)
     .limit(2)
     .map((e) => yaml.stringify({ e }))

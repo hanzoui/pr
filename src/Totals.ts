@@ -1,6 +1,6 @@
 import { $pipeline } from "@/packages/mongodb-pipeline-ts/$pipeline";
 import { flatten } from "flat";
-import { sf } from "snoflow";
+import { sf } from "sflow";
 import { type Task } from "../packages/mongodb-pipeline-ts/Task";
 import { analyzeTotals } from "./analyzeTotals";
 import { db } from "./db";

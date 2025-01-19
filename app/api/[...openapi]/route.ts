@@ -1,7 +1,7 @@
 import { router } from "../router";
 // todo replace with `trpc-swagger`
 import { createOpenApiAwsLambdaHandler } from "trpc-openapi";
-
+export const dynamic = 'force-dynamic'
 const lambdaHander = createOpenApiAwsLambdaHandler({
   router,
   createContext: () => ({
