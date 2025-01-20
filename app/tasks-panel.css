@@ -1,0 +1,12 @@
+.tasks-panel {
+  @apply bg-gray-100 rounded-lg;
+}
+.tasks-panel h1 {
+  @apply font-bold text-3xl m-4;
+}
+.tasks-panel h2 {
+  @apply font-bold text-xl m-4;
+}
+.tasks-panel a:hover {
+  @apply underline;
+}

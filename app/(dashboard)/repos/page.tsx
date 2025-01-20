@@ -25,7 +25,7 @@ export default async function ReposPage() {
   );
 }
 
-async function DataPage({ page = 0, size = 100 }) {
+async function DataPage({ page = 0, size = 10000 }) {
   const data = await CNRepos.find({})
     .sort({ _id: 1 })
     .project({
