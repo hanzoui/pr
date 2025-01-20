@@ -1,10 +1,11 @@
 import { auth, signIn } from "@/app/api/auth/[...nextauth]/auth";
-import { Users } from "./Users";
+import { Users } from "../../../(dashboard)/rules/Users";
 
 export async function getAuthUser() {
   const session = await auth();
   const authUser = session?.user ?? (await signIn());
   const email = authUser.email || (await signIn()); // must have email
   const user = { ...{ ...authUser, email }, ...(await Users.findOne({ email })) };
+  user.admin ||= user.email.endsWith("@drip.art");
   return user;
 }

@@ -1,12 +1,12 @@
+import { forbidden } from "next/navigation";
 import type { ReactNode } from "react";
-import { getAuthUser } from "./getAuthUser";
+import { getAuthUser } from "../../api/auth/[...nextauth]/getAuthUser";
 
 export default async function RulesLayout({ children }: { children: ReactNode }) {
   const user = await getAuthUser();
   // check authorization (permission)
-  const { admin } = user;
-  const isAdmin = admin || user.email.endsWith("@drip.art");
-  if (!isAdmin) return <div>Unauthorized</div>;
+  const isAdmin = user.admin || user.email.endsWith("@drip.art");
+  if (!isAdmin) return forbidden();
 
   return (
     <div className="flex flex-wrap">
