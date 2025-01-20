@@ -32,27 +32,4 @@ export const GithubActionUpdateTask = db.collection<{
   forkedBranchCleaningStatus?: "cleaned" | "keep";
 }>("GithubActionUpdateTask");
 
-export async function approveGithubActionUpdateTask(repo: string, approvedHash: string) {
-  "use server";
-  await GithubActionUpdateTask.findOneAndUpdate(
-    { repo },
-    { $set: { approvedBranchVersionHash: approvedHash, updatedAt: new Date() } },
-    { returnDocument: "after" },
-  );
-}
-export async function resetErrorForGithubActionUpdateTask(repo: string) {
-  "use server";
-  await GithubActionUpdateTask.findOneAndDelete({ repo });
-  await GithubActionUpdateTask.findOneAndUpdate(
-    { repo },
-    { $set: { updatedAt: new Date() } },
-    { returnDocument: "after" },
-  );
-}
-export async function listGithubActionUpdateTask() {
-  "use server";
-  return (await GithubActionUpdateTask.find({}).toArray()).map(({ _id, ...e }) => ({
-    ...e,
-    updatedAt: +(e.updatedAt ?? 0),
-  }));
-}
+

@@ -1,11 +1,17 @@
 .tasks-panel {
   @apply bg-gray-100 rounded-lg;
 }
+.tasks-panel details {
+  @apply ml-4;
+}
+.tasks-panel details > summary > * {
+  @apply inline ml-4;
+}
 .tasks-panel h1 {
   @apply font-bold text-3xl m-4;
 }
 .tasks-panel h2 {
-  @apply font-bold text-xl m-4;
+  @apply font-bold text-xl;
 }
 .tasks-panel a:hover {
   @apply underline;
