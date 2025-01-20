@@ -65,7 +65,7 @@ export async function enqueueEmailTask(task: z.infer<typeof zSendEmailAction>) {
 }
 export async function updateEmailTasks() {
   const count = await sf(EmailTasks.find({ state: "waiting" }))
-    .join(sf(EmailTasks.find({ state: "sending", mtime: $stale("1m") })))
+    .merge(sf(EmailTasks.find({ state: "sending", mtime: $stale("1m") })))
     .map(async (e) => {
       const { _id, state } = e;
       if (state === "waiting") {
