@@ -1,5 +1,5 @@
 import { auth, signIn } from "@/app/api/auth/[...nextauth]/auth";
-import { Users } from "../../../(dashboard)/rules/Users";
+import { Users } from "./Users";
 
 export async function getAuthUser() {
   const session = await auth();
