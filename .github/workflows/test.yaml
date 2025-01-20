@@ -2,6 +2,7 @@ name: Run Comfy-PR Tests.
 
 on:
   push:
+    - main
 jobs:
   run_comfy_pr:
     runs-on: ubuntu-latest
