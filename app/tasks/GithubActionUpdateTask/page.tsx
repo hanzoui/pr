@@ -35,7 +35,10 @@ export default async function GithubActionUpdateTaskPage() {
         {processingData.map((e, i, a) => {
           return (
             <li key={e.repo}>
-              {i + 1}. <a href={e.repo}>{e.repo}</a>
+              {i + 1}.{" "}
+              <a target="_blank" href={e.repo}>
+                {e.repo}
+              </a>
             </li>
           );
         })}
@@ -47,8 +50,10 @@ export default async function GithubActionUpdateTaskPage() {
           <li key={e.repo} className="flex flex-col my-4">
             <div className="flex justify-between">
               <span className="text-xl font-bold">
-                {i + 1}. Updating publish.yaml for <a href={e.repo}>{e.repo}</a>, from{" "}
-                <a href={e.forkedBranchUrl}>here</a>:
+                {i + 1}. Updating publish.yaml for{" "}
+                <a target="_blank" href={e.repo}>
+                  {e.repo}
+                </a>
               </span>
               <button
                 tabIndex={1}
@@ -64,22 +69,26 @@ export default async function GithubActionUpdateTaskPage() {
               </button>
             </div>
 
-            <div className="flex max-h-[40em] max-w-full overflow-auto">
+            <div className="flex max-h-[70em] max-w-full overflow-auto">
               <div className="flex flex-col">
-                <h3>PULL REQUEST MESSAGE </h3>
+                <h3>DRAFTED PULL REQUEST MESSAGE</h3>
                 <Markdown className="overflow-auto markdown markdown-frame max-w-[50em]" remarkPlugins={[remarkGfm]}>
                   {e.pullRequestMessage ?? ""}
                 </Markdown>
               </div>
               <div className="flex shrink flex-col max-h-full overflow-auto">
                 <div className="flex flex-col">
-                  <h3>COMMIT MESSAGE </h3>
+                  <div>
+                    <a target="_blank" href={e.forkedBranchUrl}>
+                      <h3>COMMIT MESSAGE</h3>
+                    </a>
+                  </div>
                   <code className="whitespace-pre-wrap block overflow-auto markdown markdown-frame w-[30em]">
                     {e.commitMessage ?? ""}
                   </code>
                 </div>
                 <div className="flex flex-col">
-                  <h3>BRANCH DIFF RESULT </h3>
+                  <h3>BRANCH DIFF RESULT</h3>
                   <code className="whitespace-pre-wrap block overflow-auto markdown markdown-frame w-[30em]">
                     {e.branchDiffResult ?? ""}
                   </code>
@@ -95,8 +104,11 @@ export default async function GithubActionUpdateTaskPage() {
         {pendingCreatePRData.map((e, i) => {
           return (
             <li key={e.repo}>
-              {i + 1}. <a href={e.repo}>{e.repo}</a> - Creating PR [
-              {parseTitleBodyOfMarkdown(e.pullRequestMessage!).title}]...
+              {i + 1}.{" "}
+              <a target="_blank" href={e.repo}>
+                {e.repo}
+              </a>{" "}
+              - Creating PR [{parseTitleBodyOfMarkdown(e.pullRequestMessage!).title}]...
             </li>
           );
         })}
@@ -107,8 +119,14 @@ export default async function GithubActionUpdateTaskPage() {
         {prCreatedData.map((e, i) => {
           return (
             <li key={e.repo}>
-              {i + 1}. <a href={e.repo}>{e.repo}</a> - Created PR
-              <a href={e.pullRequestUrl}>{parseTitleBodyOfMarkdown(e.pullRequestMessage!).title}</a>
+              {i + 1}.{" "}
+              <a target="_blank" href={e.repo}>
+                {e.repo}
+              </a>{" "}
+              - Created PR
+              <a target="_blank" href={e.pullRequestUrl}>
+                {parseTitleBodyOfMarkdown(e.pullRequestMessage!).title}
+              </a>
             </li>
           );
         })}
@@ -120,19 +138,21 @@ export default async function GithubActionUpdateTaskPage() {
           return (
             <li key={e.repo}>
               <div className="flex justify-between px-4">
-
-              <span>
-                {i + 1}. <a href={e.repo}>{e.repo}</a>
-              </span>
-              <button
-              className="btn"
-                onClick={async () => {
-                  "use server";
-                  await resetErrorForGithubActionUpdateTask(e.repo);
-                }}
-              >
-                Reset
-              </button>
+                <span>
+                  {i + 1}.{" "}
+                  <a target="_blank" href={e.repo}>
+                    {e.repo}
+                  </a>
+                </span>
+                <button
+                  className="btn"
+                  onClick={async () => {
+                    "use server";
+                    await resetErrorForGithubActionUpdateTask(e.repo);
+                  }}
+                >
+                  Reset
+                </button>
               </div>
               <pre className="whitespace-pre-wrap p-4 m-4 rounded-sm text-white bg-black ">{yaml.stringify(e)}</pre>
             </li>
