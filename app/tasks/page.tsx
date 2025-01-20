@@ -1,5 +1,5 @@
 import { GithubActionUpdateTask } from "@/src/2025-01-20-GithubActionUpdateTask/GithubActionUpdateTask";
-import { yaml } from "@/src/utils/yaml";
+import Link from "next/link";
 import pProps from "p-props";
 
 /**
@@ -10,5 +10,12 @@ export default async function TasksIndexPage() {
   const counts = await pProps({
     GithubActionUpdateTask: GithubActionUpdateTask.estimatedDocumentCount(),
   });
-  return <pre>{yaml.stringify(counts)}</pre>;
+
+  return (
+    <ol>
+      <li>
+        <Link href="/tasks/GithubActionUpdateTask">GithubActionUpdateTask x {counts.GithubActionUpdateTask}</Link>
+      </li>
+    </ol>
+  );
 }

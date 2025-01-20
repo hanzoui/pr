@@ -1,3 +1,4 @@
+import { getAuthUser } from "@/app/(dashboard)/rules/getAuthUser";
 import "@/app/markdown.css";
 import "@/app/tasks-panel.css";
 import {
@@ -8,6 +9,7 @@ import {
 import { parseTitleBodyOfMarkdown } from "@/src/parseTitleBodyOfMarkdown";
 import { yaml } from "@/src/utils/yaml";
 import DIE from "@snomiao/die";
+import { forbidden } from "next/navigation";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 /**
@@ -15,6 +17,8 @@ import remarkGfm from "remark-gfm";
  * @author: snomiao <snomiao@gmail.com>
  */
 export default async function GithubActionUpdateTaskPage() {
+  const user = await getAuthUser();
+  if (!user.admin) forbidden();
   const data = await listGithubActionUpdateTask();
   const errorData = data.filter((e) => e.error);
   const processingData = data.filter((e) => !e.pullRequestMessage);
@@ -29,6 +33,13 @@ export default async function GithubActionUpdateTaskPage() {
   return (
     <div className="tasks-panel">
       <h1>GithubActionUpdateTasks in Total x{data.length}</h1>
+      <ul className="pl-4">
+        <li>1. Drafting PRs x{processingData.length}</li>
+        <li>2. Pending Reviews x{pendingReviewsData.length}</li>
+        <li>3. Pending Create Pull Request x{pendingCreatePRData.length}</li>
+        <li>4. Pull Request Created x{prCreatedData.length}</li>
+        <li>5. Errors x{errorData.length}</li>
+      </ul>
 
       <h2>1. Drafting PRs x{processingData.length}</h2>
       <ol className="flex flex-col max-w-full px-4">
@@ -60,6 +71,7 @@ export default async function GithubActionUpdateTaskPage() {
                 className="btn"
                 onClick={async () => {
                   "use server";
+                  await getAuthUser();
                   await approveGithubActionUpdateTask(e.repo, e.branchVersionHash ?? DIE("missing branchVersionHash"));
                   return "ok";
                 }}
