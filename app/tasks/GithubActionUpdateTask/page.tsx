@@ -1,4 +1,4 @@
-import { getAuthUser } from "@/app/(dashboard)/rules/getAuthUser";
+import { getAuthUser } from "@/app/api/auth/[...nextauth]/getAuthUser";
 import "@/app/markdown.css";
 import "@/app/tasks-panel.css";
 import { parseTitleBodyOfMarkdown } from "@/src/parseTitleBodyOfMarkdown";
@@ -14,7 +14,8 @@ import { listGithubActionUpdateTask, resetErrorForGithubActionUpdateTask } from 
  */
 export default async function GithubActionUpdateTaskPage() {
   const user = await getAuthUser();
-  if (!user.admin) forbidden();
+  if (!user.admin) return forbidden();
+
   const data = await listGithubActionUpdateTask();
   const errorData = data.filter((e) => e.error);
   const processingData = data.filter((e) => !e.pullRequestMessage);
