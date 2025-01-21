@@ -21,7 +21,7 @@ export default async function FollowRulesPage({ params }: { params: Promise<{ na
           name={name}
           updateFollowRuleSet={updateFollowRuleSet}
           defaultYaml={defaultYaml}
-          defaultMatchResults={await updateFollowRuleSet({ yaml: defaultYaml, name })}
+          // defaultMatchResults={await updateFollowRuleSet({ yaml: defaultYaml, name })}
           enabled={enabled}
         />
       </div>

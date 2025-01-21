@@ -70,6 +70,7 @@ const config = {
     },
   },
   plugins: [require("daisyui"), require("tailwindcss-animate")],
+  daisyui: { logs: false },
 } satisfies Config;
 
 export default config;

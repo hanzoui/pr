@@ -63,6 +63,8 @@ export async function updateFollowRuleSet({
     const rules = zFollowUpRules.parse(yaml.parse(code || DIE`yaml is empty`));
     // save if parse succ
     // await FollowRuleSets.updateOne({ name }, { $set: { yaml: code, rules } });
+
+    // todo: enhance performance
     const parseResult = await pMap(
       rules,
       async (rule) => {
