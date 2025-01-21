@@ -1,24 +1,9 @@
 "use server";
-import { $pipeline } from "@/packages/mongodb-pipeline-ts/$pipeline";
-import { Totals } from "@/src/Totals";
 import { updateComfyTotals } from "@/src/updateComfyTotals";
 import { yaml } from "@/src/utils/yaml";
-import { flatten } from "flat";
 import Markdown from "react-markdown";
-import { sf } from "sflow";
 import { TotalsChart } from "./TotalsChart";
-
-function getTotalsData() {
-  return sf(
-    $pipeline(Totals)
-      .match({ "totals.data": { $exists: true } })
-      .set({ "totals.data.date": "$totals.mtime" })
-      .replaceRoot({ newRoot: "$totals.data" })
-      .aggregate(),
-  )
-    .map((e) => flatten(e) as { date: string } & Record<string, number>)
-    .toArray();
-}
+import { getTotalsData } from "./getTotalsData";
 
 export async function TotalsBlock() {
   "use server";
