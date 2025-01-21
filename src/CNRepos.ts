@@ -49,6 +49,8 @@ export type CustomNodeRepo = {
   cr?: Pick<WithId<CRNode>, "_id" | "id" | "name">;
 
   cr_ids?: ObjectId[];
+  
+  /** @deprecated fill in future */
   on_registry?: Task<boolean>; // check if cr_ids is not empty
 
   /** @deprecated use cm_ids */

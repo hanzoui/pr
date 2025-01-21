@@ -6,5 +6,6 @@ export async function getAuthUser() {
   const authUser = session?.user ?? (await signIn());
   const email = authUser.email || (await signIn()); // must have email
   const user = { ...{ ...authUser, email }, ...(await Users.findOne({ email })) };
+  user.admin ||= user.email.endsWith("@drip.art");
   return user;
 }

@@ -2,8 +2,8 @@ import pkg from "@/package.json";
 import { getWorkerInstance } from "@/src/WorkerInstances";
 import { analyzePullsStatus } from "@/src/analyzePullsStatus";
 import { zPullsStatus } from "@/src/zod/zPullsStatus";
-import DIE from "@snomiao/die";
 import { initTRPC } from "@trpc/server";
+import DIE from "phpdie";
 import { type OpenApiMeta } from "trpc-openapi";
 import z from "zod";
 export const t = initTRPC.meta<OpenApiMeta>().create(); /* 👈 */

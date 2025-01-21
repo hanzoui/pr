@@ -7,6 +7,7 @@ import { isRepoBypassed } from "./bypassRepos";
 import { gh } from "./gh";
 import type { GithubPull } from "./gh/GithubPull";
 import { parseUrlRepoOwner } from "./parseOwnerRepo";
+import { parseTitleBodyOfMarkdown } from "./parseTitleBodyOfMarkdown";
 if (import.meta.main) {
   const srcUrl = "https://github.com/ComfyNodePRs/PR-ComfyUI-DareMerge-7bcbf6a9";
   const dstUrl = "https://github.com/54rt1n/ComfyUI-DareMerge";
@@ -45,6 +46,20 @@ if (import.meta.main) {
     .toLog();
   console.log("all done");
 }
+export async function createPR({
+  src: srcUrl,
+  dst: dstUrl,
+  branch,
+  msg,
+}: {
+  src: string;
+  dst: string;
+  branch: string;
+  msg: string;
+}) {
+  const { title, body } = parseTitleBodyOfMarkdown(msg);
+  return (await createGithubPullRequest({ srcUrl, dstUrl, branch, title, body })).html_url;
+}
 export async function createGithubPullRequest({
   title,
   body,
@@ -70,9 +85,8 @@ export async function createGithubPullRequest({
   const existedList = (
     await gh.pulls.list({
       // source repo
-      state: "all",
-      head_repo: `${src.owner}/${src.repo}`,
-      head: `${src.owner}:${branch}`,
+      state: "open",
+      head: encodeURIComponent(`${src.owner}:${branch}`),
       // pr will merge into
       owner: dst.owner,
       repo: dst.repo,
@@ -94,8 +108,8 @@ export async function createGithubPullRequest({
         title,
         body,
         // source repo
-        head_repo: src.owner + "/" + src.repo,
-        head: src.owner + ":" + branch,
+        head_repo: `${src.owner}/${src.repo}`,
+        head: `${src.owner}:${branch}`,
         // pr will merge into
         owner: dst.owner,
         repo: dst.repo,
@@ -114,8 +128,8 @@ export async function createGithubPullRequest({
           await gh.pulls.list({
             // source repo
             state: "open",
-            head_repo: `${src.owner}/${src.repo}`,
-            head: `${src.owner}:${branch}`,
+            // head_repo: `${src.owner}/${src.repo}`,
+            head: encodeURIComponent(`${src.owner}:${branch}`),
             // pr will merge into
             owner: dst.owner,
             repo: dst.repo,
@@ -126,7 +140,20 @@ export async function createGithubPullRequest({
         if (existedList.length !== 1)
           DIE(
             new Error("expect only 1 pr, but got " + existedList.length, {
-              cause: { existed: existedList.map((e) => ({ url: e.html_url, title: e.title })) },
+              cause: {
+                existed: existedList.map((e) => ({ url: e.html_url, title: e.title })),
+                error: e,
+                ...{
+                  // source repo
+                  state: "open",
+                  // head_repo: `${src.owner}/${src.repo}`,
+                  head: `${src.owner}:${branch}`,
+                  // pr will merge into
+                  owner: dst.owner,
+                  repo: dst.repo,
+                  base: repo.default_branch,
+                },
+              },
             }),
           );
 

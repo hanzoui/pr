@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { Header } from "../Components/Header";
 
 /**
@@ -6,9 +7,11 @@ import { Header } from "../Components/Header";
  */
 export default function ComponentLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="w-full min-h-screen flex bg-cyan-800 card-body text-white gap-8">
+    <div className="w-full min-h-screen flex bg-grey-300 card-body text-black gap-8">
       <Header />
-      <div className="shadow-xl bg-cyan-900 text-white w-full card">{children}</div>
+      <div className="shadow-xl w-full card">
+        <Suspense>{children}</Suspense>
+      </div>
     </div>
   );
 }

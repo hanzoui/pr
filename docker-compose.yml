@@ -13,13 +13,16 @@ services:
     image: node
     command: npx -y bun dev
     #
-    working_dir: /app
+    working_dir: /app/
     volumes:
-      - ./:/app
-      - dotnext:/app/.next
+      - ./:/app/
+      # - dotnext:/app/.next
     environment:
       PORT: 80
+    env_file:
+      - .env.local
   # comfy-pr:
+  #     - .env
   #   restart: always
   #   image: snomiao/comfy-registry-pr
   #   build: .

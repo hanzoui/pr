@@ -1,0 +1,44 @@
+"use server";
+import { getAuthUser } from "@/app/api/auth/[...nextauth]/getAuthUser";
+import { GithubActionUpdateTask } from "@/src/2025-01-20-GithubActionUpdateTask/GithubActionUpdateTask";
+import { z } from "zod";
+
+export async function approveGithubActionUpdateTaskAction(prevState: { ok: boolean }, formData: FormData) {
+  "use server";
+  await getAuthUser();
+  const e = z
+    .object({
+      repo: z.string(),
+      branchVersionHash: z.string(),
+    })
+    .parse(Object.fromEntries(formData.entries()));
+  await approveGithubActionUpdateTask(e.repo, e.branchVersionHash);
+  return { ok: true };
+}
+export async function approveGithubActionUpdateTask(repo: string, approvedHash: string) {
+  "use server";
+  await getAuthUser();
+  await GithubActionUpdateTask.findOneAndUpdate(
+    { repo },
+    { $set: { approvedBranchVersionHash: approvedHash, updatedAt: new Date() } },
+    { returnDocument: "after" },
+  );
+}
+export async function resetErrorForGithubActionUpdateTask(repo: string) {
+  "use server";
+  await getAuthUser();
+  await GithubActionUpdateTask.findOneAndDelete({ repo });
+  await GithubActionUpdateTask.findOneAndUpdate(
+    { repo },
+    { $set: { updatedAt: new Date() } },
+    { returnDocument: "after" },
+  );
+}
+export async function listGithubActionUpdateTask() {
+  "use server";
+  await getAuthUser();
+  return (await GithubActionUpdateTask.find({}).toArray()).map(({ _id, ...e }) => ({
+    ...e,
+    updatedAt: +(e.updatedAt ?? 0),
+  }));
+}
