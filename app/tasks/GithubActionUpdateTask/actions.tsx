@@ -1,6 +1,6 @@
 "use server";
 import { getAuthUser } from "@/app/api/auth/[...nextauth]/getAuthUser";
-import { GithubActionUpdateTask } from "@/src/2025-01-20-GithubActionUpdateTask/GithubActionUpdateTask";
+import { GithubActionUpdateTask } from "@/src/GithubActionUpdateTask/GithubActionUpdateTask";
 import { z } from "zod";
 
 export async function approveGithubActionUpdateTaskAction(prevState: { ok: boolean }, formData: FormData) {

@@ -30,6 +30,10 @@ if (import.meta.main) {
   // await updateGithubActionTask(repo);
 
   // task list importer
+  await updateGithubActionTaskList(repo);
+}
+
+async function updateGithubActionTaskList(repo: string) {
   await sflow(CRNodes.find().project({ repo: "$repository", _id: 0 }))
     .log()
     .map(({ repo }) => String(repo))
@@ -40,16 +44,15 @@ if (import.meta.main) {
   // task list scanner
   await sflow(GithubActionUpdateTask.find({ error: { $exists: false } }).project({ repo: 1 }))
     .pMap(
-      (e) =>
-        updateGithubActionTask(e.repo).catch(async (e) => {
-          const error = String(e);
-          await GithubActionUpdateTask.updateOne(
-            { repo },
-            { $set: { error, updatedAt: new Date() } },
-            { upsert: true },
-          );
-        }),
-      { concurrency: 3 },
+      (e) => updateGithubActionTask(e.repo).catch(async (e) => {
+        const error = String(e);
+        await GithubActionUpdateTask.updateOne(
+          { repo },
+          { $set: { error, updatedAt: new Date() } },
+          { upsert: true }
+        );
+      }),
+      { concurrency: 3 }
     )
     .run();
 
