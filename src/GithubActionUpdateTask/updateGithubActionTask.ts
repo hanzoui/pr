@@ -8,6 +8,7 @@ import { CRNodes } from "../CRNodes";
 import { yaml } from "../utils/yaml";
 import { GithubActionUpdateTask } from "./GithubActionUpdateTask";
 import { updateGithubActionPrepareBranch } from "./updateGithubActionPrepareBranch";
+import {isCI} from 'is-ci'
 console.log({ GithubActionUpdateTask: await GithubActionUpdateTask.find().toArray() });
 
 const path = "./templates/publish.yaml";
@@ -17,6 +18,7 @@ export const testUpdatedPublishYaml = await readFile(import.meta.dir + "/test-up
 export const referenceActionContentHash = sha256(referenceActionContent);
 
 if (import.meta.main) {
+  
   // const repo = "https://github.com/54rt1n/ComfyUI-DareMerge";
   const repo = "https://github.com/snomiao/ComfyUI-DareMerge-test";
 
@@ -31,6 +33,8 @@ if (import.meta.main) {
 
   // task list importer
   await updateGithubActionTaskList(repo);
+
+  if(isCI) process.exit(0)
 }
 
 async function updateGithubActionTaskList(repo: string) {
