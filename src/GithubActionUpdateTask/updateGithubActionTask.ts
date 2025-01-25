@@ -46,9 +46,9 @@ async function updateGithubActionTaskList() {
     .merge({ into: GithubActionUpdateTask.collectionName, on: "repo", whenMatched: "merge" })
     .aggregate()
     .next();
-  
+
   // reset network error
-  await GithubActionUpdateTask.findOneAndDelete({ error: /was submitted too quickly/ });
+  await GithubActionUpdateTask.deleteMany({ error: /was submitted too quickly/ });
 
   console.log({ GithubActionUpdateTask: await GithubActionUpdateTask.find().toArray() });
 
@@ -60,6 +60,7 @@ async function updateGithubActionTaskList() {
         console.error(err);
         const error = String(err);
         await GithubActionUpdateTask.updateOne({ repo }, { $set: { error, updatedAt: new Date() } }, { upsert: true });
+        // throw err;
       });
     })
     .run();
