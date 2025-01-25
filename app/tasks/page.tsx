@@ -1,4 +1,4 @@
-import { GithubActionUpdateTask } from "@/src/2025-01-20-GithubActionUpdateTask/GithubActionUpdateTask";
+import { GithubActionUpdateTask } from "@/src/GithubActionUpdateTask/GithubActionUpdateTask";
 import Link from "next/link";
 import pProps from "p-props";
 
@@ -14,7 +14,7 @@ export default async function TasksIndexPage() {
   return (
     <ol>
       <li>
-        <Link href="/tasks/GithubActionUpdateTask">GithubActionUpdateTask x {counts.GithubActionUpdateTask}</Link>
+        <Link href="/tasks/github-action-update">GithubActionUpdateTask x {counts.GithubActionUpdateTask}</Link>
       </li>
     </ol>
   );
