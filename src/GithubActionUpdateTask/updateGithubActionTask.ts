@@ -11,7 +11,6 @@ import { yaml } from "../utils/yaml";
 import { getWorkerInstance } from "../WorkerInstances";
 import { GithubActionUpdateTask } from "./GithubActionUpdateTask";
 import { updateGithubActionPrepareBranch } from "./updateGithubActionPrepareBranch";
-console.log({ GithubActionUpdateTask: await GithubActionUpdateTask.find().toArray() });
 
 const path = "./templates/publish.yaml";
 export const referenceActionContent = await readFile(path, "utf8");
@@ -31,7 +30,6 @@ if (import.meta.main) {
   // test on single repo
   // await updateGithubActionTask(repo);
 
-  // task list importer
   await updateGithubActionTaskList();
 
   if (isCI) process.exit(0);
@@ -39,6 +37,8 @@ if (import.meta.main) {
 
 async function updateGithubActionTaskList() {
   await getWorkerInstance("updateGithubActionTaskList");
+
+  // task list importer
   await GithubActionUpdateTask.createIndex({ repo: 1 }, { unique: true });
   await $pipeline(CRNodes)
     .project({ repo: "$repository", _id: 0 })
@@ -46,6 +46,11 @@ async function updateGithubActionTaskList() {
     .merge({ into: GithubActionUpdateTask.collectionName, on: "repo", whenMatched: "merge" })
     .aggregate()
     .next();
+  
+  // reset network error
+  await GithubActionUpdateTask.findOneAndDelete({ error: /was submitted too quickly/ });
+
+  console.log({ GithubActionUpdateTask: await GithubActionUpdateTask.find().toArray() });
 
   // task list scanner
   await sflow(GithubActionUpdateTask.find({ error: { $exists: false } }).project({ repo: 1 }))
