@@ -1,14 +1,18 @@
 import DIE from "@snomiao/die";
 import md5 from "md5";
 import minimist from "minimist";
+import { db } from "./db";
 import { FORK_OWNER } from "./FORK_OWNER";
 import { FORK_PREFIX } from "./FORK_PREFIX";
 import { createGithubFork } from "./gh/createGithubFork";
 import { ghUser } from "./ghUser";
 import { parseUrlRepoOwner } from "./parseOwnerRepo";
 
+/** for cache */
+const ForkedRepo = db.collection<{ repo: string; forkedRepo: string; updatedAt: Date }>("ForkedRepo");
+
 if (import.meta.main) {
-  console.log(await createGithubForkForRepo("https://github.com/comfyanonymous/ComfyUI_TensorRT"));
+  console.log(await createGithubForkForRepoEx("https://github.com/comfyanonymous/ComfyUI_TensorRT"));
 }
 
 /**
@@ -22,10 +26,21 @@ if (import.meta.main) {
  * @param upstreamRepoUrl
  * @returns forked repo info
  */
-export async function createGithubForkForRepo(
+export async function createGithubForkForRepoEx(
   upstreamRepoUrl: string,
   { forkUrl = createGithubForkUrlForRepo(upstreamRepoUrl) } = {},
 ) {
+  const alreadyForked = await ForkedRepo.findOne({ repo: upstreamRepoUrl, forkedRepo: forkUrl });
+  if (alreadyForked) {
+    console.debug(
+      `
+Forked ${upstreamRepoUrl}
+  into ${forkUrl}
+`.trim(),
+    );
+    return { html_url: forkUrl };
+  }
+
   console.debug(
     `
 Forking ${upstreamRepoUrl}
@@ -39,6 +54,11 @@ Forking ${upstreamRepoUrl}
         "forked url not expected, it's likely you already forked this repo in your account before, and now trying to fork it again with different salt. To recovery you could delete that repo forked before by manual. (the repo forked before is listed in FORK OK: .....)",
       ),
     );
+  await ForkedRepo.updateOne(
+    { repo: upstreamRepoUrl, forkedRepo: forkUrl },
+    { $set: { updatedAt: new Date() } },
+    { upsert: true },
+  );
   return forked;
 }
 export function createGithubForkUrlForRepo(upstreamRepoUrl: string) {

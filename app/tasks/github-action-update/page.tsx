@@ -3,11 +3,19 @@ import "@/app/markdown.css";
 import "@/app/tasks-panel.css";
 import { parseTitleBodyOfMarkdown } from "@/src/parseTitleBodyOfMarkdown";
 import { yaml } from "@/src/utils/yaml";
+import type { Metadata } from "next";
 import { forbidden } from "next/navigation";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { listGithubActionUpdateTask } from "./actions";
 import { ApprovePRButton } from "./ApprovePRButton";
-import { listGithubActionUpdateTask, resetErrorForGithubActionUpdateTask } from "./actions";
+import ProgressBarChart from "./ProgressBarChart";
+import { ResetTaskButton } from "./ResetTaskButton";
+
+export const metadata: Metadata = {
+  title: `GithubActionUpdateTaskPage - ComfyPR`,
+};
+
 /**
  *
  * @author: snomiao <snomiao@gmail.com>
@@ -15,29 +23,42 @@ import { listGithubActionUpdateTask, resetErrorForGithubActionUpdateTask } from 
 export default async function GithubActionUpdateTaskPage() {
   const user = await getAuthUser();
   if (!user.admin) return forbidden();
-
   const data = await listGithubActionUpdateTask();
-  const errorData = data.filter((e) => e.error);
-  const processingData = data.filter((e) => !e.pullRequestMessage);
-  const pendingReviewsData = data.filter(
-    (e) => e.branchVersionHash && e.branchVersionHash !== e.approvedBranchVersionHash,
-  );
-  const pendingCreatePRData = data.filter(
-    (e) => e.approvedBranchVersionHash && e.approvedBranchVersionHash !== e.pullRequestVersionHash,
-  );
-  const prCreatedData = data.filter((e) => e.pullRequestUrl);
 
+  const errorData = data.filter((e) => e.error);
+  const processingData = data.filter((e) => !errorData.includes(e)).filter((e) => !e.pullRequestMessage);
+  const pendingReviewsData = data
+    .filter((e) => !errorData.includes(e))
+    .filter((e) => e.branchVersionHash && e.branchVersionHash !== e.approvedBranchVersionHash);
+  const pendingCreatePRData = data
+    .filter((e) => !errorData.includes(e))
+    .filter((e) => e.approvedBranchVersionHash && e.approvedBranchVersionHash !== e.pullRequestVersionHash);
+  const prCreatedData = data.filter((e) => !errorData.includes(e)).filter((e) => e.pullRequestUrl);
+
+  const chartData = {
+    data: [
+      ["Processing", processingData.length, "oklch(0.8 0.180 136)"], // A greenish color
+      ["Pending Reviews", pendingReviewsData.length, "oklch(0.7 0.15 72)"], // A yellowish color
+      ["Pending Create PR", pendingCreatePRData.length, "oklch(0.75 0.150 198)"], // A bluish color
+      ["PR Created", prCreatedData.length, "oklch(0.8 0.125 320)"], // A purple color
+      ["Error", errorData.length, "oklch(0.6 0.179 29)"], // A reddish color
+    ] as readonly [string, number, string][],
+  };
   return (
-    <div className="tasks-panel">
+    <div className="tasks-panel p-4 gap-4">
       <h1>GithubActionUpdateTasks in Total x{data.length}</h1>
 
-      <ul className="p-4">
-        <li>1. Bot are Drafting PRs x{processingData.length}</li>
-        <li>2. Pending Reviews x{pendingReviewsData.length}</li>
-        <li>3. Pending Create Pull Request x{pendingCreatePRData.length}</li>
-        <li>4. Pull Request Created x{prCreatedData.length}</li>
-        <li>5. Errors x{errorData.length}</li>
-      </ul>
+      <div>
+        <ProgressBarChart data={chartData.data} />
+      </div>
+
+      <ol>
+        <li>Bot are Drafting PRs x{processingData.length}</li>
+        <li>Pending Reviews x{pendingReviewsData.length}</li>
+        <li>Pending Create Pull Request x{pendingCreatePRData.length}</li>
+        <li>Pull Request Created x{prCreatedData.length}</li>
+        <li>Errors x{errorData.length}</li>
+      </ol>
 
       <a
         href="https://github.com/Comfy-Org/Comfy-PR/actions/workflows/updateGithubActionTask.yaml"
@@ -49,7 +70,7 @@ export default async function GithubActionUpdateTaskPage() {
 
       <details>
         <summary>
-          <h2>1. Drafting PRs x{processingData.length}</h2>
+          <h2>Drafting PRs x{processingData.length}</h2>
         </summary>
         <ol className="flex flex-col max-w-full px-4">
           {processingData.map((e, i, a) => {
@@ -65,9 +86,9 @@ export default async function GithubActionUpdateTaskPage() {
         </ol>
       </details>
 
-      <details>
+      <details open>
         <summary>
-          <h2>2. Pending Reviews x{pendingReviewsData.length}</h2>
+          <h2>Pending Reviews x{pendingReviewsData.length}</h2>
         </summary>
         <ol className="flex flex-col max-w-full px-4">
           {pendingReviewsData.map((e, i) => (
@@ -113,9 +134,9 @@ export default async function GithubActionUpdateTaskPage() {
         </ol>
       </details>
 
-      <details>
+      <details open>
         <summary>
-          <h2>3. Pending Create Pull Request x{pendingCreatePRData.length}</h2>
+          <h2>Pending Create Pull Request x{pendingCreatePRData.length}</h2>
         </summary>
         <ol className="flex flex-col max-w-full px-4 gap-4">
           {pendingCreatePRData.map((e, i) => {
@@ -126,24 +147,16 @@ export default async function GithubActionUpdateTaskPage() {
                   {e.repo}
                 </a>{" "}
                 - Creating PR [{parseTitleBodyOfMarkdown(e.pullRequestMessage!).title}]...
-                <button
-                  className="btn"
-                  onClick={async () => {
-                    "use server";
-                    await resetErrorForGithubActionUpdateTask(e.repo);
-                  }}
-                >
-                  Reset
-                </button>
+                <ResetTaskButton repo={e.repo} />
               </li>
             );
           })}
         </ol>
       </details>
 
-      <details>
+      <details open>
         <summary>
-          <h2>4. Pull Request Created x{prCreatedData.length}</h2>
+          <h2>Pull Request Created x{prCreatedData.length}</h2>
         </summary>
       </details>
       <ol className="flex flex-col max-w-full px-4 gap-4">
@@ -163,9 +176,9 @@ export default async function GithubActionUpdateTaskPage() {
         })}
       </ol>
 
-      <details>
+      <details open>
         <summary>
-          <h2>5. Errors x{errorData.length}</h2>
+          <h2>Errors x{errorData.length}</h2>
         </summary>
         <ol className="flex flex-col max-w-full px-4 gap-4">
           {errorData.map((e, i, a) => {
@@ -178,15 +191,7 @@ export default async function GithubActionUpdateTaskPage() {
                       {e.repo}
                     </a>
                   </span>
-                  <button
-                    className="btn"
-                    onClick={async () => {
-                      "use server";
-                      await resetErrorForGithubActionUpdateTask(e.repo);
-                    }}
-                  >
-                    Reset
-                  </button>
+                  <ResetTaskButton repo={e.repo} />
                 </div>
                 <pre className="whitespace-pre-wrap p-4 m-4 rounded-sm text-white bg-black ">{yaml.stringify(e)}</pre>
               </li>

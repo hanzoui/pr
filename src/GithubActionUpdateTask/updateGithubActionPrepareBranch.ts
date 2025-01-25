@@ -20,10 +20,9 @@ export async function updateGithubActionPrepareBranch(repo: string) {
   const branch = "update-publish-yaml";
   const { cwd, html_url } = await checkoutRepoOnBranch(repo, branch);
 
-  const files = await globby(cwd + "/.github/workflows/{publish,publish_action}.{yaml,yml}");
+  const files = await globby(`${cwd}/.github/workflows/{publish,publish_action}.{yaml,yml}`);
   console.assert(
-    files.length === 1 ||
-      DIE("expected exactly 1 publish.yaml file, but got " + files.length + " " + JSON.stringify(files)),
+    files.length === 1 || DIE(`expected exactly 1 publish.yaml file, but got ${files.length} ${JSON.stringify(files)}`),
   );
   const file = files[0];
   const currentContent = await readFile(file, "utf8");

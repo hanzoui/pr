@@ -1,6 +1,6 @@
 import minimist from "minimist";
 import pMap from "p-map";
-import { createGithubForkForRepo } from "./createGithubForkForRepo";
+import { createGithubForkForRepoEx } from "./createGithubForkForRepo";
 import { createGithubPullRequest } from "./createGithubPullRequest";
 import type { GithubPull } from "./gh/GithubPull";
 import { makePublishcrBranch } from "./makePublishBranch";
@@ -15,7 +15,7 @@ if (import.meta.main) {
 
 export async function createComfyRegistryPullRequests(upstreamRepoUrl: string) {
   console.log("forking " + upstreamRepoUrl);
-  const forkedRepo = await createGithubForkForRepo(upstreamRepoUrl);
+  const forkedRepo = await createGithubForkForRepoEx(upstreamRepoUrl);
 
   console.log("modifing " + forkedRepo.html_url);
   const PR_REQUESTS = await clone_modify_push_Branches(upstreamRepoUrl, forkedRepo.html_url);
