@@ -35,13 +35,14 @@ jobs:
       - run: bun i
       - run: bun src/GithubActionUpdateTask/updateGithubActionTask.ts
         env:
+          AUTH_GCLOUD_URL: https://comfy-pr.vercel.app
+          AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
+          AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
           COMFY_PR_REPO: ${{ secrets.COMFY_PR_REPO }}
           FORK_OWNER: "ComfyNodePRs"
           FORK_PREFIX: "PR-"
           GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR }}
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SLACK_BOT_CHANNEL: ${{ secrets.SLACK_BOT_CHANNEL }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
-          AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
-          AUTH_GCLOUD_URL: https://comfy-pr.vercel.app
