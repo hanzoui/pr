@@ -30,13 +30,22 @@ export default async function GithubActionUpdateTaskPage() {
   return (
     <div className="tasks-panel">
       <h1>GithubActionUpdateTasks in Total x{data.length}</h1>
+
       <ul className="p-4">
-        <li>1. Drafting PRs x{processingData.length}</li>
+        <li>1. Bot are Drafting PRs x{processingData.length}</li>
         <li>2. Pending Reviews x{pendingReviewsData.length}</li>
         <li>3. Pending Create Pull Request x{pendingCreatePRData.length}</li>
         <li>4. Pull Request Created x{prCreatedData.length}</li>
         <li>5. Errors x{errorData.length}</li>
       </ul>
+
+      <a
+        href="https://github.com/Comfy-Org/Comfy-PR/actions/workflows/updateGithubActionTask.yaml"
+        target="_blank"
+        className="btn"
+      >
+        Check Actions
+      </a>
 
       <details>
         <summary>
