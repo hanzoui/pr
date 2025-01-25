@@ -9,7 +9,7 @@ import sflow, { nil } from "sflow";
 import { isRepoBypassed } from "./bypassRepos";
 import { $ } from "./cli/echoBunShell";
 import { CNRepos } from "./CNRepos";
-import { createGithubForkForRepo } from "./createGithubForkForRepo";
+import { createGithubForkForRepoEx } from "./createGithubForkForRepo";
 import { createGithubPullRequest } from "./createGithubPullRequest";
 import { $filaten, $stale, db } from "./db";
 import { getBranchWorkingDir } from "./getBranchWorkingDir";
@@ -107,7 +107,7 @@ async function _testMakeUpdateTomlLicenseBranch() {
 }
 
 async function createTomlLicensePR(upstreamUrl: string): Promise<GithubPull> {
-  const { html_url: forkUrl } = await createGithubForkForRepo(upstreamUrl);
+  const { html_url: forkUrl } = await createGithubForkForRepoEx(upstreamUrl);
   const branchInfo = await makeUpdateTomlLicenseBranch(upstreamUrl, forkUrl);
   // console.log(forkUrl); // note: this forkUrl may not be final forked url
   console.log({ branchInfo });
