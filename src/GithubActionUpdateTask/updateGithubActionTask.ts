@@ -1,4 +1,5 @@
 #!bun
+import { $pipeline } from "@/packages/mongodb-pipeline-ts/$pipeline";
 import { readFile } from "fs/promises";
 import isCI from "is-ci";
 import DIE from "phpdie";
@@ -7,6 +8,7 @@ import sha256 from "sha256";
 import { createPR } from "../createGithubPullRequest";
 import { CRNodes } from "../CRNodes";
 import { yaml } from "../utils/yaml";
+import { getWorkerInstance } from "../WorkerInstances";
 import { GithubActionUpdateTask } from "./GithubActionUpdateTask";
 import { updateGithubActionPrepareBranch } from "./updateGithubActionPrepareBranch";
 console.log({ GithubActionUpdateTask: await GithubActionUpdateTask.find().toArray() });
@@ -20,7 +22,6 @@ export const referenceActionContentHash = sha256(referenceActionContent);
 if (import.meta.main) {
   // const repo = "https://github.com/54rt1n/ComfyUI-DareMerge";
   const repo = "https://github.com/snomiao/ComfyUI-DareMerge-test";
-
   // await GithubActionUpdateTask.findOneAndDelete({ repo });
 
   // aprove test
@@ -31,33 +32,31 @@ if (import.meta.main) {
   // await updateGithubActionTask(repo);
 
   // task list importer
-  await updateGithubActionTaskList(repo);
+  await updateGithubActionTaskList();
 
   if (isCI) process.exit(0);
 }
 
-async function updateGithubActionTaskList(repo: string) {
-  await sflow(CRNodes.find().project({ repo: "$repository", _id: 0 }))
-    .log()
-    .map(({ repo }) => String(repo))
-    .filter((e) => e.startsWith("https://github.com"))
-    .pMap((repo) => GithubActionUpdateTask.updateOne({ repo }, { $set: { updatedAt: new Date() } }, { upsert: true }))
-    .run();
+async function updateGithubActionTaskList() {
+  await getWorkerInstance("updateGithubActionTaskList");
+  await GithubActionUpdateTask.createIndex({ repo: 1 }, { unique: true });
+  await $pipeline(CRNodes)
+    .project({ repo: "$repository", _id: 0 })
+    .match({ repo: /^https:\/\/github\.com/ })
+    .merge({ into: GithubActionUpdateTask.collectionName, on: "repo", whenMatched: "merge" })
+    .aggregate()
+    .next();
 
   // task list scanner
   await sflow(GithubActionUpdateTask.find({ error: { $exists: false } }).project({ repo: 1 }))
-    .pMap(
-      (e) =>
-        updateGithubActionTask(e.repo).catch(async (e) => {
-          const error = String(e);
-          await GithubActionUpdateTask.updateOne(
-            { repo },
-            { $set: { error, updatedAt: new Date() } },
-            { upsert: true },
-          );
-        }),
-      { concurrency: 3 },
-    )
+    .map(async ({ repo }) => {
+      console.log("-");
+      return await updateGithubActionTask(repo).catch(async (err) => {
+        console.error(err);
+        const error = String(err);
+        await GithubActionUpdateTask.updateOne({ repo }, { $set: { error, updatedAt: new Date() } }, { upsert: true });
+      });
+    })
     .run();
 
   // console.log(yaml.stringify({ GithubActionUpdateTask: await GithubActionUpdateTask.find().toArray() }));

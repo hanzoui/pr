@@ -81,28 +81,29 @@ export async function createGithubPullRequest({
   const src = parseUrlRepoOwner(srcUrl);
   const repo = (await gh.repos.get({ ...dst })).data;
 
-  // TODO: seems has bugs on head_repo
-  const existedList = (
-    await gh.pulls.list({
-      // source repo
-      state: "open",
-      head: encodeURIComponent(`${src.owner}:${branch}`),
-      // pr will merge into
-      owner: dst.owner,
-      repo: dst.repo,
-      base: repo.default_branch,
-    })
-  ).data;
-  if (existedList.length > 1)
-    DIE(
-      new Error(`expect only 1 pr, but got ${existedList.length}`, {
-        cause: { existed: existedList.map((e) => ({ url: e.html_url, title: e.title })) },
-      }),
-    );
+  // // TODO: seems has bugs on head_repo
+  // const existedList = (
+  //   await gh.pulls.list({
+  //     // source repo
+  //     state: "open",
+  //     head: encodeURIComponent(`${src.owner}:${branch}`),
+  //     // pr will merge into
+  //     owner: dst.owner,
+  //     repo: dst.repo,
+  //     base: repo.default_branch,
+  //   })
+  // ).data;
+
+  // existedList.length <= 1 ||
+  //   DIE(
+  //     new Error(`expect <= 1 pr, but got ${existedList.length}`, {
+  //       cause: { existed: existedList.map((e) => ({ url: e.html_url, title: e.title })) },
+  //     }),
+  //   );
 
   const pr_result =
-    existedList[0] ??
-    (await ghPR()
+    // existedList[0] ??
+    await ghPR()
       .pulls.create({
         // pr info
         title,
@@ -137,7 +138,7 @@ export async function createGithubPullRequest({
           })
         ).data; // .filter(existed => existed.title === title);
 
-        if (existedList.length !== 1)
+        existedList.length === 1 ||
           DIE(
             new Error("expect only 1 pr, but got " + existedList.length, {
               cause: {
@@ -158,7 +159,7 @@ export async function createGithubPullRequest({
           );
 
         return existedList[0];
-      }));
+      });
 
   console.log("PR OK", pr_result.html_url);
   const mismatch = pr_result.title !== title || pr_result.body !== body;

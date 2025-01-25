@@ -2,9 +2,12 @@ import { getMAC } from "@ctrl/mac-address";
 import { defer } from "lodash-es";
 import md5 from "md5";
 import type { WithId } from "mongodb";
-import { db } from "./db";
+import sflow from "sflow";
+import { $fresh, db } from "./db";
 import { fetchCurrentGeoInfo } from "./fetchCurrentGeoInfo";
 import { createInstanceId } from "./utils/createInstanceId";
+import { yaml } from "./utils/yaml";
+
 export type GeoInfo = Awaited<ReturnType<typeof fetchCurrentGeoInfo>>;
 export type WorkerInstance = {
   /** id: rand */
@@ -14,6 +17,7 @@ export type WorkerInstance = {
   geo: GeoInfo;
   workerId: string;
   task?: string;
+  tasks?: string[];
 };
 
 const k = "COMFY_PR_WorkerInstanceKey";
@@ -28,12 +32,18 @@ function getWorkerInstanceId() {
   return instanceId;
 }
 export const WorkerInstances = db.collection<WorkerInstance>("WorkerInstances");
-await WorkerInstances.createIndex({ id: 1 }, { unique: true });
-await WorkerInstances.createIndex({ ip: 1 });
 export const _geoPromise = fetchCurrentGeoInfo(); // in background
 
 if (import.meta.main) {
+  await WorkerInstances.createIndex({ id: 1 }, { unique: true });
+  await WorkerInstances.createIndex({ ip: 1 });
   console.log(await getWorkerInstance());
+  console.log(
+    await sflow(WorkerInstances.watch([{ $match: { up: $fresh("5min") } }], { fullDocument: "whenAvailable" }))
+      .map((e) => yaml.stringify(e))
+      .log()
+      .run(),
+  );
 }
 
 async function postWorkerHeartBeatLoop() {
@@ -77,6 +87,9 @@ export async function getWorkerInstance(task?: string) {
         workerId: getWorkerId(),
         geo: await _geoPromise,
         ...(task && { task }),
+      },
+      $addToSet: {
+        ...(task && { tasks: task }),
       },
       $setOnInsert: { up: new Date() },
     },

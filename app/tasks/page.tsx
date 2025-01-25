@@ -14,7 +14,7 @@ export default async function TasksIndexPage() {
   return (
     <ol>
       <li>
-        <Link href="/tasks/GithubActionUpdateTask">GithubActionUpdateTask x {counts.GithubActionUpdateTask}</Link>
+        <Link href="/tasks/github-action-update">GithubActionUpdateTask x {counts.GithubActionUpdateTask}</Link>
       </li>
     </ol>
   );

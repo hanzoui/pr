@@ -16,3 +16,7 @@
 .tasks-panel a:hover {
   @apply underline;
 }
+
+.btn[aria-busy=true] {
+  @apply loading;
+}
