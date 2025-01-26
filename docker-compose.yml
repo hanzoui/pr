@@ -34,8 +34,8 @@ services:
   #     - .env
   #     - .env.test
   # use .override.yml to enable test mongodb
-  # mongodb:
-  #   restart: always
-  #   image: mongo
-  #   ports: ["27017:27017"]
-  #   volumes: [test_db_data:/data/db]
+  mongodb:
+    restart: always
+    image: mongo
+    ports: ["27017:27017"]
+    volumes: [test_db_data:/data/db]
