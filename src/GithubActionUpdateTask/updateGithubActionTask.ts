@@ -12,11 +12,12 @@ import { getWorkerInstance } from "../WorkerInstances";
 import { GithubActionUpdateTask } from "./GithubActionUpdateTask";
 import { updateGithubActionPrepareBranch } from "./updateGithubActionPrepareBranch";
 
-const path = "./templates/publish.yaml";
-export const referenceActionContent = await readFile(path, "utf8");
-export const referencePullRequestMessage = await readFile(import.meta.dir + "/GithubActionUpdateTask.md", "utf8");
+export const referenceActionContent = await readFile("./templates/publish.yaml", "utf8");
+export const referencePullRequestMessage = await readFile("./templates/tasks/GithubActionUpdatePR.md", "utf8");
+export const referenceActionContentHash = sha256(referenceActionContent); // check if target publish.yaml already latest
+
+// for debug only
 export const testUpdatedPublishYaml = await readFile(import.meta.dir + "/test-updated-publish.yml", "utf8");
-export const referenceActionContentHash = sha256(referenceActionContent);
 
 if (import.meta.main) {
   // const repo = "https://github.com/54rt1n/ComfyUI-DareMerge";
