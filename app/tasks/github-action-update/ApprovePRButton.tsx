@@ -14,7 +14,6 @@ export function ApprovePRButton(e: { repo: string; branchVersionHash?: string })
     <form action={formAction} className="contents">
       <input type="hidden" name="repo" value={e.repo} />
       <input type="hidden" name="branchVersionHash" value={e.branchVersionHash} />
-
       <button
         disabled={pending || !!state.ok}
         aria-busy={pending}

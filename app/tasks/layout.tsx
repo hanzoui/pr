@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import { Header } from "../Components/Header";
+import { Header2 } from "../Components/Layout";
 
 /**
  *
@@ -7,11 +7,10 @@ import { Header } from "../Components/Header";
  */
 export default function ComponentLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="w-full min-h-screen flex bg-grey-300 card-body text-black gap-8">
-      <Header />
-      <div className="shadow-xl w-full card">
-        <Suspense>{children}</Suspense>
-      </div>
+    <div className="w-full min-h-screen flex text-black flex-col">
+      <Header2 />
+      <Suspense>{children}</Suspense>
+      <footer></footer>
     </div>
   );
 }

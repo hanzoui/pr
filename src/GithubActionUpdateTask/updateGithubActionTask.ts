@@ -48,6 +48,7 @@ async function updateGithubActionTaskList() {
     .next();
 
   // reset network error
+  await GithubActionUpdateTask.deleteMany({ error: /OPENAI_API_KEY/ });
   await GithubActionUpdateTask.deleteMany({ error: /was submitted too quickly/ });
 
   console.log({ GithubActionUpdateTask: await GithubActionUpdateTask.find().toArray() });

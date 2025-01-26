@@ -45,7 +45,7 @@ export default async function GithubActionUpdateTaskPage() {
     ] as readonly [string, number, string][],
   };
   return (
-    <div className="tasks-panel p-4 gap-4">
+    <div className="tasks-panel p-8 gap-4">
       <h1>GithubActionUpdateTasks in Total x{data.length}</h1>
 
       <div>
@@ -103,27 +103,27 @@ export default async function GithubActionUpdateTaskPage() {
                 <ApprovePRButton repo={e.repo} branchVersionHash={e.branchVersionHash} />
               </div>
 
-              <div className="flex max-h-[70em] max-w-full overflow-auto">
-                <div className="flex flex-col">
+              <div className="flex max-h-[70em] max-w-full overflow-auto gap-4">
+                <div className="flex flex-col flex-grow">
                   <h3>DRAFTED PULL REQUEST MESSAGE</h3>
-                  <Markdown className="overflow-auto markdown markdown-frame max-w-[50em]" remarkPlugins={[remarkGfm]}>
+                  <Markdown className="overflow-auto markdown markdown-frame w-full" remarkPlugins={[remarkGfm]}>
                     {e.pullRequestMessage ?? ""}
                   </Markdown>
                 </div>
-                <div className="flex shrink flex-col max-h-full overflow-auto">
+                <div className="flex shrink flex-col max-h-full overflow-auto flex-grow">
                   <div className="flex flex-col">
                     <div>
                       <a target="_blank" href={e.forkedBranchUrl}>
                         <h3>COMMIT MESSAGE</h3>
                       </a>
                     </div>
-                    <code className="whitespace-pre-wrap block overflow-auto markdown markdown-frame w-[30em]">
+                    <code className="whitespace-pre-wrap block overflow-auto markdown markdown-frame w-full m-0!">
                       {e.commitMessage ?? ""}
                     </code>
                   </div>
                   <div className="flex flex-col">
                     <h3>BRANCH DIFF RESULT</h3>
-                    <code className="whitespace-pre-wrap block overflow-auto markdown markdown-frame w-[30em]">
+                    <code className="whitespace-pre-wrap block overflow-auto markdown markdown-frame w-full m-0!">
                       {e.branchDiffResult ?? ""}
                     </code>
                   </div>
