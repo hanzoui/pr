@@ -5,14 +5,12 @@ import pProps from "p-props";
 import { $ } from "../cli/echoBunShell";
 import { parseUrlRepoOwner, stringifyGithubOrigin } from "../parseOwnerRepo";
 import { parseTitleBodyOfMarkdown } from "../parseTitleBodyOfMarkdown";
-import { yaml } from "../utils/yaml";
 import { checkoutRepoOnBranch } from "./checkoutRepoOnBranch";
 import { gptWriter } from "./gptWriter";
 import {
   referenceActionContent,
   referenceActionContentHash,
   referencePullRequestMessage,
-  testUpdatedPublishYaml,
 } from "./updateGithubActionTask";
 
 export async function updateGithubActionPrepareBranch(repo: string) {
@@ -47,7 +45,7 @@ export async function updateGithubActionPrepareBranch(repo: string) {
           "Please update current publish.yaml, respect to publish.yaml, check carefully, you make only up to 3 changes that mentioned on the PullReuqest Message template, don't touch other parts even it's different with current one. Give me a updated publish.yaml content.",
       },
     ])) + "\n";
-  console.log(yaml.stringify({ testUpdatedPublishYaml, updatedActionContent }));
+  // console.log(yaml.stringify({ testUpdatedPublishYaml, updatedActionContent }));
   await writeFile(file, updatedActionContent);
 
   if (updatedActionContent === currentContent) {
