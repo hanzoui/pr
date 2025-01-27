@@ -117,13 +117,13 @@ export default async function GithubActionUpdateTaskPage() {
                         <h3>COMMIT MESSAGE</h3>
                       </a>
                     </div>
-                    <code className="whitespace-pre-wrap block overflow-auto markdown markdown-frame w-full m-0!">
+                    <code className="whitespace-pre-wrap block overflow-auto markdown markdown-frame w-full !m-0">
                       {e.commitMessage ?? ""}
                     </code>
                   </div>
                   <div className="flex flex-col">
                     <h3>BRANCH DIFF RESULT</h3>
-                    <code className="whitespace-pre-wrap block overflow-auto markdown markdown-frame w-full m-0!">
+                    <code className="whitespace-pre-wrap block overflow-auto markdown markdown-frame w-full !m-0">
                       {e.branchDiffResult ?? ""}
                     </code>
                   </div>
