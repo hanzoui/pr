@@ -23,14 +23,21 @@ export function ApprovePRButton(e: { repo: string; branchVersionHash?: string })
           const mv = (offset: number) => {
             const btns = [...document.querySelectorAll("button.btn-approve")] as HTMLButtonElement[];
             btns[btns.indexOf(e.currentTarget) + offset]?.focus();
-            e.stopPropagation();
-            e.preventDefault();
+            e.stopPropagation(), e.preventDefault();
           };
           if (isHotkey("ArrowUp")(e)) mv(-1);
           if (isHotkey("ArrowDown")(e)) mv(1);
         }}
+        onClick={(e) => {
+          const mv = (offset: number) => {
+            const btns = [...document.querySelectorAll("button.btn-approve")] as HTMLButtonElement[];
+            btns[btns.indexOf(e.currentTarget) + offset]?.focus();
+          };
+          // move focus to next button
+          mv(1);
+        }}
       >
-        {!state.ok ? <>Approve PR</> : <>APPROVED</>}
+        {!state.ok ? <>Approve for Creating PR</> : <>APPROVED</>}
       </button>
     </form>
   );
