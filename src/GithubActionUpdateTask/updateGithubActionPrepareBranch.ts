@@ -25,6 +25,8 @@ export async function updateGithubActionPrepareBranch(repo: string) {
   const file = files[0];
   const currentContent = await readFile(file, "utf8");
 
+  const hasNewLineAtTheEnd = currentContent.match(/\n$/) != null;
+  
   const updatedActionContent =
     (await gptWriter([
       {
@@ -44,7 +46,7 @@ export async function updateGithubActionPrepareBranch(repo: string) {
         content:
           "Please update current publish.yaml, respect to publish.yaml, check carefully, you make only up to 3 changes that mentioned on the PullReuqest Message template, don't touch other parts even it's different with current one. Give me a updated publish.yaml content.",
       },
-    ])) + "\n";
+    ])).trim() + (hasNewLineAtTheEnd ? "\n":'');
   // console.log(yaml.stringify({ testUpdatedPublishYaml, updatedActionContent }));
   await writeFile(file, updatedActionContent);
 
