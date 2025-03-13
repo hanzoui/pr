@@ -81,25 +81,30 @@ export async function createGithubPullRequest({
   const src = parseUrlRepoOwner(srcUrl);
   const repo = (await gh.repos.get({ ...dst })).data;
 
-  // // TODO: seems has bugs on head_repo
-  // const existedList = (
-  //   await gh.pulls.list({
-  //     // source repo
-  //     state: "open",
-  //     head: encodeURIComponent(`${src.owner}:${branch}`),
-  //     // pr will merge into
-  //     owner: dst.owner,
-  //     repo: dst.repo,
-  //     base: repo.default_branch,
-  //   })
-  // ).data;
+  // 2025-03-13 prevent duplicated PR, if there are PR is closed with same content.
+  // reported here
+  // https://github.com/Chaoses-Ib/ComfyUI_Ib_CustomNodes/pulls?q=is%3Apr
+  //
+  const sameContentPRList = (
+    await gh.pulls.list({
+      // source repo
+      // state: "open",
+      head: encodeURIComponent(`${src.owner}:${branch}`),
+      // pr will merge into
+      owner: dst.owner,
+      repo: dst.repo,
+      base: repo.default_branch,
+    })
+  ).data.filter((e) => e.title === title && e.body === body);
 
-  // existedList.length <= 1 ||
-  //   DIE(
-  //     new Error(`expect <= 1 pr, but got ${existedList.length}`, {
-  //       cause: { existed: existedList.map((e) => ({ url: e.html_url, title: e.title })) },
-  //     }),
-  //   );
+  // // TODO: seems has bugs on head_repo
+
+  sameContentPRList.length <= 1 ||
+    DIE(
+      new Error(`expect <= 1 same content pr, but got ${sameContentPRList.length}`, {
+        cause: { sameContentPRList: sameContentPRList.map((e) => ({ url: e.html_url, title: e.title })) },
+      }),
+    );
 
   const pr_result =
     // existedList[0] ??
