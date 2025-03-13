@@ -1,0 +1,11 @@
+# This file provide a list to bypass ComfyPR interact with some repos.
+#
+# Want to remove your repo from bypass list? make a pr here to remove.
+
+ignore_repos:
+  # reason: https://github.com/loopyd/ComfyUI-FD-Tagger/pull/1
+  - https://github.com/loopyd
+  #
+  # maybe?
+  # reason: https://github.com/Chaoses-Ib/ComfyUI_Ib_CustomNodes/pull/7
+  # - https://github.com/Chaoses-Ib
