@@ -17,7 +17,8 @@ export async function updateGithubActionPrepareBranch(repo: string) {
   console.log(`$ updateGithubActionPrepareBranch("${repo}")`);
   const branch = "update-publish-yaml";
   const { cwd, html_url } = await checkoutRepoOnBranch(repo, branch);
-
+  
+  // can also peek on ${repo_url}/raw/main/.github/workflows/publish.yml
   const files = await globby(`${cwd}/.github/workflows/{publish,publish_action}.{yaml,yml}`);
   console.assert(
     files.length === 1 || DIE(`expected exactly 1 publish.yaml file, but got ${files.length} ${JSON.stringify(files)}`),
