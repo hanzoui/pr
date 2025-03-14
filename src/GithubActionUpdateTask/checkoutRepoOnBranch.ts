@@ -9,7 +9,7 @@ export async function checkoutRepoOnBranch(upstreamUrl: string, branch: string) 
   const forkedHtmlUrl = forkedRepo.html_url;
   const cwd = await getBranchWorkingDir(upstreamUrl, forkedRepo.html_url, branch);
   await $`
-git clone ${upstreamUrl} ${cwd}
+git clone --single-branch ${upstreamUrl} ${cwd}
 cd ${cwd}
 git config user.name ${GIT_USERNAME} && \
 git config user.email ${GIT_USEREMAIL} && \

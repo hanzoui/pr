@@ -3,12 +3,11 @@ name: Run Comfy-PR Hourly.
 
 on:
   schedule:
-    - cron: "55 * * * *" # Runs every the 55th minute
+    - cron: "53 * * * *" # Runs every the 53th minute
   workflow_dispatch:
   push:
     branches:
       - main
-      - master
     paths:
       - ".github/workflows/*"
       - "src/*.ts"

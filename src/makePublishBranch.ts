@@ -39,7 +39,7 @@ export async function makePublishcrBranch(upstreamUrl: string, forkUrl: Readonly
   if (publishYmlTemplate === repalcedContent) throw new Error("fail to replace NODE_AUTHOR_OWNER");
   // commit & push changes
   await $`
-git clone ${upstreamUrl} ${cwd}
+git clone --single-branch ${upstreamUrl} ${cwd}
 
 cd ${cwd}
 
