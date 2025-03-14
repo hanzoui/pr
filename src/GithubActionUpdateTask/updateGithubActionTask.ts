@@ -39,6 +39,7 @@ if (import.meta.main) {
 async function updateGithubActionTaskList() {
   await getWorkerInstance("updateGithubActionTaskList");
 
+  
   // task list importer
   await GithubActionUpdateTask.createIndex({ repo: 1 }, { unique: true });
   await $pipeline(CRNodes)
