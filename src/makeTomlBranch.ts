@@ -24,7 +24,7 @@ export async function makePyprojectBranch(upstreamUrl: string, forkUrl: string) 
 
   // commit changes
   await $`
-git clone ${upstreamUrl} ${cwd}
+git clone --single-branch ${upstreamUrl} ${cwd}
 
 cd ${cwd}
 echo N | comfy node init
