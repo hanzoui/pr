@@ -139,7 +139,7 @@ export async function makeUpdateTomlLicenseBranch(upstreamUrl: string, forkUrl: 
   // commit changes
   await $`
 rm -rf ${cwd}
-git clone ${upstreamUrl} ${cwd}
+git clone --single-branch ${upstreamUrl} ${cwd}
 `;
 
   //   // also pull from existed forked branch
