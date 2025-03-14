@@ -25,7 +25,7 @@ jobs:
       - run: pip install setuptools
       - uses: oven-sh/setup-bun@v1
       # setup db
-      - run: docker compose up mongodb -d
+      - run: docker compose up comfy-pr-db -d
       # Run Comfy-PR Tests
       - run: bun i
       - run: bun test
