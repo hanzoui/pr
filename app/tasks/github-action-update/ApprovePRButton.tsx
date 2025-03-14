@@ -22,7 +22,9 @@ export function ApprovePRButton(e: { repo: string; branchVersionHash?: string })
         onKeyDown={(e) => {
           const mv = (offset: number) => {
             const btns = [...document.querySelectorAll("button.btn-approve")] as HTMLButtonElement[];
+            btns[btns.indexOf(e.currentTarget) + offset]?.scrollIntoView({ block: "start" });
             btns[btns.indexOf(e.currentTarget) + offset]?.focus();
+
             e.stopPropagation(), e.preventDefault();
           };
           if (isHotkey("ArrowUp")(e)) mv(-1);
@@ -31,6 +33,7 @@ export function ApprovePRButton(e: { repo: string; branchVersionHash?: string })
         onClick={(e) => {
           const mv = (offset: number) => {
             const btns = [...document.querySelectorAll("button.btn-approve")] as HTMLButtonElement[];
+            btns[btns.indexOf(e.currentTarget) + offset]?.scrollIntoView({ block: "start" });
             btns[btns.indexOf(e.currentTarget) + offset]?.focus();
           };
           // move focus to next button
@@ -42,4 +45,3 @@ export function ApprovePRButton(e: { repo: string; branchVersionHash?: string })
     </form>
   );
 }
-  
