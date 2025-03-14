@@ -1,6 +1,6 @@
 # volumes:
-  # venv:
-  # test_db_data:
+# venv:
+# test_db_data:
 volumes:
   dotnext:
   test_db_data:
@@ -33,8 +33,8 @@ services:
   #   env_file:
   #     - .env
   #     - .env.test
-  # use .override.yml to enable test mongodb
-  mongodb:
+  # todo: use .override.yml to enable test mongodb
+  comfy-pr-db:
     restart: always
     image: mongo
     ports: ["27017:27017"]
