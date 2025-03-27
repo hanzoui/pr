@@ -80,7 +80,7 @@ export default async function GithubActionUpdateTaskPage() {
                 <a target="_blank" href={e.repo}>
                   {e.repo}
                 </a>
-              </li>
+              </li> c
             );
           })}
         </ol>
