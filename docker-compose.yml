@@ -33,9 +33,11 @@ services:
   #   env_file:
   #     - .env
   #     - .env.test
-  # todo: use .override.yml to enable test mongodb
-  comfy-pr-db:
-    restart: always
-    image: mongo
-    ports: ["27017:27017"]
-    volumes: [test_db_data:/data/db]
+  # 
+  # db is not necessary for local dev
+  # todo: use .override.yml to enable testing dmongodb
+  # comfy-pr-db:
+  #   restart: always
+  #   image: mongo
+  #   ports: ["27017:27017"]
+  #   volumes: [test_db_data:/data/db]
