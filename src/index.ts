@@ -12,7 +12,7 @@ if (import.meta.main) {
   await Promise.all([
     // try send msgs that didn't send in last run
     updateSlackMessages(),
-    checkComfyActivated(), // needed if make pr
+    checkComfyActivated(), // needed if making pr
     updateCNRepos(),
     updateAuthors(),
     updateEmailTasks(),
