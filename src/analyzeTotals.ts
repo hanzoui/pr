@@ -8,6 +8,8 @@ import { CRNodes } from "./CRNodes";
 import { $filaten } from "./db";
 import { tLog } from "./utils/tLog";
 
+export const UNCLAIMED_ADMIN_PUBLISHER_ID = "admin-11338bd3-f081-43cf-b3f9-295c829826f7"; // copy from https://github.com/Comfy-Org/comfy-api/blob/main/db/publisher.go#L13
+
 if (import.meta.main) {
   await tLog("analyzeTotals", async () => {
     console.log(YAML.stringify(await analyzeTotals()));
@@ -24,6 +26,9 @@ export async function analyzeTotals() {
     "Total Nodes": promiseAllProperties({
       "on ComfyUI Manager": CMNodes.estimatedDocumentCount(),
       "on Registry": CRNodes.estimatedDocumentCount(),
+      "on Registry (exclude unclaimed)": CRNodes.countDocuments({
+        publisher: { id: { $ne: UNCLAIMED_ADMIN_PUBLISHER_ID } },
+      } as any),
     }),
     "Total Repos": $pipeline(CNRepos)
       .group({
