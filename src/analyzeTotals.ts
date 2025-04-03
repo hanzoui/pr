@@ -26,7 +26,7 @@ export async function analyzeTotals() {
       "on ComfyUI Manager": CMNodes.estimatedDocumentCount(),
       "on Registry": CRNodes.estimatedDocumentCount(),
       "on Registry (exclude unclaimed)": CRNodes.countDocuments({
-        publisher: { id: { $ne: UNCLAIMED_ADMIN_PUBLISHER_ID } },
+         'publisher.id': { $ne: UNCLAIMED_ADMIN_PUBLISHER_ID } ,
       } as any),
     }),
     "Total Repos": $pipeline(CNRepos)
