@@ -8,10 +8,10 @@ volumes:
 # dev server
 services:
   comfy-pr:
-    # image: oven/bun
-    # command: bun dev
-    image: node
-    command: npx -y bun dev
+    image: oven/bun
+    command: bun dev
+    # image: node
+    # command: npx -y bun dev
     #
     working_dir: /app/
     volumes:
