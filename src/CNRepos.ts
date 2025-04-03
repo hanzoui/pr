@@ -50,8 +50,8 @@ export type CustomNodeRepo = {
 
   cr_ids?: ObjectId[];
   
-  /** @deprecated fill in future */
-  on_registry?: Task<boolean>; // check if cr_ids is not empty
+  on_registry?: Task<boolean>; // check if cr_ids is not empty, exclude publisher.id === ADMIN
+  on_registry_all?: Task<boolean>; // check if cr_ids is not empty, including  publisher.id === ADMIN
 
   /** @deprecated use cm_ids */
   cm?: Pick<WithId<CMNode>, "_id" | "id" | "title">;
