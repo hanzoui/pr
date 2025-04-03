@@ -4,11 +4,10 @@ import promiseAllProperties from "promise-all-properties";
 import YAML from "yaml";
 import { CMNodes } from "./CMNodes";
 import { CNRepos } from "./CNRepos";
+import { UNCLAIMED_ADMIN_PUBLISHER_ID } from "./constants";
 import { CRNodes } from "./CRNodes";
 import { $filaten } from "./db";
 import { tLog } from "./utils/tLog";
-
-export const UNCLAIMED_ADMIN_PUBLISHER_ID = "admin-11338bd3-f081-43cf-b3f9-295c829826f7"; // copy from https://github.com/Comfy-Org/comfy-api/blob/main/db/publisher.go#L13
 
 if (import.meta.main) {
   await tLog("analyzeTotals", async () => {
