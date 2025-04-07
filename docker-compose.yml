@@ -9,7 +9,7 @@ volumes:
 services:
   comfy-pr:
     image: oven/bun
-    command: bun dev
+    command: bun dev --turbopack
     # image: node
     # command: npx -y bun dev
     #

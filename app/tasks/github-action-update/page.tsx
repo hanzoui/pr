@@ -1,20 +1,18 @@
-import {parseDiff, Diff, Hunk} from 'react-diff-view';
-
-// import ReactDiffViewer from 'react-diff-viewer';
 import { getAuthUser } from "@/app/api/auth/[...nextauth]/getAuthUser";
 import "@/app/markdown.css";
 import "@/app/tasks-panel.css";
 import { parseTitleBodyOfMarkdown } from "@/src/parseTitleBodyOfMarkdown";
 import { yaml } from "@/src/utils/yaml";
+import { compareBy } from "comparing";
 import type { Metadata } from "next";
 import { forbidden } from "next/navigation";
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { listGithubActionUpdateTask } from "./actions";
 import { ApprovePRButton } from "./ApprovePRButton";
+// import { GitDiffResult } from "./GitDIffResult";
 import ProgressBarChart from "./ProgressBarChart";
 import { ResetTaskButton } from "./ResetTaskButton";
-
 export const metadata: Metadata = {
   title: `GithubActionUpdateTaskPage - ComfyPR`,
 };
@@ -94,7 +92,7 @@ export default async function GithubActionUpdateTaskPage() {
           <h2>Pending Reviews x{pendingReviewsData.length}</h2>
         </summary>
         <ol className="flex flex-col max-w-full px-4">
-          {pendingReviewsData.map((e, i) => (
+          {pendingReviewsData.toSorted(compareBy((e) => e.repo)).map((e, i) => (
             <li key={e.repo} className="flex flex-col my-4">
               <div className="flex justify-between">
                 <span className="text-xl font-bold">
@@ -103,7 +101,10 @@ export default async function GithubActionUpdateTaskPage() {
                     {e.repo}
                   </a>
                 </span>
-                <ApprovePRButton repo={e.repo} branchVersionHash={e.branchVersionHash} />
+                <div className="flex gap-4">
+                  <ResetTaskButton repo={e.repo} />
+                  <ApprovePRButton repo={e.repo} branchVersionHash={e.branchVersionHash} />
+                </div>
               </div>
 
               <div className="flex max-h-[70em] max-w-full overflow-auto gap-4">
@@ -126,9 +127,13 @@ export default async function GithubActionUpdateTaskPage() {
                   </div>
                   <div className="flex flex-col">
                     <h3>BRANCH DIFF RESULT</h3>
-                    <code className="whitespace-pre-wrap block overflow-auto markdown markdown-frame w-full !m-0">
-                      {e.branchDiffResult ?? ""}
-                    </code>
+                    {/* {!!e.branchDiffResult && <>{e.branchDiffResult}</>} */}
+                    {/* {!!e.branchDiffResult && <GitDiffResult>{e.branchDiffResult}</GitDiffResult>} */}
+                    {!!e.branchDiffResult && (
+                      <code className="whitespace-pre-wrap block overflow-auto markdown markdown-frame w-full !m-0">
+                        {e.branchDiffResult}
+                      </code>
+                    )}
                   </div>
                 </div>
               </div>
@@ -150,7 +155,6 @@ export default async function GithubActionUpdateTaskPage() {
                   {e.repo}
                 </a>{" "}
                 - Creating PR [{parseTitleBodyOfMarkdown(e.pullRequestMessage!).title}]...
-
                 <ResetTaskButton repo={e.repo} />
               </li>
             );
@@ -167,7 +171,7 @@ export default async function GithubActionUpdateTaskPage() {
         {prCreatedData.map((e, i) => {
           return (
             <li key={e.repo}>
-              {i + 1}.{" "}
+              {i + 1}. <span>{e.pullRequestStatus}</span>
               <a target="_blank" href={e.repo}>
                 {e.repo}
               </a>{" "}

@@ -13,7 +13,6 @@ export function ResetTaskButton(e: { repo: string }) {
   return (
     <form action={formAction} className="contents">
       <input type="hidden" name="repo" value={e.repo} />
-
       <button
         disabled={pending || !!state.ok}
         aria-busy={pending || undefined}
