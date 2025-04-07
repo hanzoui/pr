@@ -12,7 +12,7 @@ export default async function TasksIndexPage() {
   });
 
   return (
-    <ol>
+    <ol className="px-8">
       <li>
         <Link href="/tasks/github-action-update">GithubActionUpdateTask x {counts.GithubActionUpdateTask}</Link>
       </li>
