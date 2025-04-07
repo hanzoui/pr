@@ -4,6 +4,7 @@ import { filter, groupBy, values } from "rambda";
 import YAML from "yaml";
 import { TaskOK } from "../packages/mongodb-pipeline-ts/Task";
 import { CNRepos } from "./CNRepos";
+import { UNCLAIMED_ADMIN_PUBLISHER_ID } from "./constants";
 import { CRNodes } from "./CRNodes";
 import { fetchCRNodes } from "./fetchComfyRegistryNodes";
 import { notifySlack } from "./slack/notifySlack";
@@ -29,10 +30,18 @@ export async function updateCRNodes() {
     await notifySlack(msg, { unique: true });
   }
 
+  const CRNodesRepo = nodes.map(({ repository }) => repository).filter(Boolean);
+  const CRNodesRepoExcludeUnclaimed = nodes
+    .filter((e) => e.publisher.id !== UNCLAIMED_ADMIN_PUBLISHER_ID)
+    .map(({ repository }) => repository)
+    .filter(Boolean);
   return [
     await $pipeline(CNRepos)
       .project({ repository: 1 })
-      .set({ on_registry: TaskOK({ $in: ["$repository", nodes.map(({ repository }) => repository).filter(Boolean)] }) })
+      .set({
+        on_registry_all: TaskOK({ $in: ["$repository", CRNodesRepo] }),
+        on_registry: TaskOK({ $in: ["$repository", CRNodesRepoExcludeUnclaimed] }),
+      })
       .merge({ into: "CNRepos", on: "repository", whenMatched: "merge", whenNotMatched: "insert" })
       .aggregate()
       .next(),

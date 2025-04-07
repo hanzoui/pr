@@ -4,6 +4,7 @@ import promiseAllProperties from "promise-all-properties";
 import YAML from "yaml";
 import { CMNodes } from "./CMNodes";
 import { CNRepos } from "./CNRepos";
+import { UNCLAIMED_ADMIN_PUBLISHER_ID } from "./constants";
 import { CRNodes } from "./CRNodes";
 import { $filaten } from "./db";
 import { tLog } from "./utils/tLog";
@@ -24,6 +25,9 @@ export async function analyzeTotals() {
     "Total Nodes": promiseAllProperties({
       "on ComfyUI Manager": CMNodes.estimatedDocumentCount(),
       "on Registry": CRNodes.estimatedDocumentCount(),
+      "on Registry (exclude unclaimed)": CRNodes.countDocuments({
+         'publisher.id': { $ne: UNCLAIMED_ADMIN_PUBLISHER_ID } ,
+      } as any),
     }),
     "Total Repos": $pipeline(CNRepos)
       .group({

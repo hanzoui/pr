@@ -31,7 +31,7 @@ if (import.meta.main) {
 }
 export async function updateCMNodes() {
   const nodes = await fetchCMNodesWithHash();
-  console.log("CMNodes updating (" + nodes.length + " nodes)");
+  console.log(`CMNodes updating (${nodes.length} nodes)`);
 
   // updating nodes
   const updateResult = await CMNodes.bulkWrite(
