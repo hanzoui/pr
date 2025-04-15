@@ -103,6 +103,7 @@ export default async function GithubActionUpdateTaskPage() {
                 </span>
                 <div className="flex gap-4">
                   <ResetTaskButton repo={e.repo} />
+                  {" | "}
                   <ApprovePRButton repo={e.repo} branchVersionHash={e.branchVersionHash} />
                 </div>
               </div>

@@ -1,13 +1,13 @@
 #!bun
 import { $pipeline } from "@/packages/mongodb-pipeline-ts/$pipeline";
-import { readFile } from "fs/promises";
+import { readFile, writeFile } from "fs/promises";
 import isCI from "is-ci";
 import DIE from "phpdie";
 import sflow from "sflow";
 import sha256 from "sha256";
+import yaml from "yaml";
 import { createPR } from "../createGithubPullRequest";
 import { CRNodes } from "../CRNodes";
-import { yaml } from "../utils/yaml";
 import { getWorkerInstance } from "../WorkerInstances";
 import { GithubActionUpdateTask } from "./GithubActionUpdateTask";
 import { updateGithubActionPrepareBranch } from "./updateGithubActionPrepareBranch";
@@ -19,6 +19,9 @@ export const referenceActionContentHash = sha256(referenceActionContent); // che
 // for debug only
 export const testUpdatedPublishYaml = await readFile(import.meta.dir + "/test-updated-publish.yml", "utf8");
 
+// const resetPattern = {
+
+// }
 if (import.meta.main) {
   // const repo = "https://github.com/54rt1n/ComfyUI-DareMerge";
   const repo = "https://github.com/snomiao/ComfyUI-DareMerge-test";
@@ -31,7 +34,24 @@ if (import.meta.main) {
   // test on single repo
   // await updateGithubActionTask(repo);
 
-  await updateGithubActionTaskList();
+  // reset silly pr message
+  const silly = await sflow(
+    GithubActionUpdateTask.find({
+      pullRequestMessage: /\+\s+if: \${{ github.repository_owner == 'NODE_AUTHOR_OWNER' }}$/gim,
+    }),
+  )
+    .log((e) => yaml.stringify(e))
+    .map((e, index) => ({ ...e, index }))
+    .forEach(async (e) => {
+      await GithubActionUpdateTask.deleteMany({ _id: e._id });
+    })
+    .toArray();
+
+  await writeFile("./.cache/" + import.meta.file + "-out.yaml", yaml.stringify(silly));
+
+  // await updateGithubActionTaskList();
+
+  console.log("done");
 
   if (isCI) process.exit(0);
 }
@@ -39,7 +59,6 @@ if (import.meta.main) {
 async function updateGithubActionTaskList() {
   await getWorkerInstance("updateGithubActionTaskList");
 
-  
   // task list importer
   await GithubActionUpdateTask.createIndex({ repo: 1 }, { unique: true });
   await $pipeline(CRNodes)

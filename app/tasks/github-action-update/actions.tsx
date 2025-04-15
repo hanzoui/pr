@@ -42,6 +42,7 @@ export async function resetErrorForGithubActionUpdateTask(repo: string) {
   );
 }
 export async function listGithubActionUpdateTask() {
+  console.log('listGithubActionUpdateTask')
   // "use server";
   // await getAuthUser();
   return (await GithubActionUpdateTask.find({}).toArray()).map(({ _id, ...e }) => ({
