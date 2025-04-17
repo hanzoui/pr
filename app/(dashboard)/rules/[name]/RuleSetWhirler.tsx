@@ -4,7 +4,7 @@ import { $ERROR, $OK, TaskDataOrNull, tsmatch, type Task } from "@/packages/mong
 import type { PullStatus, PullsStatus } from "@/src/analyzePullsStatus";
 import type { updateFollowRuleSet } from "@/src/updateFollowRuleSet";
 import { yaml } from "@/src/utils/yaml";
-import { revalidatePath } from "next/cache";
+// import { revalidatePath } from "next/cache";
 import { useRouter } from "next/navigation";
 import { useCallback, useState } from "react";
 import { Toaster, toast } from "react-hot-toast";
@@ -150,8 +150,9 @@ export default function RuleSetWhirler({
               if (typeof window !== "undefined") {
                 document.location.href = document.location.href;
               }
-              revalidatePath("/rules/" + name);
-              revalidatePath("/rules");
+              // 2025-04-17 disable it due to only works in server component
+              // revalidatePath("/rules/" + name);
+              // revalidatePath("/rules");
             }}
             className="btn btn-error"
           >
@@ -178,8 +179,9 @@ export default function RuleSetWhirler({
                       document.location.href = document.location.href;
                     }
                     router.refresh();
-                    revalidatePath("/rules/" + name);
-                    revalidatePath("/rules");
+                    // 2025-04-17 disable it due to only works in server component
+                    // revalidatePath("/rules/" + name);
+                    // revalidatePath("/rules");
                   })
                   .with($ERROR, ({ error }) => {
                     setError(yaml.stringify(error));
