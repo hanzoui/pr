@@ -1,9 +1,11 @@
 import pkg from "@/package.json";
+import { CNRepos } from "@/src/CNRepos";
 import { getWorkerInstance } from "@/src/WorkerInstances";
 import { analyzePullsStatus } from "@/src/analyzePullsStatus";
 import { zPullsStatus } from "@/src/zod/zPullsStatus";
 import { initTRPC } from "@trpc/server";
 import DIE from "phpdie";
+import sflow from "sflow";
 import { type OpenApiMeta } from "trpc-openapi";
 import z from "zod";
 export const t = initTRPC.meta<OpenApiMeta>().create(); /* 👈 */
@@ -40,4 +42,14 @@ export const router = t.router({
     .input(z.object({ skip: z.number(), limit: z.number() }).partial())
     .output(zPullsStatus)
     .query(async ({ input: { limit = 0, skip = 0 } }) => (await analyzePullsStatus({ limit, skip })) as any),
+  getRepoUrls: t.procedure
+    .meta({ openapi: { method: "GET", path: "/repo-urls", description: "Get repo urls" } })
+    .input(z.object({}))
+    .output(z.array(z.string()))
+    .query(
+      async () =>
+        await sflow(CNRepos.find({}, { projection: { repository: 1 } }))
+          .map((e) => (e as unknown as { repository: string }).repository)
+          .toArray(),
+    ),
 });

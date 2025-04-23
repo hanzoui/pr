@@ -40,7 +40,9 @@ export type CRPull = RelatedPull & {
 // TODO: refactor into interface to improve performance
 export type CustomNodeRepo = {
   
+  // github url
   repository: string;
+
   info?: Task<Pick<GithubRepo, "html_url" | "archived" | "default_branch" | "private">>;
 
   // author?: Author;
