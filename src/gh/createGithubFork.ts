@@ -19,7 +19,7 @@ export async function createGithubFork(from: string, to: string) {
       // from owner repo
       ..._from,
       // to owner repo
-      ...(ghUser.name !== _to.owner && { organization: _to.owner }),
+      ...((await ghUser()).name !== _to.owner && { organization: _to.owner }),
       name: _to.repo,
     })
     .catch(async (e) => {

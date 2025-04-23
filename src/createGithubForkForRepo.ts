@@ -26,10 +26,8 @@ if (import.meta.main) {
  * @param upstreamRepoUrl
  * @returns forked repo info
  */
-export async function createGithubForkForRepoEx(
-  upstreamRepoUrl: string,
-  { forkUrl = createGithubForkUrlForRepo(upstreamRepoUrl) } = {},
-) {
+export async function createGithubForkForRepoEx(upstreamRepoUrl: string, { forkUrl = "" } = {}) {
+  forkUrl ||= await createGithubForkUrlForRepo(upstreamRepoUrl);
   const alreadyForked = await ForkedRepo.findOne({ repo: upstreamRepoUrl, forkedRepo: forkUrl });
   if (alreadyForked) {
     console.debug(
@@ -61,12 +59,12 @@ Forking ${upstreamRepoUrl}
   );
   return forked;
 }
-export function createGithubForkUrlForRepo(upstreamRepoUrl: string) {
+export async function createGithubForkUrlForRepo(upstreamRepoUrl: string) {
   // console.log(`* Change env.SALT=${salt} will fork into a different repo`);
   const upstream = parseUrlRepoOwner(upstreamRepoUrl);
   const argv = minimist(process.argv.slice(2));
   const salt = argv.salt || process.env.SALT || "m3KMgZ2AeZGWYh7W";
-  const repo_hash = md5(`${salt}-${ghUser.name}-${upstream.owner}/${upstream.repo}`).slice(0, 8);
+  const repo_hash = md5(`${salt}-${(await ghUser()).name}-${upstream.owner}/${upstream.repo}`).slice(0, 8);
   const forkRepoName = (FORK_PREFIX && `${FORK_PREFIX}${upstream.repo}-${repo_hash}`) || upstream.repo;
   const forkDst = `${FORK_OWNER}/${forkRepoName}`;
   const forkUrl = `https://github.com/${forkDst}`;
