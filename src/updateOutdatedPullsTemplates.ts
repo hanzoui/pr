@@ -72,7 +72,7 @@ export async function updateOutdatedPullsTemplates() {
               error: { $nin: ["up to date", "body mismatch"] },
             },
             pull: {
-              user: { login: ghUser.login },
+              user: { login: (await ghUser()).login },
               title: { $in: outdateTitles },
               body: { $in: outdateBodies },
             },
@@ -109,7 +109,7 @@ export async function updateOutdatedPullsTemplates() {
         async (data, i): Promise<CRPull> => {
           const { pull, type } = data;
           const { number } = pull;
-          if (pull.user.login !== ghUser.login) DIE("not editable");
+          if (pull.user.login !== (await ghUser()).login) DIE("not editable");
           const replacement = match(pull)
             .with(pyproject, () => DIE("Is already latest, should never happen here"))
             .with(publishcr, () => DIE("Is already latest, should never happen here"))

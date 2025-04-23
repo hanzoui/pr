@@ -11,8 +11,8 @@ export async function checkoutRepoOnBranch(upstreamUrl: string, branch: string) 
   await $`
 git clone --single-branch ${upstreamUrl} ${cwd}
 cd ${cwd}
-git config user.name ${GIT_USERNAME} && \
-git config user.email ${GIT_USEREMAIL} && \
+git config user.name ${await GIT_USERNAME()} && \
+git config user.email ${await GIT_USEREMAIL()} && \
 git checkout -b ${branch}
 `;
   return { cwd, html_url: forkedHtmlUrl };

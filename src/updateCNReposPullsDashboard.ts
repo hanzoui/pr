@@ -8,7 +8,7 @@ import { ghUser } from "./ghUser";
 import { parseUrlRepoOwner, stringifyOwnerRepo } from "./parseOwnerRepo";
 
 export async function updateCNRepoPullsDashboard() {
-  if (ghUser.login !== "snomiao") return [];
+  if ((await ghUser()).login !== "snomiao") return [];
   const dashBoardIssue = process.env.DASHBOARD_ISSUE_URL || DIE("DASHBOARD_ISSUE_URL not found");
   const dashBoardRepo = dashBoardIssue.replace(/\/issues\/\d+$/, "");
   const dashBoardIssueNumber = Number(dashBoardIssue.match(/\/issues\/(\d+)$/)?.[1] || DIE("Issue number not found"));

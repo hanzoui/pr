@@ -39,7 +39,7 @@ export async function addCommentAction({
         ),
       };
 
-      if (runAction && loadedAction.by === ghUser.login) {
+      if (runAction && loadedAction.by === (await ghUser()).login) {
         const existedCommentsTask =
           (await $pipeline(CNRepos)
             .unwind("$crPulls.data")
