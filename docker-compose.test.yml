@@ -1,0 +1,43 @@
+# volumes:
+# venv:
+# test_db_data:
+volumes:
+  dotnext:
+  test_db_data:
+
+# dev server
+services:
+  comfy-pr:
+    image: oven/bun
+    command: bun dev --turbopack
+    # image: node
+    # command: npx -y bun dev
+    #
+    working_dir: /app/
+    volumes:
+      - ./:/app/
+      # - dotnext:/app/.next
+    environment:
+      PORT: 80
+    env_file:
+      - .env.local
+  # comfy-pr:
+  #     - .env
+  #   restart: always
+  #   image: snomiao/comfy-registry-pr
+  #   build: .
+  #   volumes:
+  #     - $HOME/.ssh:/root/.ssh:ro
+  #     - venv:/app/.venv
+  #     - ./prs:/app/prs
+  #   env_file:
+  #     - .env
+  #     - .env.test
+  # 
+  # db is not necessary for local dev
+  # todo: use .override.yml to enable testing dmongodb
+  comfy-pr-db:
+    restart: always
+    image: mongo
+    ports: ["27017:27017"]
+    volumes: [test_db_data:/data/db]
