@@ -24,8 +24,11 @@ jobs:
       # Setup Bun
       - run: pip install setuptools
       - uses: oven-sh/setup-bun@v1
-      # setup db
-      - run: docker compose up comfy-pr-db -d
+      # setup test db
+      - run: docker compose -f docker-compose.test.yml up comfy-pr-db -d
+      # setup comfy-pr
       # Run Comfy-PR Tests
       - run: bun i
       - run: bun test
+      # shutdown test-db
+      # - run: docker compose -f docker-compose.test.yml down comfy-pr-db
