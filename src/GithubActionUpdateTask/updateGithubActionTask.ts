@@ -47,7 +47,9 @@ if (import.meta.main) {
     })
     .toArray();
 
-  await writeFile("./.cache/" + import.meta.file + "-out.yaml", yaml.stringify(silly));
+  await writeFile("./.cache/" + import.meta.file + "-out.yaml", yaml.stringify(silly)).catch(() => {
+    console.error("Error writing out file");
+  });
 
   // await updateGithubActionTaskList();
 
