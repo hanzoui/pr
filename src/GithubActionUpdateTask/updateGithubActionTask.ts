@@ -18,14 +18,15 @@ export const testUpdatedPublishYaml = await readFile(import.meta.dir + "/test-up
 
 if (import.meta.main) {
   const repo = "https://github.com/aigc-apps/VideoX-Fun";
+  await resetErrorForGithubActionUpdateTask(repo);
   console.log(await updateGithubActionTask(repo));
   console.log(await GithubActionUpdateTask.findOne({ repo }));
   console.log("done");
 }
 
 /**
- * workflow:
- * 1. check if repo is already up to date
+ * Status:
+ * 1. Check if repo is already up to date
  * 2. if not, make a branch and update the publish.yaml
  * 3. make pr
  * 4. check pr status, track pr comments

@@ -5,6 +5,7 @@ import pProps from "p-props";
 import { $ } from "../cli/echoBunShell";
 import { parseUrlRepoOwner, stringifyGithubOrigin } from "../parseOwnerRepo";
 import { parseTitleBodyOfMarkdown } from "../parseTitleBodyOfMarkdown";
+import { yaml } from "../utils/yaml";
 import { checkoutRepoOnBranch } from "./checkoutRepoOnBranch";
 import { gptWriter } from "./gptWriter";
 import {
@@ -52,8 +53,9 @@ export async function updateGithubActionPrepareBranch(repo: string) {
     ).trim() + (hasNewLineAtTheEnd ? "\n" : "");
   // console.log(yaml.stringify({ testUpdatedPublishYaml, updatedActionContent }));
   await writeFile(file, updatedActionContent);
-
-  if (updatedActionContent === currentContent) {
+  
+  const isContentSame = yaml.parse(updatedActionContent) === yaml.parse(referenceActionContent);
+  if (isContentSame) {
     // already up to date
     return {
       hash: referenceActionContentHash,
@@ -69,7 +71,6 @@ export async function updateGithubActionPrepareBranch(repo: string) {
   console.log({ diff });
 
   // gpt review
-  
 
   const { pullRequestMessage, commitMessage } = await pProps({
     commitMessage: gptWriter([
