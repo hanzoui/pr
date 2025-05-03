@@ -204,6 +204,7 @@ export async function updateGithubActionTask(repoUrl: string) {
         cause: { rawComments, pullRequestCommentsCount },
       });
     const pullRequestComments: string = rawComments
+      .filter((e) => !e.user?.login?.endsWith("[bot]"))
       .map((cmt) => JSON.stringify({ user: cmt.user?.login ?? "unknown", text: cmt.body }))
       .join("\n");
 
