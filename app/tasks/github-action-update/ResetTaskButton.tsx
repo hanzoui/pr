@@ -21,12 +21,21 @@ export function ResetTaskButton(e: { repo: string }) {
         onKeyDown={(e) => {
           const mv = (offset: number) => {
             const btns = [...document.querySelectorAll("button.btn-reset")] as HTMLButtonElement[];
+            btns[btns.indexOf(e.currentTarget) + offset]?.scrollIntoView({ block: "start" });
             btns[btns.indexOf(e.currentTarget) + offset]?.focus();
-            e.stopPropagation();
-            e.preventDefault();
+            e.stopPropagation(), e.preventDefault();
           };
           if (isHotkey("ArrowUp")(e)) mv(-1);
           if (isHotkey("ArrowDown")(e)) mv(1);
+        }}
+        onClick={(e) => {
+          const mv = (offset: number) => {
+            const btns = [...document.querySelectorAll("button.btn-reset")] as HTMLButtonElement[];
+            btns[btns.indexOf(e.currentTarget) + offset]?.scrollIntoView({ block: "start" });
+            btns[btns.indexOf(e.currentTarget) + offset]?.focus();
+          };
+          // move focus to next button
+          mv(1);
         }}
       >
         {!state.ok ? <>RESET</> : <>RESET OK</>}
