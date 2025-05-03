@@ -37,7 +37,7 @@ export default async function GithubActionUpdateTaskPage() {
   const prOpenedData = data
     .filter((e) => !errorData.includes(e))
     .filter((e) => e.pullRequestUrl)
-    .filter((e) => e.pullRequestStatus === "OPEN");
+    .filter((e) => e.pullRequestStatus !== "MERGED" && e.pullRequestStatus !== "CLOSED");
   const prMergedData = data
     .filter((e) => !errorData.includes(e))
     .filter((e) => e.pullRequestUrl)
