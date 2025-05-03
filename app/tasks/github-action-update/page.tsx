@@ -34,16 +34,20 @@ export default async function GithubActionUpdateTaskPage() {
   const pendingCreatePRData = data
     .filter((e) => !errorData.includes(e))
     .filter((e) => e.approvedBranchVersionHash && e.approvedBranchVersionHash !== e.pullRequestVersionHash);
+  const upToDatedData = data.filter((e) => !errorData.includes(e)).filter((e) => e.status === "up-to-date");
   const prOpenedData = data
     .filter((e) => !errorData.includes(e))
+    .filter((e) => !upToDatedData.includes(e))
     .filter((e) => e.pullRequestUrl)
     .filter((e) => e.pullRequestStatus !== "MERGED" && e.pullRequestStatus !== "CLOSED");
   const prMergedData = data
     .filter((e) => !errorData.includes(e))
+    .filter((e) => !upToDatedData.includes(e))
     .filter((e) => e.pullRequestUrl)
     .filter((e) => e.pullRequestStatus === "MERGED");
   const prClosedData = data
     .filter((e) => !errorData.includes(e))
+    .filter((e) => !upToDatedData.includes(e))
     .filter((e) => e.pullRequestUrl)
     .filter((e) => e.pullRequestStatus === "CLOSED");
 
@@ -54,6 +58,9 @@ export default async function GithubActionUpdateTaskPage() {
       ["Pending Create PR", pendingCreatePRData.length, "oklch(0.75 0.150 198)"], // A bluish color
       ["PR Opened", prOpenedData.length, "oklch(0.8 0.125 320)"], // A purple color
       ["PR Merged", prMergedData.length, "oklch(0.6 0.125 320)"], // A purple color
+      ["Up to dated", upToDatedData.length, "oklch(0.6 0.125 320)"], // A purple color
+
+      // error
       ["PR Closed", prClosedData.length, "oklch(0.5 0.125 320)"], // A closed color
       ["Error", errorData.length, "oklch(0.6 0.179 29)"], // A reddish color
     ] as readonly [string, number, string][],
