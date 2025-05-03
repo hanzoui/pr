@@ -1,3 +1,4 @@
+import { resetErrorForGithubActionUpdateTask } from "@/app/tasks/github-action-update/actions";
 import { $pipeline } from "@/packages/mongodb-pipeline-ts/$pipeline";
 import { writeFile } from "fs/promises";
 import isCI from "is-ci";
@@ -20,12 +21,9 @@ if (import.meta.main) {
   // test on single repo
   // await updateGithubActionTask(repo);
 
-  // reset server configuration error
-  await sflow(GithubActionUpdateTask.find({}))
-    .map((e) => e.repo)
-    .filter((e) => !e?.match(/\//))
-    .log()
-    .forEach(async (e) => await GithubActionUpdateTask.deleteMany({ repo: e }))
+  // reset retryable error
+  await sflow(GithubActionUpdateTask.find({ error: /\bRETRYABLE\b/ }))
+    .forEach((e) => resetErrorForGithubActionUpdateTask(e.repo))
     .run();
 
   // simplify error "Repository was archived so is read-only."
@@ -89,4 +87,3 @@ async function updateGithubActionTaskList() {
   // console.log(yaml.stringify({ GithubActionUpdateTask: await GithubActionUpdateTask.find().toArray() }));
   console.log("done");
 }
-

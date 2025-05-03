@@ -56,6 +56,7 @@ export async function updateGithubActionTask(repoUrl: string) {
       {
         $set: {
           branchVersionHash: hash,
+          upToDateHash: upToDate ? hash : undefined,
           forkedBranchUrl,
           commitMessage,
           pullRequestMessage,
