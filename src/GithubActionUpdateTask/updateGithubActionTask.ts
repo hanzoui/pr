@@ -37,6 +37,14 @@ if (import.meta.main) {
   // test on single repo
   // await updateGithubActionTask(repo);
 
+  // reset server configuration error
+  // await GithubActionUpdateTask.deleteMany({ error: /OPENAI_API_KEY/ });
+  
+  // simplify error "Repository was archived so is read-only."
+  await GithubActionUpdateTask.updateMany(
+    { error: /Repository was archived so is read-only\./ },
+    { $set: { error: "Repository was archived so is read-only." } },
+  );
   // reset silly pr messages
   const silly = await sflow(
     GithubActionUpdateTask.find({
@@ -71,8 +79,7 @@ async function updateGithubActionTaskList() {
     .aggregate()
     .next();
 
-  // reset network error
-  await GithubActionUpdateTask.deleteMany({ error: /OPENAI_API_KEY/ });
+  // auto reset network error
   await GithubActionUpdateTask.deleteMany({ error: /was submitted too quickly/ });
 
   console.log({ GithubActionUpdateTask: await GithubActionUpdateTask.find().toArray() });
