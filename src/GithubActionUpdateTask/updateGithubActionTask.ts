@@ -39,7 +39,7 @@ if (import.meta.main) {
 
   // reset server configuration error
   // await GithubActionUpdateTask.deleteMany({ error: /OPENAI_API_KEY/ });
-  
+
   // simplify error "Repository was archived so is read-only."
   await GithubActionUpdateTask.updateMany(
     { error: /Repository was archived so is read-only\./ },
@@ -109,12 +109,11 @@ async function updateGithubActionTaskList() {
  * 4. check pr status, track pr comments
  */
 export async function updateGithubActionTask(repo: string) {
-  const task =
-    (await GithubActionUpdateTask.findOneAndUpdate(
-      { repo },
-      { $set: { updatedAt: new Date() } },
-      { upsert: true, returnDocument: "after" },
-    )) || DIE("never");
+  const task = (await GithubActionUpdateTask.findOneAndUpdate(
+    { repo },
+    { $set: { updatedAt: new Date() } },
+    { upsert: true, returnDocument: "after" },
+  ))!;
 
   // check if already up to date
   if (referenceActionContentHash !== task.branchVersionHash) {
@@ -128,23 +127,21 @@ export async function updateGithubActionTask(repo: string) {
       diff: branchDiffResult,
     } = await updateGithubActionPrepareBranch(repo);
 
-    Object.assign(
-      task,
-      (await GithubActionUpdateTask.findOneAndUpdate(
-        { repo },
-        {
-          $set: {
-            branchVersionHash: hash,
-            forkedBranchUrl,
-            commitMessage,
-            pullRequestMessage,
-            branchDiffResult,
-            updatedAt: new Date(),
-          },
+    const updatedTask = await GithubActionUpdateTask.findOneAndUpdate(
+      { repo },
+      {
+        $set: {
+          branchVersionHash: hash,
+          forkedBranchUrl,
+          commitMessage,
+          pullRequestMessage,
+          branchDiffResult,
+          updatedAt: new Date(),
         },
-        { upsert: true, returnDocument: "after" },
-      )) || DIE("never"),
-    );
+      },
+      { upsert: true, returnDocument: "after" },
+    )!;
+    Object.assign(task, updatedTask);
     console.debug(yaml.stringify({ repo, hash, forkedBranchUrl, commitMessage, pullRequestMessage, branchDiffResult }));
   }
 
@@ -160,12 +157,11 @@ export async function updateGithubActionTask(repo: string) {
       dst: repo,
       msg: task.pullRequestMessage || DIE("approved task is missing pullRequestMessage"),
     });
-    const updatedTask =
-      (await GithubActionUpdateTask.findOneAndUpdate(
-        { repo },
-        { $set: { pullRequestUrl, pullRequestVersionHash: task.approvedBranchVersionHash, updatedAt: new Date() } },
-        { upsert: true, returnDocument: "after" },
-      )) || DIE("never");
+    const updatedTask = await GithubActionUpdateTask.findOneAndUpdate(
+      { repo },
+      { $set: { pullRequestUrl, pullRequestVersionHash: task.approvedBranchVersionHash, updatedAt: new Date() } },
+      { upsert: true, returnDocument: "after" },
+    );
     Object.assign(task, updatedTask);
   }
   // update pr status if pr url is available
@@ -173,36 +169,44 @@ export async function updateGithubActionTask(repo: string) {
     const { owner, repo, pull_number } = parsePullUrl(task.pullRequestUrl);
     const { data: pr } = await gh.pulls.get({ owner, repo, pull_number });
     const pullRequestStatus = pr.merged_at ? "MERGED" : pr.closed_at ? "CLOSED" : "OPEN";
+    console.log(`[updateGithubActionTask] got ${pullRequestStatus} status in ${task.pullRequestUrl}`);
+    const pullRequestCommentsCount = pr.comments;
+    // console.log(`[updateGithubActionTask] got ${pullRequestCommentsCount} comments in ${task.pullRequestUrl}`);
+
     const rawComments =
-      pr.comments === 0
+      pullRequestCommentsCount === 0
         ? []
-        : await gh.pulls
-            .listReviewComments({
+        : await gh.issues
+            .listComments({
               owner,
               repo,
-              pull_number,
+              issue_number: pull_number,
             })
             .then((res) => res.data);
+    if (rawComments.length !== pullRequestCommentsCount)
+      throw new Error("pullRequestCommentsCount not match some information may be outdated", {
+        cause: { rawComments, pullRequestCommentsCount },
+      });
     const pullRequestComments: string = rawComments
-      .map(({ body_text, user: { login } }) => JSON.stringify({ username: login, text: body_text }))
+      .map((cmt) => JSON.stringify({ user: cmt.user?.login ?? "unknown", text: cmt.body }))
+      .join("\n");
+
+    const newCommentsMessage = fastDiff(task.pullRequestComments ?? "", pullRequestComments)
+      .map(([dir, content]) => {
+        if (dir === 0) return "";
+        const sign = dir == 1 ? "+" : "-";
+        return content
+          .split("\n")
+          .map((e) => `${sign} ${e}`)
+          .join("\n");
+      })
       .join("\n");
     // filter out new pr comments, maybe send to slack
-    console.log(
-      fastDiff(task.pullRequestComments ?? "", pullRequestComments)
-        .map(([dir, content]) => {
-          if (dir === 0) return "";
-          const sign = dir == 1 ? "+" : "-";
-          return content
-            .split("\n")
-            .map((e) => `${sign} ${e}`)
-            .join("\n");
-        })
-        .join("\n"),
-    );
+    console.log(newCommentsMessage);
 
     const updatedTask = await GithubActionUpdateTask.findOneAndUpdate(
       { repo },
-      { $set: { pullRequestStatus, pullRequestComments, updatedAt: new Date() } },
+      { $set: { pullRequestStatus, pullRequestComments, pullRequestCommentsCount, updatedAt: new Date() } },
       { upsert: true, returnDocument: "after" },
     );
     Object.assign(task, updatedTask);
