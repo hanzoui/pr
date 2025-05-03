@@ -1,4 +1,3 @@
-#!/usr/bin/env bun
 import { $pipeline } from "@/packages/mongodb-pipeline-ts/$pipeline";
 import fastDiff from "fast-diff";
 import { readFile, writeFile } from "fs/promises";
@@ -38,13 +37,19 @@ if (import.meta.main) {
   // await updateGithubActionTask(repo);
 
   // reset server configuration error
-  // await GithubActionUpdateTask.deleteMany({ error: /OPENAI_API_KEY/ });
+  await sflow(GithubActionUpdateTask.find({}))
+    .map((e) => e.repo)
+    .filter((e) => !e?.match(/\//))
+    .log()
+    .forEach(async (e) => await GithubActionUpdateTask.deleteMany({ repo: e }))
+    .run();
 
   // simplify error "Repository was archived so is read-only."
   await GithubActionUpdateTask.updateMany(
     { error: /Repository was archived so is read-only\./ },
     { $set: { error: "Repository was archived so is read-only." } },
   );
+
   // reset silly pr messages
   const silly = await sflow(
     GithubActionUpdateTask.find({
@@ -108,16 +113,16 @@ async function updateGithubActionTaskList() {
  * 3. make pr
  * 4. check pr status, track pr comments
  */
-export async function updateGithubActionTask(repo: string) {
+export async function updateGithubActionTask(repoUrl: string) {
   const task = (await GithubActionUpdateTask.findOneAndUpdate(
-    { repo },
+    { repo: repoUrl },
     { $set: { updatedAt: new Date() } },
     { upsert: true, returnDocument: "after" },
   ))!;
 
   // check if already up to date
   if (referenceActionContentHash !== task.branchVersionHash) {
-    console.log("[updateGithubActionTask] AI Suggesting PR for", repo);
+    console.log("[updateGithubActionTask] AI Suggesting PR for", repoUrl);
     // make branch
     const {
       hash,
@@ -125,10 +130,11 @@ export async function updateGithubActionTask(repo: string) {
       commitMessage,
       pullRequestMessage,
       diff: branchDiffResult,
-    } = await updateGithubActionPrepareBranch(repo);
+      upToDate,
+    } = await updateGithubActionPrepareBranch(repoUrl);
 
     const updatedTask = await GithubActionUpdateTask.findOneAndUpdate(
-      { repo },
+      { repo: repoUrl },
       {
         $set: {
           branchVersionHash: hash,
@@ -136,42 +142,52 @@ export async function updateGithubActionTask(repo: string) {
           commitMessage,
           pullRequestMessage,
           branchDiffResult,
+          status: upToDate ? "up-to-date" : "pending-approve",
           updatedAt: new Date(),
         },
       },
       { upsert: true, returnDocument: "after" },
     )!;
     Object.assign(task, updatedTask);
-    console.debug(yaml.stringify({ repo, hash, forkedBranchUrl, commitMessage, pullRequestMessage, branchDiffResult }));
+    console.debug(
+      yaml.stringify({ repo: repoUrl, hash, forkedBranchUrl, commitMessage, pullRequestMessage, branchDiffResult }),
+    );
   }
 
   if (
     referenceActionContentHash !== task.pullRequestVersionHash &&
     referenceActionContentHash === task.approvedBranchVersionHash
   ) {
-    console.log("[updateGithubActionTask] Creating PR for", repo);
+    console.log("[updateGithubActionTask] Creating PR for", repoUrl);
     const [src, branch] = task.forkedBranchUrl!.split("/tree/");
     const pullRequestUrl = await createPR({
       branch: branch || DIE("missing branch in forkedBranchUrl: " + task.forkedBranchUrl),
       src: src || DIE("missing origin in forkedBranchUrl: " + task.forkedBranchUrl),
-      dst: repo,
+      dst: repoUrl,
       msg: task.pullRequestMessage || DIE("approved task is missing pullRequestMessage"),
     });
     const updatedTask = await GithubActionUpdateTask.findOneAndUpdate(
-      { repo },
-      { $set: { pullRequestUrl, pullRequestVersionHash: task.approvedBranchVersionHash, updatedAt: new Date() } },
+      { repo: repoUrl },
+      {
+        $set: {
+          pullRequestUrl,
+          pullRequestVersionHash: task.approvedBranchVersionHash,
+          updatedAt: new Date(),
+          status: "opened",
+        },
+      },
       { upsert: true, returnDocument: "after" },
     );
     Object.assign(task, updatedTask);
   }
   // update pr status if pr url is available
-  if (task.pullRequestUrl) {
+  if (task.pullRequestUrl && (task.pullRequestSyncAt ?? 0) < new Date(Date.now() - 1000 * 60 * 5)) {
     const { owner, repo, pull_number } = parsePullUrl(task.pullRequestUrl);
     const { data: pr } = await gh.pulls.get({ owner, repo, pull_number });
     const pullRequestStatus = pr.merged_at ? "MERGED" : pr.closed_at ? "CLOSED" : "OPEN";
     console.log(`[updateGithubActionTask] got ${pullRequestStatus} status in ${task.pullRequestUrl}`);
     const pullRequestCommentsCount = pr.comments;
-    // console.log(`[updateGithubActionTask] got ${pullRequestCommentsCount} comments in ${task.pullRequestUrl}`);
+    console.log(`[updateGithubActionTask] got ${pullRequestCommentsCount} comments in ${task.pullRequestUrl}`);
 
     const rawComments =
       pullRequestCommentsCount === 0
@@ -205,8 +221,17 @@ export async function updateGithubActionTask(repo: string) {
     console.log(newCommentsMessage);
 
     const updatedTask = await GithubActionUpdateTask.findOneAndUpdate(
-      { repo },
-      { $set: { pullRequestStatus, pullRequestComments, pullRequestCommentsCount, updatedAt: new Date() } },
+      { repo: repoUrl },
+      {
+        $set: {
+          pullRequestSyncAt: new Date(),
+          pullRequestStatus,
+          pullRequestComments,
+          pullRequestCommentsCount,
+          updatedAt: new Date(),
+          status: pullRequestStatus === "MERGED" ? "merged" : pullRequestStatus === "CLOSED" ? "closed" : "opened",
+        },
+      },
       { upsert: true, returnDocument: "after" },
     );
     Object.assign(task, updatedTask);
@@ -221,5 +246,5 @@ export async function updateGithubActionTask(repo: string) {
   //     { upsert: true, returnDocument: "after" },
   //   );
   // }
-  console.log("[updateGithubActionTask] Updated: " + repo);
+  console.log("[updateGithubActionTask] Updated: " + repoUrl);
 }

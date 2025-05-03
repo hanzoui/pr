@@ -8,7 +8,7 @@ export const GithubActionUpdateTask = db.collection<{
   // stage 0, import repo url
   repo: string;
   error?: string;
-  status?: "error" | "pending-branch" | "pending-approve" | "pending-pr" | "up-to-date";
+  status?: "error" | "pending-branch" | "pending-approve" | "pending-pr" | 'opened'| "merged" | "closed" | "up-to-date";
   updatedAt?: Date;
 
   // stage 1, fork and update, preview in web, approve by manual
@@ -26,6 +26,7 @@ export const GithubActionUpdateTask = db.collection<{
   pullRequestUrl?: string; // url
 
   // stage 3, check pr status
+  pullRequestSyncAt?: Date; // last sync time
   pullRequestStatus?: "OPEN" | "MERGED" | "CLOSED";
   pullRequestCommentsCount?: number;
   pullRequestComments?: string; // tracking pr comments, simply store the repo owners' response, to determine if we need to follow-up the pr

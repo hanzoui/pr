@@ -17,7 +17,7 @@ export async function updateGithubActionPrepareBranch(repo: string) {
   console.log(`$ updateGithubActionPrepareBranch("${repo}")`);
   const branch = "update-publish-yaml";
   const { cwd, html_url } = await checkoutRepoOnBranch(repo, branch);
-  
+
   // can also peek on ${repo_url}/raw/main/.github/workflows/publish.yml
   const files = await globby(`${cwd}/.github/workflows/{publish,publish_action}.{yaml,yml}`);
   console.assert(
@@ -27,27 +27,29 @@ export async function updateGithubActionPrepareBranch(repo: string) {
   const currentContent = await readFile(file, "utf8");
 
   const hasNewLineAtTheEnd = currentContent.match(/\n$/) != null;
-  
+
   const updatedActionContent =
-    (await gptWriter([
-      {
-        role: "system",
-        content: "You write only yaml content, no explain, no code-fences, output only yaml content",
-      },
-      { role: "developer", content: "$ read current .github/workflows/publish.yaml" },
-      { role: "function", name: "read", content: currentContent },
-      { role: "developer", content: "$ read reference .github/workflows/publish.yaml" },
-      { role: "function", name: "read", content: referenceActionContent },
-      { role: "developer", content: "$ read Pull Request message template" },
-      { role: "function", name: "read", content: referencePullRequestMessage },
-      { role: "developer", content: "$ read NODE_AUTHOR_OWNER" },
-      { role: "function", name: "read", content: parseUrlRepoOwner(repo).owner },
-      {
-        role: "user",
-        content:
-          "Please update current publish.yaml, respect to publish.yaml, check carefully, you make only up to 3 changes that mentioned on the PullReuqest Message template, don't touch other parts even it's different with current one. Give me a updated publish.yaml content.",
-      },
-    ])).trim() + (hasNewLineAtTheEnd ? "\n":'');
+    (
+      await gptWriter([
+        {
+          role: "system",
+          content: "You write only yaml content, no explain, no code-fences, output only yaml content",
+        },
+        { role: "developer", content: "$ read current .github/workflows/publish.yaml" },
+        { role: "function", name: "read", content: currentContent },
+        { role: "developer", content: "$ read reference .github/workflows/publish.yaml" },
+        { role: "function", name: "read", content: referenceActionContent },
+        { role: "developer", content: "$ read Pull Request message template" },
+        { role: "function", name: "read", content: referencePullRequestMessage },
+        { role: "developer", content: "$ read NODE_AUTHOR_OWNER" },
+        { role: "function", name: "read", content: parseUrlRepoOwner(repo).owner },
+        {
+          role: "user",
+          content:
+            "Please update current publish.yaml, respect to publish.yaml, check carefully, you make only up to 3 changes that mentioned on the PullReuqest Message template, don't touch other parts even it's different with current one, don't touch existed comments. Give me a updated publish.yaml content.",
+        },
+      ])
+    ).trim() + (hasNewLineAtTheEnd ? "\n" : "");
   // console.log(yaml.stringify({ testUpdatedPublishYaml, updatedActionContent }));
   await writeFile(file, updatedActionContent);
 
@@ -59,11 +61,15 @@ export async function updateGithubActionPrepareBranch(repo: string) {
       forkedBranchUrl: undefined,
       commitMessage: undefined,
       pullRequestMessage: undefined,
+      upToDate: true,
     };
   }
 
   const diff = await $`cd ${cwd} && git diff`.text();
   console.log({ diff });
+
+  // gpt review
+  
 
   const { pullRequestMessage, commitMessage } = await pProps({
     commitMessage: gptWriter([
