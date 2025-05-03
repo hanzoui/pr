@@ -2,9 +2,12 @@ import type { Task } from "@/packages/mongodb-pipeline-ts/Task";
 import DIE from "@snomiao/die";
 import { gh } from "./gh";
 import type { AwaitedReturnType } from "./types/AwaitedReturnType";
-let ghUserCache: AwaitedReturnType<typeof gh.users.getAuthenticated>["data"] | null = null;
+
+const g = globalThis as typeof globalThis & {
+  ghUserCache: AwaitedReturnType<typeof gh.users.getAuthenticated>["data"] | null;
+};
 export const ghUser = async () =>
-  (ghUserCache ??= (
+  (g.ghUserCache ??= (
     await gh.users.getAuthenticated().catch((error) => {
       throw new Error(
         `FAIL TO GET AUTHENTICATED USER INFO, CHECK ${!!process.env.GH_TOKEN ? "[?]" : "[ ]"}GH_TOKEN and ${!!process.env.GH_TOKEN_COMFY_PR ? "[?]" : "[ ]"}GH_TOKEN_COMFY_PR`,
@@ -13,8 +16,7 @@ export const ghUser = async () =>
     })
   ).data);
 
-console.log("Fetch Current Github User...");
-console.log(`GH_TOKEN User: ${(await ghUser()).login} <${(await ghUser()).email}>`);
+// console.log(`GH_TOKEN User: ${(await ghUser()).login} <${(await ghUser()).email}>`);
 
 export type GHUser = Task<AwaitedReturnType<typeof gh.users.getByUsername>["data"]>;
 
