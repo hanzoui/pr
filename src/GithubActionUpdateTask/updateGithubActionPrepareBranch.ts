@@ -67,6 +67,14 @@ export async function updateGithubActionPrepareBranch(repo: string) {
     };
   }
 
+  const banString = "if: ${{ github.repository_owner == 'NODE_AUTHOR_OWNER' }}";
+  // regex review
+  const isMalformed = updatedActionContent.includes(banString);
+  if (isMalformed) {
+    throw new Error("Malformed publish.yaml content generated, and it's [RETRYABLE]", {
+      cause: { updatedActionContent, banString },
+    });
+  }
   await writeFile(file, updatedActionContent);
 
   const diff = await $`cd ${cwd} && git diff`.text();
