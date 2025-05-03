@@ -26,10 +26,9 @@ export const GithubActionUpdateTask = db.collection<{
   pullRequestUrl?: string; // url
 
   // stage 3, check pr status
-  pullRequestStatus?: "merged" | "closed";
+  pullRequestStatus?: "OPEN" | "MERGED" | "CLOSED";
+  pullRequestComments?: string; // tracking pr comments, simply store the repo owners' response, to determine if we need to follow-up the pr
 
   // stage 4, clean forked repo after pr was merged/closed
   forkedBranchCleaningStatus?: "cleaned" | "keep";
 }>("GithubActionUpdateTask");
-
-
