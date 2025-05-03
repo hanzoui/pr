@@ -195,6 +195,11 @@ export default async function GithubActionUpdateTaskPage() {
               <a target="_blank" href={e.pullRequestUrl}>
                 {parseTitleBodyOfMarkdown(e.pullRequestMessage!).title}
               </a>
+              {e.pullRequestComments && (
+                <pre className="whitespace-pre-wrap p-4 m-4 rounded-sm text-white bg-black ">
+                  {"Comments:\n" + e.pullRequestComments}
+                </pre>
+              )}
             </li>
           );
         })}
@@ -216,6 +221,11 @@ export default async function GithubActionUpdateTaskPage() {
                 <a target="_blank" href={e.pullRequestUrl}>
                   {parseTitleBodyOfMarkdown(e.pullRequestMessage!).title}
                 </a>
+                {e.pullRequestComments && (
+                  <pre className="whitespace-pre-wrap p-4 m-4 rounded-sm text-white bg-black ">
+                    {"Comments:\n" + e.pullRequestComments}
+                  </pre>
+                )}
               </li>
             );
           })}
@@ -238,6 +248,11 @@ export default async function GithubActionUpdateTaskPage() {
                 <a target="_blank" href={e.pullRequestUrl}>
                   {parseTitleBodyOfMarkdown(e.pullRequestMessage!).title}
                 </a>
+                {e.pullRequestComments && (
+                  <pre className="whitespace-pre-wrap p-4 m-4 rounded-sm text-white bg-black ">
+                    {"Comments:\n" + e.pullRequestComments}
+                  </pre>
+                )}
               </li>
             );
           })}
