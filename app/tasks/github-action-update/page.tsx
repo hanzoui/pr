@@ -11,6 +11,7 @@ import remarkGfm from "remark-gfm";
 import { listGithubActionUpdateTask } from "./actions";
 import { ApprovePRButton } from "./ApprovePRButton";
 // import { GitDiffResult } from "./GitDIffResult";
+import { referenceActionContentHash } from "@/src/GithubActionUpdateTask/updateGithubActionTask";
 import ProgressBarChart from "./ProgressBarChart";
 import { ResetTaskButton } from "./ResetTaskButton";
 export const metadata: Metadata = {
@@ -26,30 +27,34 @@ export default async function GithubActionUpdateTaskPage() {
   if (!user.admin) return forbidden();
   const data = await listGithubActionUpdateTask();
 
-  const errorData = data.filter((e) => e.error);
-  const processingData = data.filter((e) => !errorData.includes(e)).filter((e) => !e.pullRequestMessage);
-  const pendingReviewsData = data
-    .filter((e) => !errorData.includes(e))
-    .filter((e) => e.branchVersionHash && e.branchVersionHash !== e.approvedBranchVersionHash);
-  const pendingCreatePRData = data
-    .filter((e) => !errorData.includes(e))
-    .filter((e) => e.approvedBranchVersionHash && e.approvedBranchVersionHash !== e.pullRequestVersionHash);
-  const upToDatedData = data.filter((e) => !errorData.includes(e)).filter((e) => e.status === "up-to-date");
-  const prOpenedData = data
-    .filter((e) => !errorData.includes(e))
-    .filter((e) => !upToDatedData.includes(e))
-    .filter((e) => e.pullRequestUrl)
-    .filter((e) => e.pullRequestStatus !== "MERGED" && e.pullRequestStatus !== "CLOSED");
-  const prMergedData = data
-    .filter((e) => !errorData.includes(e))
-    .filter((e) => !upToDatedData.includes(e))
-    .filter((e) => e.pullRequestUrl)
-    .filter((e) => e.pullRequestStatus === "MERGED");
-  const prClosedData = data
-    .filter((e) => !errorData.includes(e))
-    .filter((e) => !upToDatedData.includes(e))
-    .filter((e) => e.pullRequestUrl)
-    .filter((e) => e.pullRequestStatus === "CLOSED");
+  function filterHopper<T>(values: T[], predicates: Array<(value: T) => any>) {
+    return predicates.reduce((acc, predicate) => {
+      acc.push(values.filter((e) => !!predicate(e)));
+      values = values.filter((e) => !predicate(e));
+      return acc;
+    }, [] as T[][]);
+  }
+
+  // categorize data
+  const [
+    errorData,
+    upToDatedData,
+    prClosedData,
+    prMergedData,
+    prOpenedData,
+    pendingCreatePRData,
+    pendingReviewsData,
+    processingData,
+  ] = filterHopper(data, [
+    (e) => e.error,
+    (e) => e.upToDateHash === referenceActionContentHash,
+    (e) => e.pullRequestStatus === "CLOSED", // got results
+    (e) => e.pullRequestStatus === "MERGED", // got results
+    (e) => e.pullRequestVersionHash === referenceActionContentHash, // opened
+    (e) => e.approvedBranchVersionHash === referenceActionContentHash, // approved and pending create pr
+    (e) => e.branchVersionHash, // branch created and pending reviews
+    (e) => true, // all other is processing
+  ]);
 
   const chartData = {
     data: [
