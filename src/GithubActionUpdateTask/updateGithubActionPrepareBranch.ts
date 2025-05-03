@@ -47,15 +47,15 @@ export async function updateGithubActionPrepareBranch(repo: string) {
         {
           role: "user",
           content:
-            "Please update current publish.yaml, respect to publish.yaml, check carefully, you make only up to 3 changes that mentioned on the PullReuqest Message template, don't touch other parts even it's different with current one, don't touch existed comments. Give me a updated publish.yaml content.",
+            "Please update current publish.yaml, respect to publish.yaml, check carefully, you make only up to 3 changes that mentioned on the PullReuqest Message template, don't touch other parts even it's different with current one, don't touch existed comments. Give me updated publish.yaml content.",
         },
       ])
     ).trim() + (hasNewLineAtTheEnd ? "\n" : "");
   // console.log(yaml.stringify({ testUpdatedPublishYaml, updatedActionContent }));
-  await writeFile(file, updatedActionContent);
-  
-  const isContentSame = yaml.parse(updatedActionContent) === yaml.parse(referenceActionContent);
-  if (isContentSame) {
+
+  const isParsedContentSame =
+    new Set([updatedActionContent, currentContent].map((e) => JSON.stringify(yaml.parse(e)))).size === 1;
+  if (isParsedContentSame) {
     // already up to date
     return {
       hash: referenceActionContentHash,
@@ -66,6 +66,8 @@ export async function updateGithubActionPrepareBranch(repo: string) {
       upToDate: true,
     };
   }
+
+  await writeFile(file, updatedActionContent);
 
   const diff = await $`cd ${cwd} && git diff`.text();
   console.log({ diff });
