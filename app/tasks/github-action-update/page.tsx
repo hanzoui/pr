@@ -182,28 +182,28 @@ export default async function GithubActionUpdateTaskPage() {
         <summary>
           <h2>Pull Request Opened x{prOpenedData.length}</h2>
         </summary>
+        <ol className="flex flex-col max-w-full px-4 gap-4">
+          {prOpenedData.map((e, i) => {
+            return (
+              <li key={e.repo}>
+                {i + 1}. <span>{e.pullRequestStatus}</span>
+                <a target="_blank" href={e.repo}>
+                  {e.repo}
+                </a>{" "}
+                - Opened PR
+                <a target="_blank" href={e.pullRequestUrl}>
+                  {parseTitleBodyOfMarkdown(e.pullRequestMessage!).title}
+                </a>
+                {e.pullRequestComments && (
+                  <pre className="whitespace-pre-wrap p-4 m-4 rounded-sm text-white bg-black ">
+                    {"Comments:\n" + e.pullRequestComments}
+                  </pre>
+                )}
+              </li>
+            );
+          })}
+        </ol>
       </details>
-      <ol className="flex flex-col max-w-full px-4 gap-4">
-        {prOpenedData.map((e, i) => {
-          return (
-            <li key={e.repo}>
-              {i + 1}. <span>{e.pullRequestStatus}</span>
-              <a target="_blank" href={e.repo}>
-                {e.repo}
-              </a>{" "}
-              - Opened PR
-              <a target="_blank" href={e.pullRequestUrl}>
-                {parseTitleBodyOfMarkdown(e.pullRequestMessage!).title}
-              </a>
-              {e.pullRequestComments && (
-                <pre className="whitespace-pre-wrap p-4 m-4 rounded-sm text-white bg-black ">
-                  {"Comments:\n" + e.pullRequestComments}
-                </pre>
-              )}
-            </li>
-          );
-        })}
-      </ol>
 
       <details open>
         <summary>
