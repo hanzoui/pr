@@ -32,8 +32,6 @@ export async function approveGithubActionUpdateTask(repo: string, approvedHash: 
   );
 }
 export async function resetErrorForGithubActionUpdateTask(repo: string) {
-  // "use server";
-  // await getAuthUser();
   await GithubActionUpdateTask.findOneAndDelete({ repo });
   await GithubActionUpdateTask.findOneAndUpdate(
     { repo },

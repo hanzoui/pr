@@ -1,16 +1,11 @@
-import { $pipeline } from "@/packages/mongodb-pipeline-ts/$pipeline";
 import fastDiff from "fast-diff";
-import { readFile, writeFile } from "fs/promises";
-import isCI from "is-ci";
+import { readFile } from "fs/promises";
 import DIE from "phpdie";
-import sflow from "sflow";
 import sha256 from "sha256";
 import yaml from "yaml";
 import { createPR } from "../createGithubPullRequest";
-import { CRNodes } from "../CRNodes";
 import { gh } from "../gh";
 import { parsePullUrl } from "../parsePullUrl";
-import { getWorkerInstance } from "../WorkerInstances";
 import { GithubActionUpdateTask } from "./GithubActionUpdateTask";
 import { updateGithubActionPrepareBranch } from "./updateGithubActionPrepareBranch";
 
@@ -21,88 +16,10 @@ export const referenceActionContentHash = sha256(referenceActionContent); // che
 // for debug only
 export const testUpdatedPublishYaml = await readFile(import.meta.dir + "/test-updated-publish.yml", "utf8");
 
-// const resetPattern = {
-
-// }
 if (import.meta.main) {
-  // const repo = "https://github.com/54rt1n/ComfyUI-DareMerge";
-  const repo = "https://github.com/snomiao/ComfyUI-DareMerge-test";
-  // await GithubActionUpdateTask.findOneAndDelete({ repo });
-
-  // aprove test
-  // const approvedHash = "e6de732024cf2b64488ec093818fc2e01707c9bc97d306a42b3c22d2ef834686";
-  // await approveGithubActionUpdateTask(repo, approvedHash);
-
-  // test on single repo
-  // await updateGithubActionTask(repo);
-
-  // reset server configuration error
-  await sflow(GithubActionUpdateTask.find({}))
-    .map((e) => e.repo)
-    .filter((e) => !e?.match(/\//))
-    .log()
-    .forEach(async (e) => await GithubActionUpdateTask.deleteMany({ repo: e }))
-    .run();
-
-  // simplify error "Repository was archived so is read-only."
-  await GithubActionUpdateTask.updateMany(
-    { error: /Repository was archived so is read-only\./ },
-    { $set: { error: "Repository was archived so is read-only." } },
-  );
-
-  // reset silly pr messages
-  const silly = await sflow(
-    GithubActionUpdateTask.find({
-      pullRequestMessage: /\+\s+if: \${{ github.repository_owner == 'NODE_AUTHOR_OWNER' }}$/gim,
-    }),
-  )
-    .log((e) => yaml.stringify(e))
-    .map((e, index) => ({ ...e, index }))
-    .forEach(async (e) => await GithubActionUpdateTask.deleteMany({ _id: e._id }))
-    .toArray();
-
-  await writeFile("./.cache/" + import.meta.file + "-silly-log.yaml", yaml.stringify(silly)).catch(() => {
-    console.error("Error writing silly-log file");
-  });
-
-  await updateGithubActionTaskList();
-
-  console.log("done");
-
-  if (isCI) process.exit(0);
-}
-
-async function updateGithubActionTaskList() {
-  await getWorkerInstance("updateGithubActionTaskList");
-
-  // task list importer
-  await GithubActionUpdateTask.createIndex({ repo: 1 }, { unique: true });
-  await $pipeline(CRNodes)
-    .project({ repo: "$repository", _id: 0 })
-    .match({ repo: /^https:\/\/github\.com/ })
-    .merge({ into: GithubActionUpdateTask.collectionName, on: "repo", whenMatched: "merge" })
-    .aggregate()
-    .next();
-
-  // auto reset network error
-  await GithubActionUpdateTask.deleteMany({ error: /was submitted too quickly/ });
-
-  console.log({ GithubActionUpdateTask: await GithubActionUpdateTask.find().toArray() });
-
-  // task list scanner
-  await sflow(GithubActionUpdateTask.find({ error: { $exists: false } }).project({ repo: 1 }))
-    .map(async ({ repo }) => {
-      console.log("-");
-      return await updateGithubActionTask(repo).catch(async (err) => {
-        console.error(err);
-        const error = String(err);
-        await GithubActionUpdateTask.updateOne({ repo }, { $set: { error, updatedAt: new Date() } }, { upsert: true });
-        // throw err;
-      });
-    })
-    .run();
-
-  // console.log(yaml.stringify({ GithubActionUpdateTask: await GithubActionUpdateTask.find().toArray() }));
+  const repo = "https://github.com/aigc-apps/VideoX-Fun";
+  console.log(await updateGithubActionTask(repo));
+  console.log(await GithubActionUpdateTask.findOne({ repo }));
   console.log("done");
 }
 
@@ -248,4 +165,12 @@ export async function updateGithubActionTask(repoUrl: string) {
   //   );
   // }
   console.log("[updateGithubActionTask] Updated: " + repoUrl);
+}
+export async function resetErrorForGithubActionUpdateTask(repo: string) {
+  await GithubActionUpdateTask.findOneAndDelete({ repo });
+  await GithubActionUpdateTask.findOneAndUpdate(
+    { repo },
+    { $set: { updatedAt: new Date() } },
+    { returnDocument: "after" },
+  );
 }
