@@ -34,14 +34,27 @@ export default async function GithubActionUpdateTaskPage() {
   const pendingCreatePRData = data
     .filter((e) => !errorData.includes(e))
     .filter((e) => e.approvedBranchVersionHash && e.approvedBranchVersionHash !== e.pullRequestVersionHash);
-  const prCreatedData = data.filter((e) => !errorData.includes(e)).filter((e) => e.pullRequestUrl);
+  const prOpenedData = data
+    .filter((e) => !errorData.includes(e))
+    .filter((e) => e.pullRequestUrl)
+    .filter((e) => e.pullRequestStatus === "OPEN");
+  const prMergedData = data
+    .filter((e) => !errorData.includes(e))
+    .filter((e) => e.pullRequestUrl)
+    .filter((e) => e.pullRequestStatus === "MERGED");
+  const prClosedData = data
+    .filter((e) => !errorData.includes(e))
+    .filter((e) => e.pullRequestUrl)
+    .filter((e) => e.pullRequestStatus === "CLOSED");
 
   const chartData = {
     data: [
       ["Processing", processingData.length, "oklch(0.8 0.180 136)"], // A greenish color
       ["Pending Reviews", pendingReviewsData.length, "oklch(0.7 0.15 72)"], // A yellowish color
       ["Pending Create PR", pendingCreatePRData.length, "oklch(0.75 0.150 198)"], // A bluish color
-      ["PR Created", prCreatedData.length, "oklch(0.8 0.125 320)"], // A purple color
+      ["PR Opened", prOpenedData.length, "oklch(0.8 0.125 320)"], // A purple color
+      ["PR Merged", prMergedData.length, "oklch(0.6 0.125 320)"], // A purple color
+      ["PR Closed", prClosedData.length, "oklch(0.5 0.125 320)"], // A closed color
       ["Error", errorData.length, "oklch(0.6 0.179 29)"], // A reddish color
     ] as readonly [string, number, string][],
   };
@@ -57,7 +70,9 @@ export default async function GithubActionUpdateTaskPage() {
         <li>Bot are Drafting PRs x{processingData.length}</li>
         <li>Pending Reviews x{pendingReviewsData.length}</li>
         <li>Pending Create Pull Request x{pendingCreatePRData.length}</li>
-        <li>Pull Request Created x{prCreatedData.length}</li>
+        <li>Pull Request Opened x{prOpenedData.length}</li>
+        <li>Pull Request Merged x{prMergedData.length}</li>
+        <li>Pull Request Closed x{prClosedData.length}</li>
         <li>Errors x{errorData.length}</li>
       </ol>
 
@@ -165,18 +180,18 @@ export default async function GithubActionUpdateTaskPage() {
 
       <details open>
         <summary>
-          <h2>Pull Request Created x{prCreatedData.length}</h2>
+          <h2>Pull Request Opened x{prOpenedData.length}</h2>
         </summary>
       </details>
       <ol className="flex flex-col max-w-full px-4 gap-4">
-        {prCreatedData.map((e, i) => {
+        {prOpenedData.map((e, i) => {
           return (
             <li key={e.repo}>
               {i + 1}. <span>{e.pullRequestStatus}</span>
               <a target="_blank" href={e.repo}>
                 {e.repo}
               </a>{" "}
-              - Created PR
+              - Opened PR
               <a target="_blank" href={e.pullRequestUrl}>
                 {parseTitleBodyOfMarkdown(e.pullRequestMessage!).title}
               </a>
@@ -184,6 +199,50 @@ export default async function GithubActionUpdateTaskPage() {
           );
         })}
       </ol>
+
+      <details open>
+        <summary>
+          <h2>Pull Request Merged x{prMergedData.length}</h2>
+        </summary>
+        <ol className="flex flex-col max-w-full px-4 gap-4">
+          {prMergedData.map((e, i) => {
+            return (
+              <li key={e.repo}>
+                {i + 1}.{" "}
+                <a target="_blank" href={e.repo}>
+                  {e.repo}
+                </a>{" "}
+                - Merged PR
+                <a target="_blank" href={e.pullRequestUrl}>
+                  {parseTitleBodyOfMarkdown(e.pullRequestMessage!).title}
+                </a>
+              </li>
+            );
+          })}
+        </ol>
+      </details>
+
+      <details open>
+        <summary>
+          <h2>Pull Request Closed x{prClosedData.length}</h2>
+        </summary>
+        <ol className="flex flex-col max-w-full px-4 gap-4">
+          {prClosedData.map((e, i) => {
+            return (
+              <li key={e.repo}>
+                {i + 1}.{" "}
+                <a target="_blank" href={e.repo}>
+                  {e.repo}
+                </a>{" "}
+                - Closed PR
+                <a target="_blank" href={e.pullRequestUrl}>
+                  {parseTitleBodyOfMarkdown(e.pullRequestMessage!).title}
+                </a>
+              </li>
+            );
+          })}
+        </ol>
+      </details>
 
       <details open>
         <summary>
