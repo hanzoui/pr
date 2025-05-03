@@ -92,7 +92,7 @@ export default async function GithubActionUpdateTaskPage() {
           <h2>Pending Reviews x{pendingReviewsData.length}</h2>
         </summary>
         <ol className="flex flex-col max-w-full px-4">
-          {pendingReviewsData.toSorted(compareBy((e) => e.repo)).map((e, i) => (
+          {[...pendingReviewsData].sort(compareBy((e) => e.repo)).map((e, i) => (
             <li key={e.repo} className="flex flex-col my-4">
               <div className="flex justify-between">
                 <span className="text-xl font-bold">

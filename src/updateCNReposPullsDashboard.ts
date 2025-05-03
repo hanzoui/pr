@@ -31,7 +31,7 @@ export async function updateCNRepoPullsDashboard() {
           };
         })
         .map(({ href, name }) => `- [${name}](${href})`)
-        .toSorted()
+        .sort()
         .join("\n");
       return body;
     })
