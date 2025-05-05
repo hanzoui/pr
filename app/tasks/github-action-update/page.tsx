@@ -47,12 +47,12 @@ export default async function GithubActionUpdateTaskPage() {
     processingData,
   ] = filterHopper(data, [
     (e) => e.error,
-    (e) => e.upToDateHash === referenceActionContentHash,
+    (e) => e.upToDateHash === referenceActionContentHash || (e.branchVersionHash && !e.pullRequestMessage),
     (e) => e.pullRequestStatus === "CLOSED", // got results
     (e) => e.pullRequestStatus === "MERGED", // got results
     (e) => e.pullRequestVersionHash === referenceActionContentHash, // opened
     (e) => e.approvedBranchVersionHash === referenceActionContentHash, // approved and pending create pr
-    (e) => e.branchVersionHash, // branch created and pending reviews
+    (e) => e.branchVersionHash && e.pullRequestMessage, // branch created and pending reviews
     (e) => true, // all other is processing
   ]);
 

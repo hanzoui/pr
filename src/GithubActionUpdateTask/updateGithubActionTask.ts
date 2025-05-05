@@ -100,7 +100,12 @@ export async function updateGithubActionTask(repoUrl: string) {
     Object.assign(task, updatedTask);
   }
   // update pr status if pr url is available
-  if (task.pullRequestUrl && (task.pullRequestSyncAt ?? 0) < new Date(Date.now() - 1000 * 60 * 5)) {
+  if (
+    task.pullRequestUrl &&
+    (task.pullRequestSyncAt ?? 0) < new Date(Date.now() - 1000 * 60 * 5) &&
+    task.status !== "closed" &&
+    task.status !== "merged"
+  ) {
     const { owner, repo, pull_number } = parsePullUrl(task.pullRequestUrl);
     const { data: pr } = await gh.pulls.get({ owner, repo, pull_number });
     const pullRequestStatus = pr.merged_at ? "MERGED" : pr.closed_at ? "CLOSED" : "OPEN";
