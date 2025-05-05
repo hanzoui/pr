@@ -37,6 +37,7 @@ export default async function GithubActionUpdateTaskPage() {
 
   // categorize data
   const [
+    noPublishYamlErrorData,
     errorData,
     upToDatedData,
     prClosedData,
@@ -46,6 +47,7 @@ export default async function GithubActionUpdateTaskPage() {
     pendingReviewsData,
     processingData,
   ] = filterHopper(data, [
+    (e) => e.error?.match("expected exactly 1 publish.yaml file, but got 0"),
     (e) => e.error,
     (e) => e.upToDateHash === referenceActionContentHash || (e.branchVersionHash && !e.pullRequestMessage),
     (e) => e.pullRequestStatus === "CLOSED", // got results
@@ -68,6 +70,7 @@ export default async function GithubActionUpdateTaskPage() {
       // error
       ["PR Closed", prClosedData.length, "oklch(0.5 0.125 320)"], // A closed color
       ["Error", errorData.length, "oklch(0.6 0.179 29)"], // A reddish color
+      ["Error: No publish.yaml", noPublishYamlErrorData.length, "oklch(0.6 0.179 29)"], // A reddish color
     ] as readonly [string, number, string][],
   };
   return (
@@ -86,6 +89,7 @@ export default async function GithubActionUpdateTaskPage() {
         <li>Pull Request Merged x{prMergedData.length}</li>
         <li>Pull Request Closed x{prClosedData.length}</li>
         <li>Errors x{errorData.length}</li>
+        <li>No publish.yaml Error x{noPublishYamlErrorData.length}</li>
       </ol>
 
       <a
@@ -277,6 +281,30 @@ export default async function GithubActionUpdateTaskPage() {
         </summary>
         <ol className="flex flex-col max-w-full px-4 gap-4">
           {errorData.map((e, i, a) => {
+            return (
+              <li key={e.repo}>
+                <div className="flex justify-between px-4">
+                  <span>
+                    {i + 1}.{" "}
+                    <a target="_blank" href={e.repo}>
+                      {e.repo}
+                    </a>
+                  </span>
+                  <ResetTaskButton repo={e.repo} />
+                </div>
+                <pre className="whitespace-pre-wrap p-4 m-4 rounded-sm text-white bg-black ">{yaml.stringify(e)}</pre>
+              </li>
+            );
+          })}
+        </ol>
+      </details>
+
+      <details open>
+        <summary>
+          <h2>No publish.yaml Error x{noPublishYamlErrorData.length}</h2>
+        </summary>
+        <ol className="flex flex-col max-w-full px-4 gap-4">
+          {noPublishYamlErrorData.map((e, i, a) => {
             return (
               <li key={e.repo}>
                 <div className="flex justify-between px-4">
