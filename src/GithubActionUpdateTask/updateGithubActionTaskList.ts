@@ -37,6 +37,11 @@ if (import.meta.main) {
     GithubActionUpdateTask.find({
       pullRequestMessage: /\+\s+if: \${{ github.repository_owner == 'NODE_AUTHOR_OWNER' }}$/gim,
     }),
+    GithubActionUpdateTask.find({
+      pullRequestMessage: new RegExp(
+        "- ## Add your own personal access token to your Github Repository secrets and reference it here\.",
+      ),
+    }),
   )
     .log((e) => yaml.stringify(e))
     .map((e, index) => ({ ...e, index }))
