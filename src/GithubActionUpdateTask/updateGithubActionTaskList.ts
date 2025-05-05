@@ -25,6 +25,12 @@ if (import.meta.main) {
   await sflow(GithubActionUpdateTask.find({ error: /\bRETRYABLE\b/ }))
     .forEach((e) => resetErrorForGithubActionUpdateTask(e.repo))
     .run();
+  await sflow(GithubActionUpdateTask.find({ error: /\bpullRequestCommentsCount not match\b/ }))
+    .forEach((e) => resetErrorForGithubActionUpdateTask(e.repo))
+    .run();
+  await sflow(GithubActionUpdateTask.find({ error: /missing env\./i }))
+    .forEach((e) => resetErrorForGithubActionUpdateTask(e.repo))
+    .run();
 
   // simplify error "Repository was archived so is read-only."
   await GithubActionUpdateTask.updateMany(
