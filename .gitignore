@@ -1,4 +1,5 @@
 .env*.local
+.env.gcp
 .venv*
 node_modules 
 prs/

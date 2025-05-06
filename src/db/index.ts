@@ -1,10 +1,11 @@
 import { $filaten } from "@/packages/mongodb-pipeline-ts/$filaten";
 import { $fresh, $stale } from "@/packages/mongodb-pipeline-ts/$fresh";
-import DIE from "@snomiao/die";
 import enhancedMs from "enhanced-ms";
 import { MongoClient } from "mongodb";
 
-const MONGODB_URI = process.env.MONGODB_URI ?? DIE("Missing env.MONGODB_URI");
+// allow build without env
+const MONGODB_URI = process.env.MONGODB_URI ?? "mongodb://PLEASE_SET_MONGODB_URI:27017";
+
 type g = typeof global & { mongoClient: MongoClient };
 export const mongoClient = ((global as g).mongoClient ??= new MongoClient(MONGODB_URI));
 export const db = mongoClient.db();

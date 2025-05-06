@@ -31,11 +31,11 @@ export type Author = {
 };
 
 export const Authors = db.collection<Author>("Authors");
-await Authors.createIndex("githubId");
-await Authors.createIndex("email");
 export const GithubUsers = db.collection<{ username: string } & GHUser>("GithubUsers");
 
 if (import.meta.main) {
+  await Authors.createIndex("githubId");
+  await Authors.createIndex("email");
   // collect github id from cn repos
   await updateAuthors();
   console.log("done");
