@@ -1,12 +1,12 @@
-import DIE from "@snomiao/die";
 import { readFile, writeFile } from "fs/promises";
 import { globby } from "globby";
 import pProps from "p-props";
+import DIE from "phpdie";
 import { $ } from "../cli/echoBunShell";
 import { parseUrlRepoOwner, stringifyGithubOrigin } from "../parseOwnerRepo";
 import { parseTitleBodyOfMarkdown } from "../parseTitleBodyOfMarkdown";
 import { yaml } from "../utils/yaml";
-import { checkoutRepoOnBranch } from "./checkoutRepoOnBranch";
+import { forkCheckoutRepoOnBranch } from "./forkCheckoutRepoOnBranch";
 import { gptWriter } from "./gptWriter";
 import {
   referenceActionContent,
@@ -17,7 +17,7 @@ import {
 export async function updateGithubActionPrepareBranch(repo: string) {
   console.log(`$ updateGithubActionPrepareBranch("${repo}")`);
   const branch = "update-publish-yaml";
-  const { cwd, html_url } = await checkoutRepoOnBranch(repo, branch);
+  const { cwd, html_url } = await forkCheckoutRepoOnBranch(repo, branch);
 
   // can also peek on ${repo_url}/raw/main/.github/workflows/publish.yml
   const files = await globby(`${cwd}/.github/workflows/{publish,publish_action}.{yaml,yml}`);

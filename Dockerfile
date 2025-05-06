@@ -7,7 +7,7 @@ RUN apt update -y && apt install unzip && curl -fsSL https://bun.sh/install | ba
 
 WORKDIR /app
 
-COPY package.json bun.lockb ./
+COPY package.json bun.lock ./
 RUN npm i -g bun && bun i && ln -s $(which bun) /usr/bin
 
 # setup envs
@@ -18,15 +18,18 @@ ENV FORK_PREFIX=PR-
 ENV FORK_OWNER=comfy-pr-bot
 ENV GH_TOKEN=
 
-RUN python3 -m venv .venv && \
-    chmod +x ./.venv/bin/* && \
-    bash -c " \
-    source ./.venv/bin/activate && \
-    pip3 install comfy-cli \
-    "
+# RUN python3 -m venv .venv && \
+#     chmod +x ./.venv/bin/* && \
+#     bash -c " \
+#     source ./.venv/bin/activate && \
+#     pip3 install comfy-cli \
+#     "
+# COPY src ./
+# COPY . .
+# RUN chmod +x ./entry.sh
+# ENTRYPOINT bash ./entry.sh
 
-COPY src ./
-COPY . .
-RUN chmod +x ./entry.sh
-ENTRYPOINT bash ./entry.sh
+RUN bun run build
+CMD bun start
+
 HEALTHCHECK --interval=30m --timeout=1m --start-period=1m --retries=3 CMD curl localhost:80
