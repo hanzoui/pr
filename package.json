@@ -108,7 +108,7 @@
     "vercel": "^34.4.0",
     "yaml": "^2.5.0",
     "zod": "^3.23.8",
-    "zx": "^8.1.4"
+    "zx": "^8.5.3"
   },
   "devDependencies": {
     "@next/bundle-analyzer": "^15.1.5",
