@@ -29,6 +29,7 @@ ENV GH_TOKEN=
 # RUN chmod +x ./entry.sh
 # ENTRYPOINT bash ./entry.sh
 
+COPY . .
 RUN bun run build
 CMD bun start
 
