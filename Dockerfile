@@ -30,7 +30,7 @@ ENV GH_TOKEN=
 # ENTRYPOINT bash ./entry.sh
 
 COPY . .
-RUN bun run build
-CMD bun start
+RUN bun --bun run build
+CMD bun --bun start
 
 HEALTHCHECK --interval=30m --timeout=1m --start-period=1m --retries=3 CMD curl localhost:80

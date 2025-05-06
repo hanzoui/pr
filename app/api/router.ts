@@ -8,6 +8,8 @@ import DIE from "phpdie";
 import sflow from "sflow";
 import { type OpenApiMeta } from "trpc-openapi";
 import z from "zod";
+import { GithubContributorAnalyzeTask } from "../tasks/github-contributor-analyze/GithubContributorAnalyzeTask";
+
 export const t = initTRPC.meta<OpenApiMeta>().create(); /* 👈 */
 export const router = t.router({
   sayHello: t.procedure
@@ -52,4 +54,44 @@ export const router = t.router({
           .map((e) => (e as unknown as { repository: string }).repository)
           .toArray(),
     ),
+  GithubContributorAnalyzeTask: t.procedure
+    .meta({
+      openapi: {
+        method: "GET",
+        path: "/github-contributor-analyze-task",
+        description: "Get github contributor analyze task",
+      },
+    })
+    .input(z.object({}))
+    .output(z.array(z.object({
+      repoUrl: z.string(),
+      contributors: z
+        .array(
+          z.object({
+            count: z.number(),
+            name: z.string(),
+            email: z.string(),
+          }),
+        )
+        .optional(),
+      updatedAt: z.date().optional(),
+      error: z.string().optional(),
+      errorAt: z.date().optional(),
+    })))
+    .query(async () => {
+      return await GithubContributorAnalyzeTask.find({}).toArray();
+    }),
+
+  githubContributorAnalyze: t.procedure
+    .meta({
+      openapi: { method: "GET", path: "/github-contributor-analyze", description: "Get github contributor analyze" },
+    })
+    .input(z.object({ url: z.string() }))
+    .output(z.any())
+    .query(async ({ input: { url } }) => {
+      // await import { githubContributorAnalyze } from "../tasks/github-contributor-analyze/githubContributorAnalyze";
+      const { githubContributorAnalyze } = await import("../tasks/github-contributor-analyze/githubContributorAnalyze");
+      const result = await githubContributorAnalyze(url);
+      return result;
+    }),
 });

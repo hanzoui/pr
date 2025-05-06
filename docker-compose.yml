@@ -8,8 +8,13 @@ volumes:
 # dev server
 services:
   comfy-pr:
-    image: oven/bun
-    command: bun dev --turbopack
+    # prod
+    image: comfy-pr
+    build: .
+
+    # image: oven/bun
+    # command: bun dev --turbopack
+    
     # image: node
     # command: npx -y bun dev
     #
