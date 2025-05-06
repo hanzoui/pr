@@ -25,7 +25,7 @@ if (import.meta.main) {
 }
 
 /**
- * Status:
+ * Status: 
  * 1. Check if repo is already up to date
  * 2. if not, make a branch and update the publish.yaml
  * 3. make pr

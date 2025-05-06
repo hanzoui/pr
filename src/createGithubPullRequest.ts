@@ -60,6 +60,7 @@ export async function createPR({
   const { title, body } = parseTitleBodyOfMarkdown(msg);
   return (await createGithubPullRequest({ srcUrl, dstUrl, branch, title, body })).html_url;
 }
+
 export async function createGithubPullRequest({
   title,
   body,
@@ -75,6 +76,8 @@ export async function createGithubPullRequest({
   dstUrl: string; // upstream
   updateIfNotMatched?: boolean;
 }) {
+  // 2025-05-06 this function may create duplicated PR  if calling too fast with same args
+  // TODO: try grab a lock with reop+branch
   if (isRepoBypassed(dstUrl)) DIE("dst repo is requested to be bypassed");
 
   const dst = parseUrlRepoOwner(dstUrl);
