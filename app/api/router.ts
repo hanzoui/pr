@@ -63,24 +63,26 @@ export const router = t.router({
       },
     })
     .input(z.object({}))
-    .output(z.array(z.object({
-      repoUrl: z.string(),
-      contributors: z
-        .array(
-          z.object({
-            count: z.number(),
-            name: z.string(),
-            email: z.string(),
-          }),
-        )
-        .optional(),
-      updatedAt: z.date().optional(),
-      error: z.string().optional(),
-      errorAt: z.date().optional(),
-    })))
-    .query(async () => {
-      return await GithubContributorAnalyzeTask.find({}).toArray();
-    }),
+    .output(
+      z.array(
+        z.object({
+          repoUrl: z.string(),
+          contributors: z
+            .array(
+              z.object({
+                count: z.number(),
+                name: z.string(),
+                email: z.string(),
+              }),
+            )
+            .optional(),
+          updatedAt: z.date().optional(),
+          error: z.string().optional(),
+          errorAt: z.date().optional(),
+        }),
+      ),
+    )
+    .query(async () => await GithubContributorAnalyzeTask.find({}).toArray()),
 
   githubContributorAnalyze: t.procedure
     .meta({
