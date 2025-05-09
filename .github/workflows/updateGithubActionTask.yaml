@@ -33,7 +33,7 @@ jobs:
       - uses: oven-sh/setup-bun@v1
       # Run Comfy-PR Worker
       - run: bun i
-      - run: bun src/GithubActionUpdateTask/updateGithubActionTask.ts
+      - run: bun src/GithubActionUpdateTask/updateGithubActionTaskList.ts
         env:
           AUTH_GCLOUD_URL: https://comfy-pr.vercel.app
           AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
