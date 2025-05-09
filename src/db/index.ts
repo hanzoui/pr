@@ -16,6 +16,7 @@ if (isCI) {
   setTimeout(
     async () => {
       await mongoClient.close();
+      process.exit(0);
     },
     45 * 60 * 1000,
   );
