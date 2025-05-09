@@ -1,5 +1,5 @@
 import { $fresh, $stale } from "@/packages/mongodb-pipeline-ts";
-import { $filaten } from "@/packages/mongodb-pipeline-ts/$filaten";
+import { $flatten } from "@/packages/mongodb-pipeline-ts/$flatten";
 import pMap from "p-map";
 import { postSlackMessage } from "./postSlackMessage";
 import { SlackMsgs } from "./slack/SlackMsgs";
@@ -8,7 +8,7 @@ export async function updateSlackMessages() {
   // send
   return await pMap(
     SlackMsgs.find(
-      $filaten({
+      $flatten({
         $or: [
           { status: { $exists: false } },
           {
