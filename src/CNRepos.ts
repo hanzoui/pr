@@ -39,7 +39,6 @@ export type CRPull = RelatedPull & {
 };
 // TODO: refactor into interface to improve performance
 export type CustomNodeRepo = {
-  
   // github url
   repository: string;
 
@@ -51,7 +50,7 @@ export type CustomNodeRepo = {
   cr?: Pick<WithId<CRNode>, "_id" | "id" | "name">;
 
   cr_ids?: ObjectId[];
-  
+
   on_registry?: Task<boolean>; // check if cr_ids is not empty, exclude publisher.id === ADMIN
   on_registry_all?: Task<boolean>; // check if cr_ids is not empty, including  publisher.id === ADMIN
 

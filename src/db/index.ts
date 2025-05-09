@@ -1,4 +1,4 @@
-import { $filaten } from "@/packages/mongodb-pipeline-ts/$filaten";
+import { $flatten } from "@/packages/mongodb-pipeline-ts/$flatten";
 import { $fresh, $stale } from "@/packages/mongodb-pipeline-ts/$fresh";
 import enhancedMs from "enhanced-ms";
 import { MongoClient } from "mongodb";
@@ -14,8 +14,8 @@ if (import.meta.main) {
   console.log(await db.admin().ping());
   console.log(enhancedMs("7d") === 7 * 86400e3);
   console.log(JSON.stringify($stale("7d")));
-  console.log(JSON.stringify($filaten({ mtime: $stale("7d") })));
-  console.log(JSON.stringify($filaten({ mtime: new Date() })));
+  console.log(JSON.stringify($flatten({ mtime: $stale("7d") })));
+  console.log(JSON.stringify($flatten({ mtime: new Date() })));
 }
 
-export { $filaten, $fresh, $stale };
+export { $flatten as $filaten, $fresh, $stale };

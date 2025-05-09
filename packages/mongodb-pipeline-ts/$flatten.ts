@@ -18,18 +18,18 @@ import type { UnwrapArrayDeep } from "./UnwrapArrayDeep";
  * // but not { a: { b: 1, c: 2 } } or { a: { b: 2 } }
  * ```
  */
-export function $filaten<TSchema extends Document>(filter: UnwrapArrayDeep<Filter<TSchema>>): Filter<TSchema> {
+export function $flatten<TSchema extends Document>(filter: UnwrapArrayDeep<Filter<TSchema>>): Filter<TSchema> {
   const v = filter as any;
   if (typeof v !== "object" || !(v instanceof Object)) return v;
   if (v instanceof Date) return v;
-  if (Array.isArray(v)) return v.map($filaten) as any;
+  if (Array.isArray(v)) return v.map($flatten) as any;
   return fromPairs(
     toPairs(v).flatMap(([k, v]) => {
       if (typeof v !== "object" || !(v instanceof Object)) return [[k, v]];
-      if (k.startsWith("$")) return [[k, $filaten(v)]];
-      if (Object.keys(v).some((kk) => kk.startsWith("$"))) return [[k, $filaten(v)]];
+      if (k.startsWith("$")) return [[k, $flatten(v)]];
+      if (Object.keys(v).some((kk) => kk.startsWith("$"))) return [[k, $flatten(v)]];
       // TODO: optimize this
-      return toPairs($filaten(fromPairs(toPairs(v).map(([kk, vv]) => [`${k}.${kk}`, vv]))));
+      return toPairs($flatten(fromPairs(toPairs(v).map(([kk, vv]) => [`${k}.${kk}`, vv]))));
     }, v) as any,
   );
 }
