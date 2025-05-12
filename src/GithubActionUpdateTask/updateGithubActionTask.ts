@@ -1,12 +1,18 @@
 import fastDiff from "fast-diff";
 import { readFile } from "fs/promises";
 import DIE from "phpdie";
+import sha256 from "sha256";
 import yaml from "yaml";
 import { createPR } from "../createGithubPullRequest";
 import { gh } from "../gh";
 import { parsePullUrl } from "../parsePullUrl";
-import { GithubActionUpdateTask, referenceActionContentHash } from "./GithubActionUpdateTask";
+import { GithubActionUpdateTask } from "./GithubActionUpdateTask";
 import { updateGithubActionPrepareBranch } from "./updateGithubActionPrepareBranch";
+
+export const referenceActionContent = await readFile("./templates/publish.yaml", "utf8");
+export const referencePullRequestMessage = await readFile("./templates/tasks/GithubActionUpdatePR.md", "utf8");
+export const referenceActionContentHash = sha256(referenceActionContent); // check if target publish.yaml already latest
+console.log("referenceActionContentHash", referenceActionContentHash);
 
 // for debug only
 export const testUpdatedPublishYaml = await readFile(import.meta.dir + "/test-updated-publish.yml", "utf8");

@@ -1,10 +1,7 @@
-import { readFile } from "fs/promises";
-import sha256 from "sha256";
 import { db } from "../db";
 
 // task: https://www.notion.so/drip-art/Send-mass-PR-for-all-custom-node-repo-to-update-their-github-action-workflow-1626d73d365080439da3df94c95ad5e7
 // this task aim to update the repos /publish.yaml
-//
 
 export const GithubActionUpdateTask = db.collection<{
   // cached status
@@ -47,6 +44,3 @@ export const GithubActionUpdateTask = db.collection<{
   // stage 4, clean forked repo after pr was merged/closed
   forkedBranchCleaningStatus?: "cleaned" | "keep";
 }>("GithubActionUpdateTask");
-export const referenceActionContent = await readFile("./templates/publish.yaml", "utf8");
-export const referencePullRequestMessage = await readFile("./templates/tasks/GithubActionUpdatePR.md", "utf8");
-export const referenceActionContentHash = sha256(referenceActionContent); // check if target publish.yaml already latest
