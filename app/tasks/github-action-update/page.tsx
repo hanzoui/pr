@@ -1,7 +1,6 @@
 import { getAuthUser } from "@/app/api/auth/[...nextauth]/getAuthUser";
 import "@/app/markdown.css";
 import "@/app/tasks-panel.css";
-import { referenceActionContentHash } from "@/src/GithubActionUpdateTask/GithubActionUpdateTask";
 import { parseTitleBodyOfMarkdown } from "@/src/parseTitleBodyOfMarkdown";
 import { yaml } from "@/src/utils/yaml";
 import { compareBy } from "comparing";
@@ -13,6 +12,13 @@ import { listGithubActionUpdateTask } from "./actions";
 import { ApprovePRButton } from "./ApprovePRButton";
 import ProgressBarChart from "./ProgressBarChart";
 import { ResetTaskButton } from "./ResetTaskButton";
+
+// TODO: automatically generate this hash
+// export const referenceActionContent = await readFile("./templates/publish.yaml", "utf8");
+// export const referencePullRequestMessage = await readFile("./templates/tasks/GithubActionUpdatePR.md", "utf8");
+// export const referenceActionContentHash = sha256(referenceActionContent); // check if target publish.yaml already latest
+// console.log("referenceActionContentHash", referenceActionContentHash);
+const referenceActionContentHash = "e6de732024cf2b64488ec093818fc2e01707c9bc97d306a42b3c22d2ef834686";
 
 export const metadata: Metadata = {
   title: `GithubActionUpdateTaskPage - ComfyPR`,

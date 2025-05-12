@@ -7,8 +7,12 @@ import { parseUrlRepoOwner, stringifyGithubOrigin } from "../parseOwnerRepo";
 import { parseTitleBodyOfMarkdown } from "../parseTitleBodyOfMarkdown";
 import { yaml } from "../utils/yaml";
 import { forkCheckoutRepoOnBranch } from "./forkCheckoutRepoOnBranch";
-import { referenceActionContent, referenceActionContentHash, referencePullRequestMessage } from "./GithubActionUpdateTask";
 import { gptWriter } from "./gptWriter";
+import {
+  referenceActionContent,
+  referenceActionContentHash,
+  referencePullRequestMessage,
+} from "./updateGithubActionTask";
 
 export async function updateGithubActionPrepareBranch(repo: string) {
   console.log(`$ updateGithubActionPrepareBranch("${repo}")`);
