@@ -7,12 +7,8 @@ import { parseUrlRepoOwner, stringifyGithubOrigin } from "../parseOwnerRepo";
 import { parseTitleBodyOfMarkdown } from "../parseTitleBodyOfMarkdown";
 import { yaml } from "../utils/yaml";
 import { forkCheckoutRepoOnBranch } from "./forkCheckoutRepoOnBranch";
+import { referenceActionContent, referenceActionContentHash, referencePullRequestMessage } from "./GithubActionUpdateTask";
 import { gptWriter } from "./gptWriter";
-import {
-  referenceActionContent,
-  referenceActionContentHash,
-  referencePullRequestMessage,
-} from "./updateGithubActionTask";
 
 export async function updateGithubActionPrepareBranch(repo: string) {
   console.log(`$ updateGithubActionPrepareBranch("${repo}")`);
@@ -80,7 +76,7 @@ export async function updateGithubActionPrepareBranch(repo: string) {
   const diff = await $`cd ${cwd} && git diff`.text();
   console.log({ diff });
 
-  // gpt review
+  // TODO: gpt review
 
   const { pullRequestMessage, commitMessage } = await pProps({
     commitMessage: gptWriter([

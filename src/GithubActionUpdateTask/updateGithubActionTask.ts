@@ -1,23 +1,19 @@
 import fastDiff from "fast-diff";
 import { readFile } from "fs/promises";
 import DIE from "phpdie";
-import sha256 from "sha256";
 import yaml from "yaml";
 import { createPR } from "../createGithubPullRequest";
 import { gh } from "../gh";
 import { parsePullUrl } from "../parsePullUrl";
-import { GithubActionUpdateTask } from "./GithubActionUpdateTask";
+import { GithubActionUpdateTask, referenceActionContentHash } from "./GithubActionUpdateTask";
 import { updateGithubActionPrepareBranch } from "./updateGithubActionPrepareBranch";
-
-export const referenceActionContent = await readFile("./templates/publish.yaml", "utf8");
-export const referencePullRequestMessage = await readFile("./templates/tasks/GithubActionUpdatePR.md", "utf8");
-export const referenceActionContentHash = sha256(referenceActionContent); // check if target publish.yaml already latest
 
 // for debug only
 export const testUpdatedPublishYaml = await readFile(import.meta.dir + "/test-updated-publish.yml", "utf8");
 
 if (import.meta.main) {
-  const repo = "https://github.com/aigc-apps/VideoX-Fun";
+  // const repo = "https://github.com/aigc-apps/VideoX-Fun";
+  const repo = "https://github.com/FuouM/ComfyUI-MatAnyone";
   await resetErrorForGithubActionUpdateTask(repo);
   console.log(await updateGithubActionTask(repo));
   console.log(await GithubActionUpdateTask.findOne({ repo }));
@@ -25,7 +21,7 @@ if (import.meta.main) {
 }
 
 /**
- * Status: 
+ * Status:
  * 1. Check if repo is already up to date
  * 2. if not, make a branch and update the publish.yaml
  * 3. make pr
