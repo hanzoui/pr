@@ -15,7 +15,7 @@ The Comfy-PR project aims to support and streamline the process for Custom Node 
 7. **Promote Innovation**: Lower barriers to publishing Custom Nodes to encourage innovation and creativity within the community, leading to the development of novel and exciting nodes.
 
 Through these efforts, Comfy-PR seeks to create an environment where Custom Node Authors can thrive and users can access a diverse and high-quality array of Custom Nodes.
-j
+
 ## Developer Document
 
 ### Cli usage:
