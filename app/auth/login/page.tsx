@@ -7,7 +7,7 @@ import { FcGoogle } from "react-icons/fc";
  *
  * @author: snomiao <snomiao@gmail.com>
  */
-export default function LoginPage() {
+export default async function LoginPage() {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="login-container bg-white p-8 rounded-lg shadow-md w-96">
