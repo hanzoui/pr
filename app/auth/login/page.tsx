@@ -23,17 +23,6 @@ export default function LoginPage() {
             <FcGoogle className="w-5 h-5 mr-2" />
             <span>Login with Google</span>
           </button>
-
-          {/* Additional login options can be uncommented when supported */}
-          {/* <button className="flex items-center justify-center w-full py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white hover:bg-gray-50 transition-colors">
-                        <BsGithub className="w-5 h-5 mr-2" />
-                        <span>Login with GitHub</span>
-                    </button>
-                    
-                    <button className="flex items-center justify-center w-full py-2 px-4 border border-gray-300 rounded-md shadow-sm bg-white hover:bg-gray-50 transition-colors">
-                        <BsTwitterX className="w-5 h-5 mr-2" />
-                        <span>Login with X</span>
-                    </button> */}
         </div>
       </div>
     </div>
