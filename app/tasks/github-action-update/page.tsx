@@ -1,6 +1,7 @@
 import { getAuthUser } from "@/app/api/auth/[...nextauth]/getAuthUser";
 import "@/app/markdown.css";
 import "@/app/tasks-panel.css";
+import { referenceActionContentHash } from "@/src/GithubActionUpdateTask/GithubActionUpdateTask";
 import { parseTitleBodyOfMarkdown } from "@/src/parseTitleBodyOfMarkdown";
 import { yaml } from "@/src/utils/yaml";
 import { compareBy } from "comparing";
@@ -10,10 +11,9 @@ import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { listGithubActionUpdateTask } from "./actions";
 import { ApprovePRButton } from "./ApprovePRButton";
-// import { GitDiffResult } from "./GitDIffResult";
-import { referenceActionContentHash } from "@/src/GithubActionUpdateTask/updateGithubActionTask";
 import ProgressBarChart from "./ProgressBarChart";
 import { ResetTaskButton } from "./ResetTaskButton";
+
 export const metadata: Metadata = {
   title: `GithubActionUpdateTaskPage - ComfyPR`,
 };
