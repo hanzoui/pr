@@ -18,7 +18,6 @@ export const updateGithubActionPrepareBranchBanPatterns = [
   /- master/,
   /submodules: true/,
   /\+          personal_access_token: \${{ secrets.REGISTRY_ACCESS_TOKEN }}/
-
 ];
 export async function updateGithubActionPrepareBranch(repo: string) {
   console.log(`$ updateGithubActionPrepareBranch("${repo}")`);
