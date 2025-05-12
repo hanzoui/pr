@@ -7,6 +7,7 @@ import yaml from "yaml";
 import { CRNodes } from "../CRNodes";
 import { getWorkerInstance } from "../WorkerInstances";
 import { GithubActionUpdateTask } from "./GithubActionUpdateTask";
+import { updateGithubActionPrepareBranchBanPatterns } from "./updateGithubActionPrepareBranch";
 import { updateGithubActionTask } from "./updateGithubActionTask";
 
 if (import.meta.main) {
@@ -40,6 +41,9 @@ if (import.meta.main) {
 
   // reset silly pr messages
   const silly = await sflow(
+    ...updateGithubActionPrepareBranchBanPatterns.map((pattern) =>
+      GithubActionUpdateTask.find({ pullRequestMessage: pattern }),
+    ),
     GithubActionUpdateTask.find({
       pullRequestMessage: /\+\s+if: \${{ github.repository_owner == 'NODE_AUTHOR_OWNER' }}$/gim,
     }),

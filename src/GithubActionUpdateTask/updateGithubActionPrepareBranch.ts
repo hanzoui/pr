@@ -13,7 +13,13 @@ import {
   referenceActionContentHash,
   referencePullRequestMessage,
 } from "./updateGithubActionTask";
+export const updateGithubActionPrepareBranchBanPatterns = [
+  /if: \${{ github.repository_owner == 'NODE_AUTHOR_OWNER' }}/,
+  /- master/,
+  /submodules: true/,
+  /\+          personal_access_token: \${{ secrets.REGISTRY_ACCESS_TOKEN }}/
 
+];
 export async function updateGithubActionPrepareBranch(repo: string) {
   console.log(`$ updateGithubActionPrepareBranch("${repo}")`);
   const branch = "update-publish-yaml";
@@ -67,14 +73,22 @@ export async function updateGithubActionPrepareBranch(repo: string) {
     };
   }
 
-  const banString = "if: ${{ github.repository_owner == 'NODE_AUTHOR_OWNER' }}";
   // regex review
-  const isMalformed = updatedActionContent.includes(banString);
+
+  const isMalformed = updateGithubActionPrepareBranchBanPatterns.some((banPattern) =>
+    updatedActionContent.match(banPattern),
+  );
   if (isMalformed) {
     throw new Error("Malformed publish.yaml content generated, and it's [RETRYABLE]", {
-      cause: { updatedActionContent, banString },
+      cause: {
+        updatedActionContent,
+        banPattern: updateGithubActionPrepareBranchBanPatterns.find((banPattern) =>
+          updatedActionContent.match(banPattern),
+        ),
+      },
     });
   }
+
   await writeFile(file, updatedActionContent);
 
   const diff = await $`cd ${cwd} && git diff`.text();
