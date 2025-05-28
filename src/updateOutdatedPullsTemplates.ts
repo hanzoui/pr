@@ -1,5 +1,5 @@
 import { $elemMatch } from "@/packages/mongodb-pipeline-ts/$elemMatch";
-import DIE from "@snomiao/die";
+import DIE from "phpdie";
 import pMap from "p-map";
 import { match } from "ts-pattern";
 import { $OK, TaskError, TaskOK, tsmatch } from "../packages/mongodb-pipeline-ts/Task";

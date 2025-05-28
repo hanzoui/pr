@@ -1,4 +1,4 @@
-import DIE from "@snomiao/die";
+import DIE from "phpdie";
 import { Octokit } from "octokit";
 const GH_TOKEN =
   process.env.GH_TOKEN_COMFY_PR ||
