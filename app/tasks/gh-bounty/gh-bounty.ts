@@ -2,6 +2,7 @@ import { db } from "@/src/db";
 import { gh } from "@/src/gh";
 import { parseIssueUrl } from "@/src/parseIssueUrl";
 import console from "console";
+import isCI from "is-ci";
 import sflow, { pageFlow } from "sflow";
 import { match } from "ts-pattern";
 
@@ -17,9 +18,6 @@ const GithubBountyTask = db.collection<{
   issueUrl: string; // the Bounty issue url
   status?: "error" | "pending" | "done";
 }>("GithubBountyTask");
-const GithubRepoIssues = db.collection<{
-  issueUrls: string;
-}>("GithubRepoIssues");
 
 if (import.meta.main) {
   // 1. list all issues in milestone
@@ -48,7 +46,9 @@ if (import.meta.main) {
         });
         console.log(`Found ${issues.length} issues in milestone ${milestoneUrl}`);
         return { data: issues, next: issues.length >= per_page ? page + 1 : undefined };
-      }).filter(e=>e.length).flat();
+      })
+        .filter((e) => e.length)
+        .flat();
     })
     .confluenceByConcat()
     .forEach(async (issue) => {
@@ -98,6 +98,7 @@ if (import.meta.main) {
     })
     .run();
   console.log("All issues processed successfully.");
+  isCI && process.exit(0); // force exit in CI environment as mongodb will not exit automatically
 }
 
 export function parseMilestoneUrl(url: string) {
