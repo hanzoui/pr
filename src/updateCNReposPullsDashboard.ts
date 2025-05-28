@@ -1,4 +1,4 @@
-import DIE from "@snomiao/die";
+import DIE from "phpdie";
 import { match } from "ts-pattern";
 import { $OK } from "../packages/mongodb-pipeline-ts/Task";
 import { CNRepos } from "./CNRepos";

@@ -1,5 +1,5 @@
 import type { Task } from "@/packages/mongodb-pipeline-ts/Task";
-import DIE from "@snomiao/die";
+import DIE from "phpdie";
 import { gh } from "./gh";
 import type { AwaitedReturnType } from "./types/AwaitedReturnType";
 

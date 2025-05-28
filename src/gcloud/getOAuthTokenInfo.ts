@@ -1,4 +1,4 @@
-import DIE from "@snomiao/die";
+import DIE from "phpdie";
 import type { OAuth2Client } from "google-auth-library";
 
 export async function getOAuthTokenInfo(auth: OAuth2Client) {

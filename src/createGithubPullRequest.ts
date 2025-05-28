@@ -1,4 +1,4 @@
-import DIE, { catchArgs } from "@snomiao/die";
+import DIE, { catchArgs } from "phpdie";
 import "git-diff";
 import { Octokit } from "octokit";
 import { pickAll } from "rambda";

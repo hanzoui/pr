@@ -1,5 +1,5 @@
 "use server";
-import DIE from "@snomiao/die";
+import DIE from "phpdie";
 import { FollowRuleSets } from "./FollowRules";
 import { updateFollowRuleSet } from "./updateFollowRuleSet";
 
