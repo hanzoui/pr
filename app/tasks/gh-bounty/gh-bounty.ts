@@ -26,8 +26,8 @@ if (import.meta.main) {
   // 4. done
 
   // for debug
-  const dry = !!process.env.DRY;
-  if (dry) {
+  const isDryRun = !!process.env.DRY;
+  if (isDryRun) {
     console.log("Running in DRY mode, no changes will be made.");
   } else {
     console.log("Running in LIVE mode, changes will be made.");
@@ -69,7 +69,7 @@ if (import.meta.main) {
         )
       ) {
         console.log(`Adding label 'Bounty' to issue ${issue.html_url}`);
-        !dry &&
+        !isDryRun &&
           (await gh.issues.addLabels({
             ...parseIssueUrl(issue.html_url),
             labels: ["Bounty"],
@@ -80,7 +80,7 @@ if (import.meta.main) {
       const comments = await gh.issues.listComments(parseIssueUrl(issue.html_url));
       if (!comments.data.some((c) => c.body === bountyMessage)) {
         console.log(`Adding comment to issue ${issue.html_url}`);
-        !dry &&
+        !isDryRun &&
           (await gh.issues.createComment({
             ...parseIssueUrl(issue.html_url),
             body: bountyMessage,
@@ -89,7 +89,7 @@ if (import.meta.main) {
       console.log(`Issue ${issue.html_url} processed successfully.`);
 
       // mark this issue as done in db.
-      !dry &&
+      !isDryRun &&
         (await GithubBountyTask.updateOne(
           { issueUrl: issue.html_url },
           { $set: { status: "done" } },

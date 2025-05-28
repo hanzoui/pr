@@ -1,0 +1,32 @@
+name: gh-bounty
+on:
+  schedule:
+    - cron: "0,30 * * * *" # Runs every half hours
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/comment-bounty.yaml"
+      - "app/tasks/gh-bounty.ts"
+jobs:
+  run_comfy_pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+      # Run Comfy-PR Worker
+      - run: bun i
+      - run: bun app/tasks/gh-bounty/gh-bounty.ts
+        env:
+          AUTH_GCLOUD_URL: https://comfy-pr.vercel.app
+          AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
+          AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
+          COMFY_PR_REPO: ${{ secrets.COMFY_PR_REPO }}
+          FORK_OWNER: "ComfyNodePRs"
+          FORK_PREFIX: "PR-"
+          GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          SLACK_BOT_CHANNEL: ${{ secrets.SLACK_BOT_CHANNEL }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
