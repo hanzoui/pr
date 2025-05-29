@@ -8,14 +8,14 @@ import { MongoClient } from "mongodb";
 const MONGODB_URI = process.env.MONGODB_URI ?? "mongodb://PLEASE_SET_MONGODB_URI:27017";
 
 type g = typeof global & { mongoClient: MongoClient };
-export const mongoClient = ((global as g).mongoClient ??= new MongoClient(MONGODB_URI));
-export const db = mongoClient.db();
+export const mongo = ((global as g).mongoClient ??= new MongoClient(MONGODB_URI));
+export const db = mongo.db();
 
 // allow db conn for 45 mins in CI env to prevent long running CI jobs
 if (isCI) {
   setTimeout(
     async () => {
-      await mongoClient.close();
+      await mongo.close();
       process.exit(0);
     },
     45 * 60 * 1000,
