@@ -21,6 +21,7 @@ const getBountyMessage = (issue_title: string, issueUrl: string) =>
     `I can help [${issue_title}]`,
     `I can help with [${issue_title}]( ${issueUrl} )\n\nMy approach is ...\n\nMy timeline is ...`,
   )})`;
+
 const milestoneUrls = [
   "https://github.com/Comfy-Org/ComfyUI_frontend/milestone/1",
   "https://github.com/Comfy-Org/desktop/milestone/1",
