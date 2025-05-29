@@ -1,5 +1,6 @@
 import { db } from "@/src/db";
 import { gh } from "@/src/gh";
+import { ghUser } from "@/src/ghUser";
 import { parseIssueUrl } from "@/src/parseIssueUrl";
 import console from "console";
 import isCI from "is-ci";
@@ -7,16 +8,27 @@ import sflow, { pageFlow } from "sflow";
 import { match } from "ts-pattern";
 
 // ref: https://www.notion.so/drip-art/Make-a-Github-bot-to-detect-that-a-Github-Hub-is-bounty-milestone-and-comment-on-there-to-link-to--2016d73d365080e7b7dececaa4f75d74
+
+// outdated
 const mailtoLink =
   "mailto:bounty@comfy.org?subject=I%20can%20help%20%5BYOUR_TASK%5D&body=I%20can%20help%20with%20YOUR_TASK,%0A%0AMy%20approach%20is%20...%0A%0AMy%20timeline%20is%20...";
-const bountyMessage = `This Issues has been set to be bounty, here is the link on how to sign up for this bounty: https://comfyorg.notion.site/ComfyUI-Bounty-Tasks-1fb6d73d36508064af76d05b3f35665f or [click here to sign up](${mailtoLink})`;
+const outdatedBountyMessage = `This Issues has been set to be bounty, here is the link on how to sign up for this bounty: https://comfyorg.notion.site/ComfyUI-Bounty-Tasks-1fb6d73d36508064af76d05b3f35665f or [click here to sign up](${mailtoLink})`;
+
+const getMailtoLink = (subject: string, body: string) =>
+  `mailto:bounty@comfy.org?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+const getBountyMessage = (issue_title: string, issueUrl: string) =>
+  `This Issues has been set to be bounty, here is the link on how to sign up for this bounty: https://comfyorg.notion.site/ComfyUI-Bounty-Tasks-1fb6d73d36508064af76d05b3f35665f or [click here to sign up](${getMailtoLink(
+    `I can help [${issue_title}]`,
+    `I can help with [${issue_title}]( ${issueUrl} )\n\nMy approach is ...\n\nMy timeline is ...`,
+  )})`;
+
 const milestoneUrls = [
   "https://github.com/Comfy-Org/ComfyUI_frontend/milestone/1",
   "https://github.com/Comfy-Org/desktop/milestone/1",
 ];
 const GithubBountyTask = db.collection<{
   issueUrl: string; // the Bounty issue url
-  status?: "error" | "pending" | "done";
+  status?: "error" | "pending" | "done-2025-05-29";
 }>("GithubBountyTask");
 
 if (import.meta.main) {
@@ -53,7 +65,7 @@ if (import.meta.main) {
     .confluenceByConcat()
     .forEach(async (issue) => {
       const task = await GithubBountyTask.findOne({ issueUrl: issue.html_url });
-      if (task?.status === "done") return;
+      if (task?.status === "done-2025-05-29") return;
 
       console.log("processing " + issue.html_url);
       // add label
@@ -78,7 +90,19 @@ if (import.meta.main) {
 
       // add comment
       const comments = await gh.issues.listComments(parseIssueUrl(issue.html_url));
-      if (!comments.data.some((c) => c.body === bountyMessage)) {
+      const bountyMessage = getBountyMessage(issue.title, issue.html_url);
+      const outdatedComment = comments.data.find((c) => c.body === outdatedBountyMessage);
+      if (outdatedComment) {
+        if (outdatedComment.user?.login === (await ghUser()).login) {
+          console.log(`Updating comment in issue ${issue.html_url}`);
+          !isDryRun &&
+            (await gh.issues.updateComment({
+              ...parseIssueUrl(issue.html_url),
+              comment_id: outdatedComment.id,
+              body: bountyMessage,
+            }));
+        }
+      } else if (!comments.data.some((c) => c.body === bountyMessage)) {
         console.log(`Adding comment to issue ${issue.html_url}`);
         !isDryRun &&
           (await gh.issues.createComment({
@@ -92,7 +116,7 @@ if (import.meta.main) {
       !isDryRun &&
         (await GithubBountyTask.updateOne(
           { issueUrl: issue.html_url },
-          { $set: { status: "done" } },
+          { $set: { status: "done-2025-05-29" } },
           { upsert: true },
         ));
     })

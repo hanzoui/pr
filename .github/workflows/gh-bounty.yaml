@@ -7,6 +7,7 @@ on:
   push:
     branches:
       - main
+      - sno-bounty
     paths:
       - ".github/workflows/gh-bounty.yaml"
       - "app/tasks/gh-bounty.ts"
