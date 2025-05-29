@@ -1,4 +1,4 @@
-import { mongoClient } from "@/src/db";
+import { mongo } from "@/src/db";
 import { MongoDBAdapter } from "@auth/mongodb-adapter";
 import NextAuth from "next-auth";
 import GitHub from "next-auth/providers/github";
@@ -6,7 +6,7 @@ import Google from "next-auth/providers/google";
 import Nodemailer from "next-auth/providers/nodemailer";
 import "nodemailer";
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: MongoDBAdapter(Promise.resolve(mongoClient)),
+  adapter: MongoDBAdapter(Promise.resolve(mongo)),
   providers: [
     ...(process.env.AUTH_EMAIL_SERVER
       ? [
