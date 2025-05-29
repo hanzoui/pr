@@ -8,7 +8,7 @@ on:
     branches:
       - main
     paths:
-      - ".github/workflows/comment-bounty.yaml"
+      - ".github/workflows/gh-bounty.yaml"
       - "app/tasks/gh-bounty.ts"
 jobs:
   run_comfy_pr:
