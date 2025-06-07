@@ -32,6 +32,7 @@ export async function updateOutdatedPullsTemplates() {
   const outdated_pyproject_templates = await sflow(await glob("./templates/outdated/add-toml*.md"))
     .map((file) => readTemplate(file))
     .toArray();
+    
   const outdateTitles = [
     outdated_toml.title,
     ...outdated_publishcr_templates.map((e) => e.title),
