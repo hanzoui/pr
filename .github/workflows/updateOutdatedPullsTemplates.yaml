@@ -1,16 +1,13 @@
-# TODO
-name: Run Comfy-PR Hourly.
+name: UpdateOutdatedPullsTemplates
 
 on:
-  schedule:
-    - cron: "53 * * * *" # Runs every the 53th minute
   workflow_dispatch:
   push:
     branches:
       - main
     paths:
-      - ".github/workflows/*"
-      - "src/*.ts"
+      - ".github/workflows/updateOutdatedPullsTemplates.yaml"
+      - "src/updateOutdatedPullsTemplates.ts"
 jobs:
   run_comfy_pr:
     runs-on: ubuntu-latest
