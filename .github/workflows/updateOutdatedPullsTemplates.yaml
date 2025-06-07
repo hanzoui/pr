@@ -1,0 +1,47 @@
+# TODO
+name: Run Comfy-PR Hourly.
+
+on:
+  schedule:
+    - cron: "53 * * * *" # Runs every the 53th minute
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/*"
+      - "src/*.ts"
+jobs:
+  run_comfy_pr:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # setup comfy-cli
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.x"
+      - run: python -m pip install --upgrade pip
+      - run: python -m venv .venv
+      - run: source .venv/bin/activate
+      - run: pip install comfy-cli
+      # Setup SSH Key for git push
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      # Setup Bun
+      - run: pip install setuptools
+      - uses: oven-sh/setup-bun@v1
+      # Run Comfy-PR Worker
+      - run: bun i
+      - run: bun src/updateOutdatedPullsTemplates.ts
+        env:
+          COMFY_PR_REPO: ${{ secrets.COMFY_PR_REPO }}
+          FORK_OWNER: "ComfyNodePRs"
+          FORK_PREFIX: "PR-"
+          GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          SLACK_BOT_CHANNEL: ${{ secrets.SLACK_BOT_CHANNEL }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
+          AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
+          AUTH_GCLOUD_URL: https://comfy-pr.vercel.app
