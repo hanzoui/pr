@@ -22,14 +22,14 @@ if (import.meta.main) {
 }
 
 export async function updateOutdatedPullsTemplates() {
-  const pyproject = await readTemplate("add-toml.md");
-  const publishcr = await readTemplate("add-action.md");
-  const toml = await readTemplate("update-toml-license.md");
-  const outdated_toml = await readTemplate("outdated/update-toml-license.md");
-  const outdated_publishcr_templates = await sflow(await glob("./outdated/add-action*.md"))
+  const pyproject = await readTemplate("./templates/add-toml.md");
+  const publishcr = await readTemplate("./templates/add-action.md");
+  const toml = await readTemplate("./templates/update-toml-license.md");
+  const outdated_toml = await readTemplate("./templates/outdated/update-toml-license.md");
+  const outdated_publishcr_templates = await sflow(await glob("./templates/outdated/add-action*.md"))
     .map((file) => readTemplate(file))
     .toArray();
-  const outdated_pyproject_templates = await sflow(await glob("./outdated/add-toml*.md"))
+  const outdated_pyproject_templates = await sflow(await glob("./templates/outdated/add-toml*.md"))
     .map((file) => readTemplate(file))
     .toArray();
   const outdateTitles = [
