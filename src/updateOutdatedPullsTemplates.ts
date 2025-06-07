@@ -1,5 +1,6 @@
 import { $elemMatch } from "@/packages/mongodb-pipeline-ts/$elemMatch";
 import DIE from "@snomiao/die";
+import isCI from "is-ci";
 import stableStringify from "json-stable-stringify";
 import pMap from "p-map";
 import sflow from "sflow";
@@ -17,6 +18,7 @@ import { notifySlackLinks } from "./slack/notifySlackLinks";
 import { tLog } from "./utils/tLog";
 if (import.meta.main) {
   await tLog("updateOutdatedPullsTemplates", updateOutdatedPullsTemplates);
+  isCI && process.exit(0);
 }
 
 export async function updateOutdatedPullsTemplates() {
