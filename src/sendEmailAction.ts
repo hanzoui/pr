@@ -7,7 +7,7 @@ import { sflow } from "sflow";
 import type { z } from "zod";
 import type { PullStatusShown } from "./analyzePullsStatus";
 import { CNRepos } from "./CNRepos";
-import { $filaten } from "./db";
+import { $flatten } from "./db";
 import { enqueueEmailTask } from "./EmailTasks";
 import { zSendEmailAction } from "./followRuleSchema";
 import { yaml } from "./utils/yaml";
@@ -45,7 +45,7 @@ export async function sendEmailAction({
       if (runAction) {
         const task = await enqueueEmailTask(loadedAction);
         console.log(rule.name + " email enqueued :" + yaml.stringify(loadedAction));
-        await CNRepos.updateOne($filaten({ crPulls: { data: $elemMatch({ pull: { html_url: payload.url } }) } }), {
+        await CNRepos.updateOne($flatten({ crPulls: { data: $elemMatch({ pull: { html_url: payload.url } }) } }), {
           $set: { "crPulls.data.$.emailTask_id": task._id },
         });
       }

@@ -4,7 +4,7 @@ import { match } from "ts-pattern";
 import { $OK, TaskError, TaskOK } from "../packages/mongodb-pipeline-ts/Task";
 import { CNRepos } from "./CNRepos";
 import { getWorkerInstance } from "./WorkerInstances";
-import { $filaten, $stale } from "./db";
+import { $flatten, $stale } from "./db";
 import { gh } from "./gh";
 import { parseUrlRepoOwner } from "./parseOwnerRepo";
 import { tLog } from "./utils/tLog";
@@ -15,9 +15,9 @@ if (import.meta.main) {
 }
 
 export async function updateCNReposInfo() {
-  await CNRepos.createIndex($filaten({ info: { mtime: 1 } }));
+  await CNRepos.createIndex($flatten({ info: { mtime: 1 } }));
   return await sflow(
-    CNRepos.find($filaten({ info: { mtime: $stale("1d") } }))
+    CNRepos.find($flatten({ info: { mtime: $stale("1d") } }))
   ).pMap(
     async (repo) => {
       const { repository } = repo;

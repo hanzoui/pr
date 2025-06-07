@@ -29,4 +29,4 @@ if (import.meta.main) {
   console.log(JSON.stringify($flatten({ mtime: new Date() })));
 }
 
-export { $flatten as $filaten, $fresh, $stale };
+export { $flatten as $flatten, $fresh, $stale };

@@ -3,7 +3,7 @@ import YAML from "yaml";
 import { $OK, TaskError, TaskOK, tsmatch } from "../packages/mongodb-pipeline-ts/Task";
 import { Totals } from "./Totals";
 import { analyzeTotals } from "./analyzeTotals";
-import { $filaten, $fresh } from "./db";
+import { $flatten, $fresh } from "./db";
 import { notifySlack } from "./slack/notifySlack";
 
 if (import.meta.main) {
@@ -13,7 +13,7 @@ if (import.meta.main) {
 export async function updateComfyTotals({ notify = true, fresh = "30m" } = {}) {
   await Totals.createIndex({ today: 1, "totals.mtime": 1, "totals.state": 1 });
   const today = new Date().toISOString().split("T")[0];
-  const cached = await Totals.findOne($filaten({ today, totals: { mtime: $fresh(fresh), ...$OK } }));
+  const cached = await Totals.findOne($flatten({ today, totals: { mtime: $fresh(fresh), ...$OK } }));
   if (cached?.totals?.state === "ok")
     return [
       tsmatch(cached.totals)
@@ -24,7 +24,7 @@ export async function updateComfyTotals({ notify = true, fresh = "30m" } = {}) {
 
   // notify if today is not already notify
   if (notify) {
-    if (!(await Totals.findOne($filaten({ today, totals: { mtime: $fresh("1d"), ...$OK } }))))
+    if (!(await Totals.findOne($flatten({ today, totals: { mtime: $fresh("1d"), ...$OK } }))))
       // ignore today
       await match(totals)
         .with($OK, async (totals) => {

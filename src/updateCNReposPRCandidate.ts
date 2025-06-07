@@ -4,7 +4,7 @@ import { peekYaml } from "peek-log";
 import { match } from "ts-pattern";
 import { $OK, TaskOK } from "../packages/mongodb-pipeline-ts/Task";
 import { CNRepos } from "./CNRepos";
-import { $filaten, $fresh, $stale } from "./db";
+import { $flatten, $fresh, $stale } from "./db";
 import { updateCNReposPulls } from "./updateCNReposPulls";
 import { updateCNReposRelatedPulls } from "./updateCNReposRelatedPulls";
 import { tLog } from "./utils/tLog";
@@ -31,7 +31,7 @@ if (import.meta.main) {
   peekYaml(
     await $pipeline(CNRepos)
       .match(
-        $filaten({
+        $flatten({
           crPulls: { mtime: $stale("7d") },
           // info: { mtime: $fresh("7d"), data: { private: false, archived: false } },
           // createdPulls: { mtime: $stale("7d"), data: { $exists: false } },
@@ -55,7 +55,7 @@ export async function updateCNReposPRCandidate() {
   return await pMap(
     $pipeline(CNRepos)
       .match(
-        $filaten({
+        $flatten({
           crPulls: { mtime: $fresh("1d"), ...$OK },
           // info: { mtime: $fresh("7d"), ...$OK, data: { private: false, archived: false } },
           info: { mtime: $fresh("7d"), ...$OK },

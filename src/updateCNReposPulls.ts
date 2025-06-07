@@ -3,7 +3,7 @@ import sflow from "sflow";
 import { match } from "ts-pattern";
 import { $OK, TaskError, TaskOK } from "../packages/mongodb-pipeline-ts/Task";
 import { CNRepos } from "./CNRepos";
-import { $filaten, $stale } from "./db";
+import { $flatten, $stale } from "./db";
 import { fetchGithubPulls } from "./gh/fetchGithubPulls";
 import { tLog } from "./utils/tLog";
 if (import.meta.main) {
@@ -13,7 +13,7 @@ export async function updateCNReposPulls() {
   await CNRepos.createIndex("pulls.mtime");
   return await sflow(
     $pipeline(CNRepos)
-      .match($filaten({ pulls: { mtime: $stale("1d") } }))
+      .match($flatten({ pulls: { mtime: $stale("1d") } }))
       .project({ repository: 1 })
       .aggregate(),
   )

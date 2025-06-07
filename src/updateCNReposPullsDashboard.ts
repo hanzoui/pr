@@ -2,7 +2,7 @@ import DIE from "@snomiao/die";
 import { match } from "ts-pattern";
 import { $OK } from "../packages/mongodb-pipeline-ts/Task";
 import { CNRepos } from "./CNRepos";
-import { $filaten, $fresh } from "./db";
+import { $flatten, $fresh } from "./db";
 import { gh } from "./gh";
 import { ghUser } from "./ghUser";
 import { parseUrlRepoOwner, stringifyOwnerRepo } from "./parseOwnerRepo";
@@ -13,7 +13,7 @@ export async function updateCNRepoPullsDashboard() {
   const dashBoardRepo = dashBoardIssue.replace(/\/issues\/\d+$/, "");
   const dashBoardIssueNumber = Number(dashBoardIssue.match(/\/issues\/(\d+)$/)?.[1] || DIE("Issue number not found"));
   // update dashboard issue if run by @snomiao
-  const repos = await CNRepos.find($filaten({ crPulls: { mtime: $fresh("1d") } })).toArray();
+  const repos = await CNRepos.find($flatten({ crPulls: { mtime: $fresh("1d") } })).toArray();
   const result = repos
     .map((repo) => {
       const crPulls = match(repo.crPulls)
