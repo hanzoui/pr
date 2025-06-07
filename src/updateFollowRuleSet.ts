@@ -8,7 +8,7 @@ import { CNRepos } from "./CNRepos";
 import { FollowRuleSets } from "./FollowRules";
 import { addCommentAction } from "./addCommentAction";
 import { analyzePullsStatus, analyzePullsStatusPipeline } from "./analyzePullsStatus";
-import { $filaten } from "./db";
+import { $flatten } from "./db";
 import { zAddCommentAction, zFollowUpRules, zSendEmailAction } from "./followRuleSchema";
 import { fetchIssueComments } from "./gh/fetchIssueComments";
 import { stringifyGithubRepoUrl } from "./parseOwnerRepo";
@@ -85,7 +85,7 @@ export async function updateFollowRuleSet({
               .then(TaskOK)
               .catch(TaskError);
             (
-              await CNRepos.updateOne($filaten({ repository, crPulls: { data: { pull: { html_url } } } }), {
+              await CNRepos.updateOne($flatten({ repository, crPulls: { data: { pull: { html_url } } } }), {
                 $set: { "crPulls.data.$.comments": comments },
               })
             ).matchedCount ?? DIE("pre-matched comments is not found");

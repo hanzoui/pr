@@ -8,7 +8,7 @@ import type { z } from "zod";
 import type { PullStatusShown } from "./analyzePullsStatus";
 import { CNRepos, type CRPull } from "./CNRepos";
 import { createIssueComment } from "./createIssueComment";
-import { $filaten } from "./db";
+import { $flatten } from "./db";
 import type { zAddCommentAction } from "./followRuleSchema";
 import { ghUser } from "./ghUser";
 import type { GithubIssueComment } from "./GithubIssueComments";
@@ -58,7 +58,7 @@ export async function addCommentAction({
         if (!existedComment) {
           const { comments, comment } = await createIssueComment(loadedAction.url, loadedAction.body, loadedAction.by);
           const updateResult = await CNRepos.updateOne(
-            $filaten({ crPulls: { data: $elemMatch({ pull: { html_url: loadedAction.url } }) } }),
+            $flatten({ crPulls: { data: $elemMatch({ pull: { html_url: loadedAction.url } }) } }),
             { $set: { "crPulls.data.$.comments": comments } },
           );
           if (!updateResult.matchedCount) DIE("created issue not matched");

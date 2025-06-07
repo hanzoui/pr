@@ -3,7 +3,7 @@ import pMap from "p-map";
 import { match } from "ts-pattern";
 import { $OK, TaskError, TaskOK } from "../packages/mongodb-pipeline-ts/Task";
 import { CNRepos } from "./CNRepos";
-import { $filaten, $stale } from "./db";
+import { $flatten, $stale } from "./db";
 import { matchRelatedPulls } from "./matchRelatedPulls";
 import { tLog } from "./utils/tLog";
 if (import.meta.main) {
@@ -12,7 +12,7 @@ if (import.meta.main) {
 export async function updateCNReposRelatedPulls() {
   await CNRepos.createIndex({ "pulls.state": 1, "crPulls.mtime": 1 });
   return await pMap(
-    CNRepos.find($filaten({ pulls: { state: "ok" }, crPulls: { mtime: $stale("1d") } })),
+    CNRepos.find($flatten({ pulls: { state: "ok" }, crPulls: { mtime: $stale("1d") } })),
     async (repo, i) => {
       const { repository } = repo;
       const pulls = match(repo.pulls)

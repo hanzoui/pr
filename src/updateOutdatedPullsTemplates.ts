@@ -8,7 +8,7 @@ import { match } from "ts-pattern";
 import { glob } from "zx";
 import { $OK, TaskError, TaskOK, tsmatch } from "../packages/mongodb-pipeline-ts/Task";
 import { CNRepos, type CRPull } from "./CNRepos";
-import { $filaten, $fresh, $stale } from "./db";
+import { $flatten, $fresh, $stale } from "./db";
 import { gh } from "./gh";
 import { parsePull } from "./gh/parsePull";
 import { ghUser } from "./ghUser";
@@ -32,7 +32,7 @@ export async function updateOutdatedPullsTemplates() {
   const outdated_pyproject_templates = await sflow(await glob("./templates/outdated/add-toml*.md"))
     .map((file) => readTemplate(file))
     .toArray();
-    
+
   const outdateTitles = [
     outdated_toml.title,
     ...outdated_publishcr_templates.map((e) => e.title),
@@ -57,7 +57,7 @@ export async function updateOutdatedPullsTemplates() {
   });
   return await pMap(
     CNRepos.find(
-      $filaten({
+      $flatten({
         crPulls: {
           mtime: $fresh("1h"), // retry if update fails
           data: $elemMatch({

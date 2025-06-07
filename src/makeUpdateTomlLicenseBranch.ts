@@ -11,7 +11,7 @@ import { $ } from "./cli/echoBunShell";
 import { CNRepos } from "./CNRepos";
 import { createGithubForkForRepoEx } from "./createGithubForkForRepo";
 import { createGithubPullRequest } from "./createGithubPullRequest";
-import { $filaten, $stale, db } from "./db";
+import { $flatten, $stale, db } from "./db";
 import { getBranchWorkingDir } from "./getBranchWorkingDir";
 import { gh } from "./gh";
 import type { GithubPull } from "./gh/GithubPull";
@@ -65,10 +65,10 @@ export async function updateTomlLicenseTasks() {
     .next();
 
   // reset retry-able errors with a cd interval
-  await LicenseTasks.updateMany($filaten({ prTask: { error: /was submitted too quickly/, mtime: $stale("5m") } }), {
+  await LicenseTasks.updateMany($flatten({ prTask: { error: /was submitted too quickly/, mtime: $stale("5m") } }), {
     $unset: { prTask: 1 },
   });
-  await LicenseTasks.updateMany($filaten({ prTask: { error: /Missing env.GH_TOKEN_COMFY_PR/, mtime: $stale("1h") } }), {
+  await LicenseTasks.updateMany($flatten({ prTask: { error: /Missing env.GH_TOKEN_COMFY_PR/, mtime: $stale("1h") } }), {
     $unset: { prTask: 1 },
   });
   console.log((await LicenseTasks.estimatedDocumentCount()) + " license tasks");

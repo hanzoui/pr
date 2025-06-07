@@ -2,13 +2,13 @@ import { $pipeline } from "@/packages/mongodb-pipeline-ts/$pipeline";
 import { sflow } from "sflow";
 import { Authors } from "./Authors";
 import { CNRepos } from "./CNRepos";
-import { $filaten } from "./db";
+import { $flatten } from "./db";
 
 /** Update authors for gh users, collecting emails/username/hireable */
 export async function updateAuthorsFromCNRepo() {
   return await sflow(
     $pipeline(CNRepos)
-      .match($filaten({ info: { data: { owner: { login: { $exists: true } } } } }))
+      .match($flatten({ info: { data: { owner: { login: { $exists: true } } } } }))
       .group({
         _id: "$info.data.owner.login",
         // author: "$info.data.owner.login",

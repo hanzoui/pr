@@ -6,7 +6,7 @@ import { CMNodes } from "./CMNodes";
 import { CNRepos } from "./CNRepos";
 import { UNCLAIMED_ADMIN_PUBLISHER_ID } from "./constants";
 import { CRNodes } from "./CRNodes";
-import { $filaten } from "./db";
+import { $flatten } from "./db";
 import { tLog } from "./utils/tLog";
 
 if (import.meta.main) {
@@ -44,7 +44,7 @@ export async function analyzeTotals() {
       // .map((e: any) => e.pairs)
       .next(),
     "Total Authors": $pipeline(CNRepos)
-      .match($filaten({ info: { data: { owner: { login: { $exists: true } } } } }))
+      .match($flatten({ info: { data: { owner: { login: { $exists: true } } } } }))
       .group({
         _id: "$info.data.owner.login",
         // author: "$info.data.owner.login",
