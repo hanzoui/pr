@@ -1,7 +1,10 @@
 import { $elemMatch } from "@/packages/mongodb-pipeline-ts/$elemMatch";
 import DIE from "@snomiao/die";
+import stableStringify from "json-stable-stringify";
 import pMap from "p-map";
+import sflow from "sflow";
 import { match } from "ts-pattern";
+import { glob } from "zx";
 import { $OK, TaskError, TaskOK, tsmatch } from "../packages/mongodb-pipeline-ts/Task";
 import { CNRepos, type CRPull } from "./CNRepos";
 import { $filaten, $fresh, $stale } from "./db";
@@ -21,32 +24,21 @@ export async function updateOutdatedPullsTemplates() {
   const publishcr = await readTemplate("add-action.md");
   const toml = await readTemplate("update-toml-license.md");
   const outdated_toml = await readTemplate("outdated/update-toml-license.md");
-  const outdated_pyproject = await readTemplate("outdated/add-toml.md");
-  const outdated_publishcr = await readTemplate("outdated/add-action.md");
-  const outdated_pyproject_v2 = await readTemplate("outdated/add-toml-v2.md");
-  const outdated_publishcr_v2 = await readTemplate("outdated/add-action-v2.md");
-  const outdated_pyproject_v3 = await readTemplate("outdated/add-toml-v3.md");
-  const outdated_publishcr_v3 = await readTemplate("outdated/add-action-v3.md");
-  const outdated_pyproject_v4 = await readTemplate("outdated/add-toml-v4.md");
+  const outdated_publishcr_templates = await sflow(await glob("./outdated/add-action*.md"))
+    .map((file) => readTemplate(file))
+    .toArray();
+  const outdated_pyproject_templates = await sflow(await glob("./outdated/add-toml*.md"))
+    .map((file) => readTemplate(file))
+    .toArray();
   const outdateTitles = [
     outdated_toml.title,
-    outdated_pyproject.title,
-    outdated_publishcr.title,
-    outdated_pyproject_v2.title,
-    outdated_publishcr_v2.title,
-    outdated_pyproject_v3.title,
-    outdated_publishcr_v3.title,
-    outdated_pyproject_v4.title,
+    ...outdated_publishcr_templates.map((e) => e.title),
+    ...outdated_pyproject_templates.map((e) => e.title),
   ];
   const outdateBodies = [
     outdated_toml.body,
-    outdated_pyproject.body,
-    outdated_publishcr.body,
-    outdated_pyproject_v2.body,
-    outdated_publishcr_v2.body,
-    outdated_pyproject_v3.body,
-    outdated_publishcr_v3.body,
-    outdated_pyproject_v4.body,
+    ...outdated_publishcr_templates.map((e) => e.body),
+    ...outdated_pyproject_templates.map((e) => e.body),
   ];
 
   // const templateOutdate = new Date("2024-06-13T09:02:56.630Z");
@@ -114,13 +106,14 @@ export async function updateOutdatedPullsTemplates() {
             .with(pyproject, () => DIE("Is already latest, should never happen here"))
             .with(publishcr, () => DIE("Is already latest, should never happen here"))
             .with(outdated_toml, () => toml)
-            .with(outdated_pyproject, () => pyproject)
-            .with(outdated_pyproject_v2, () => pyproject)
-            .with(outdated_pyproject_v3, () => pyproject)
-            .with(outdated_pyproject_v4, () => pyproject)
-            .with(outdated_publishcr, () => publishcr)
-            .with(outdated_publishcr_v2, () => publishcr)
-            .with(outdated_publishcr_v3, () => publishcr)
+            .when(
+              (e) => outdated_pyproject_templates.map((e) => stableStringify(e)).includes(stableStringify(e)),
+              () => pyproject,
+            )
+            .when(
+              (e) => outdated_publishcr_templates.map((e) => stableStringify(e)).includes(stableStringify(e)),
+              () => publishcr,
+            )
             // in case author clicked some task as completed, body will be different, may cause template mismatch
             .otherwise(() => DIE("Template not found: " + pull.title));
           if (!replacement) return { ...data, edited: TaskError("Template mismatch") };

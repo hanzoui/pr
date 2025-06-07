@@ -4,8 +4,6 @@ Hey! My name is Robin and I'm from [comfy-org](https://comfy.org/)! We would lov
 
 The registry is already integrated with ComfyUI-Manager, and we want it to be the default place users install nodes from eventually. We do a security-scan of every node to improve safety. Feel free to read up more on the registry [here](https://docs.comfy.org/registry/overview#introduction)
 
-- The documentation scaffolding? You can just add the example markdown [here](https://docs.comfy.org/custom-nodes/help_page#setup) into web/docs/MyNode.md
-
 Action Required:
 
 - [ ] Go to the [registry](https://registry.comfy.org). Login and create a publisher id (everything after the `@` sign on your registry profile). 
