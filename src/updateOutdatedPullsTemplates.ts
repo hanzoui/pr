@@ -1,5 +1,6 @@
 import { $elemMatch } from "@/packages/mongodb-pipeline-ts/$elemMatch";
 import DIE from "@snomiao/die";
+import gitDiff from "git-diff";
 import isCI from "is-ci";
 import stableStringify from "json-stable-stringify";
 import pMap from "p-map";
@@ -8,7 +9,7 @@ import { match } from "ts-pattern";
 import { glob } from "zx";
 import { $OK, TaskError, TaskOK, tsmatch } from "../packages/mongodb-pipeline-ts/Task";
 import { CNRepos, type CRPull } from "./CNRepos";
-import { $flatten, $fresh, $stale } from "./db";
+import { $flatten, $stale } from "./db";
 import { gh } from "./gh";
 import { parsePull } from "./gh/parsePull";
 import { ghUser } from "./ghUser";
@@ -24,11 +25,14 @@ if (import.meta.main) {
 export async function updateOutdatedPullsTemplates() {
   const pyproject = await readTemplate("./templates/add-toml.md");
   const publishcr = await readTemplate("./templates/add-action.md");
+  // update toml license
   const toml = await readTemplate("./templates/update-toml-license.md");
   const outdated_toml = await readTemplate("./templates/outdated/update-toml-license.md");
+  // publishcr
   const outdated_publishcr_templates = await sflow(await glob("./templates/outdated/add-action*.md"))
     .map((file) => readTemplate(file))
     .toArray();
+  // pyproject
   const outdated_pyproject_templates = await sflow(await glob("./templates/outdated/add-toml*.md"))
     .map((file) => readTemplate(file))
     .toArray();
@@ -43,7 +47,7 @@ export async function updateOutdatedPullsTemplates() {
     ...outdated_publishcr_templates.map((e) => e.body),
     ...outdated_pyproject_templates.map((e) => e.body),
   ];
-
+  console.log("Outdated PR templates: ", outdateTitles.length);
   // const templateOutdate = new Date("2024-06-13T09:02:56.630Z");
 
   await CNRepos.createIndex({
@@ -59,7 +63,7 @@ export async function updateOutdatedPullsTemplates() {
     CNRepos.find(
       $flatten({
         crPulls: {
-          mtime: $fresh("1h"), // retry if update fails
+          // mtime: $fresh("1h"), // retry if update fails
           data: $elemMatch({
             edited: {
               mtime: $stale("30m"), // retry if update fails
@@ -91,9 +95,9 @@ export async function updateOutdatedPullsTemplates() {
       //   },
       // }),
     ),
-    async (repo) => {
+    async (repo, i) => {
       const { repository } = repo;
-      console.log("Updating PR templates for: " + repository);
+      console.log(i + " Updating PR templates for: " + repository);
       const crPulls = match(repo.crPulls)
         .with($OK, (e) => e.data)
         .otherwise(() => null)!;
@@ -101,7 +105,7 @@ export async function updateOutdatedPullsTemplates() {
       // edit CRPulls templates to latest
       const crPullsEdited = await pMap(
         crPulls,
-        async (data, i): Promise<CRPull> => {
+        async (data, pullIndex): Promise<CRPull> => {
           const { pull, type } = data;
           const { number } = pull;
           if (pull.user.login !== (await ghUser()).login) DIE("not editable");
@@ -110,16 +114,24 @@ export async function updateOutdatedPullsTemplates() {
             .with(publishcr, () => DIE("Is already latest, should never happen here"))
             .with(outdated_toml, () => toml)
             .when(
-              (e) => outdated_pyproject_templates.map((e) => stableStringify(e)).includes(stableStringify(e)),
+              (pull) =>
+                outdated_pyproject_templates
+                  .map((e) => stableStringify(e))
+                  .includes(stableStringify({ title: pull.title, body: pull.body })),
               () => pyproject,
             )
             .when(
-              (e) => outdated_publishcr_templates.map((e) => stableStringify(e)).includes(stableStringify(e)),
+              (pull) =>
+                outdated_publishcr_templates
+                  .map((e) => stableStringify(e))
+                  .includes(stableStringify({ title: pull.title, body: pull.body })),
               () => publishcr,
             )
             // in case author clicked some task as completed, body will be different, may cause template mismatch
             .otherwise(() => DIE("Template not found: " + pull.title));
           if (!replacement) return { ...data, edited: TaskError("Template mismatch") };
+          const diff = gitDiff(pull.body!, replacement.body);
+          console.log(diff);
 
           const edited = await gh.issues
             .update({
@@ -137,7 +149,7 @@ export async function updateOutdatedPullsTemplates() {
               pull_number: number,
             })
           ).data;
-          await CNRepos.updateOne({ repository }, { $set: { [`crPulls.data.${i}.edited`]: edited } });
+          await CNRepos.updateOne({ repository }, { $set: { [`crPulls.data.${pullIndex}.edited`]: edited } });
           return { pull: parsePull(updatedPull), type, edited };
         },
         { concurrency: 2 },
