@@ -3,20 +3,20 @@ import { compareBy } from "comparing";
 import * as d3 from "d3";
 import { groupBy, sum, uniq, uniqBy } from "rambda";
 import sflow from "sflow";
-import { GithubContributorAnalyzeTask } from "./GithubContributorAnalyzeTask";
+import { GithubContributorAnalyzeTask, GithubContributorAnalyzeTaskFilter } from "./GithubContributorAnalyzeTask";
 
 if (import.meta.main) {
   // analyze
   await summaryGithubContributorAnalyzeTask();
 }
 
-async function summaryGithubContributorAnalyzeTask() {
+export async function summaryGithubContributorAnalyzeTask() {
   // clean solved error
   //   await GithubContributorAnalyzeTask.updateMany(
   //     { contributors: { $exists: true } },
   //     { $unset: { error: 1, errorAt: 1 } },
   //   );
-
+  const remains = await GithubContributorAnalyzeTask.countDocuments(GithubContributorAnalyzeTaskFilter);
   const data = await sflow(GithubContributorAnalyzeTask.find({})).toArray();
   const flat = data.map((e) => e.contributors?.map((y) => ({ ...y, repoUrl: e.repoUrl })) ?? []).flat();
   const byEmails = groupBy((e) => e.email?.toLowerCase() ?? "", flat);
@@ -42,19 +42,17 @@ async function summaryGithubContributorAnalyzeTask() {
     // for snomiao+comfy@gmail.com, remove +comfy and keep snomiao@gmail.com
     dedupedEmails: uniq(json.map((e) => e.email.replace(/\+.*@/, "@"))).length,
     commitCount: sum(json.map((e) => e.commitCount)),
-    repoCount: uniq(data.map((e) => e.repoUrl)).length,
+    allRepoCount: uniq(data.map((e) => e.repoUrl)).length,
     usernameCount: sum(json.map((e) => e.usernameCount)),
+
+    cloneableRepoCount: data.length - remains
   };
   console.log(total);
-  await Bun.write("./.cache/uniq-contributor-emails.csv", d3.csvFormat(json));
-  await Bun.write("./.cache/uniq-contributor-emails-total.yaml", yaml.stringify(total));
+  const date = new Date().toISOString().slice(0, 10)  ;
+  await Bun.write(`./report/uniq-contributor-emails.csv`, d3.csvFormat(json));
+  await Bun.write(`./report/uniq-contributor-emails-total.yaml`, yaml.stringify(total));
+  await Bun.write(`./report/${date}-uniq-contributor-emails.csv`, d3.csvFormat(json));
+  await Bun.write(`./report/${date}-uniq-contributor-emails-total.yaml`, yaml.stringify(total));
   console.log("done");
-}
-
-/**
- *
- * @author: snomiao <snomiao@gmail.com>
- */
-export default async function GithubContributorAnalyzeTaskPage() {
-  return;
+  return { json, total };
 }
