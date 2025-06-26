@@ -21,6 +21,7 @@ if (isCI) {
     45 * 60 * 1000,
   );
 }
+
 if (import.meta.main) {
   console.log(await db.admin().ping());
   console.log(enhancedMs("7d") === 7 * 86400e3);
