@@ -15,8 +15,8 @@ export type CMNode = CMNodeRaw & {
   };
 };
 export const CMNodes = db.collection<CMNode>("CMNodes");
-await CMNodes.createIndex({ mtime: -1 });
-await CMNodes.createIndex({ hash: 1 }, { unique: true }).catch(() => {});
+CMNodes.createIndex({ mtime: -1 }).catch(() => {});
+CMNodes.createIndex({ hash: 1 }, { unique: true }).catch(() => {});
 
 if (import.meta.main) {
   console.time("CMNodes");

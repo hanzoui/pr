@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 # assume venv is installed by Dockerfile
-
 python3 -m venv .venv && \
 chmod +x ./.venv/bin/* && \
 source ./.venv/bin/activate && \

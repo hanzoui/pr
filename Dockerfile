@@ -7,8 +7,24 @@ RUN apt update -y && apt install unzip && curl -fsSL https://bun.sh/install | ba
 
 WORKDIR /app
 
+# install comfy cli
+# RUN python3 -m venv .venv && \
+#     chmod +x ./.venv/bin/* && \
+#     bash -c " \
+#     source ./.venv/bin/activate && \
+#     pip3 install comfy-cli \
+#     "
+RUN python3 -m venv .venv && \
+    chmod +x ./.venv/bin/* && \
+    bash -c " \
+    source ./.venv/bin/activate && \
+    pip3 install comfy-cli \
+    "
+    
+# install this repo
 COPY package.json bun.lock ./
-RUN npm i -g bun && bun i && ln -s $(which bun) /usr/bin
+RUN npm i -g bun && ln -s $(which bun) /usr/bin
+RUN bun i
 
 # setup envs
 ENV SALT=Q51fPMvQ7VdJnQjX
@@ -18,18 +34,13 @@ ENV FORK_PREFIX=PR-
 ENV FORK_OWNER=comfy-pr-bot
 ENV GH_TOKEN=
 
-RUN python3 -m venv .venv && \
-    chmod +x ./.venv/bin/* && \
-    bash -c " \
-    source ./.venv/bin/activate && \
-    pip3 install comfy-cli \
-    "
-
-COPY src ./
+# COPY src ./
 COPY . .
 
+# build next-app
 RUN bun --bun run build
 
+# start
 RUN chmod +x ./entry.sh
 ENTRYPOINT bash ./entry.sh
 

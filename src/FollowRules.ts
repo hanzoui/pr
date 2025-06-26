@@ -22,4 +22,4 @@ export type FollowRuleSet = {
   yamlWhenEnabled?: string;
 };
 export const FollowRuleSets = db.collection<FollowRuleSet>("FollowRuleSets");
-await FollowRuleSets.createIndex("name", { unique: true });
+FollowRuleSets.createIndex("name", { unique: true }).catch(() => null);

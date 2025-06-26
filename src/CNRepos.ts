@@ -4,7 +4,6 @@ bun index.ts
 */
 import type { ObjectId, WithId } from "mongodb";
 import "react-hook-form";
-import { nil } from "sflow";
 import { type Task } from "../packages/mongodb-pipeline-ts/Task";
 import { type CMNode } from "./CMNodes";
 import { type CRNode } from "./CRNodes";
@@ -76,7 +75,7 @@ export type CustomNodeRepo = {
 export type CNRepo = CustomNodeRepo;
 export const CNRepos = db.collection<CNRepo>("CNRepos");
 
-await CNRepos.createIndex({ repository: 1 }, { unique: true }).catch(nil);
+CNRepos.createIndex({ repository: 1 }, { unique: true }).catch(() => {});
 
 // fix cr null, it should be not exists
 // await CNRepos.updateMany({ cr: null as unknown as WithId<CRNode> }, { $unset: { cr: 1 } });
