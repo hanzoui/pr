@@ -5,7 +5,7 @@ import { mkdir, rmdir } from "fs/promises";
 import sflow from "sflow";
 import sha256 from "sha256";
 import { $ } from "zx";
-import { GithubContributorAnalyzeTask } from "./GithubContributorAnalyzeTask";
+import { GithubContributorAnalyzeTask, GithubContributorAnalyzeTaskFilter } from "./GithubContributorAnalyzeTask";
 import { parseGitShortLog } from "./parseGitShortLog";
 
 if (import.meta.main) {
@@ -19,24 +19,42 @@ if (import.meta.main) {
     .aggregate()
     .next();
 
-  const remain = await GithubContributorAnalyzeTask.countDocuments({
-    updatedAt: { $not: { $gt: new Date(Date.now() - 1000 * 60 * 60 * 24) } }, // 1day
-  });
+  const remain = await GithubContributorAnalyzeTask.countDocuments(GithubContributorAnalyzeTaskFilter);
   const total = await GithubContributorAnalyzeTask.countDocuments();
 
+  const notRetryableErrors = [
+    "Repository not found",
+    "repoUrl not match",
+    "This repository exceeded its LFS budget. The account responsible for the budget should increase it to restore access.",
+    "Access to this repository has been disabled by GitHub staff.",
+  ];
+  
   await sflow(
     GithubContributorAnalyzeTask.find({
-      updatedAt: { $not: { $gt: new Date(Date.now() - 1000 * 60 * 60 * 24) } }, // 1day
+      // data stale after 1day
+      updatedAt: { $not: { $gt: new Date(Date.now() - 1000 * 60 * 60 * 24) } },
     }),
   )
-    .filter((e) => !e.error?.match("Repository not found")) //filter out not retryable error
+  //filter out not retryable error
+  .filter(e=>{
+    if (e.error) {
+      for (const error of notRetryableErrors) {
+        if (e.error.match(error)) {
+          console.log("filter out not retryable error", { repoUrl: e.repoUrl, error });
+          return false;
+        }
+      }
+    }
+    return true;
+  })
+    .filter((e) =>!e.error?.match("Repository not found")) //filter out not retryable error
     .filter((e) => !e.error?.match("repoUrl not match")) //filter out not retryable error
     .filter(
       (e) =>
         !e.error?.match(
           "This repository exceeded its LFS budget. The account responsible for the budget should increase it to restore access.",
         ),
-    ) //filter out not retryable error
+    ) 
     .filter((e) => !e.error?.match("Access to this repository has been disabled by GitHub staff.")) //filter out not retryable error
 
     .pMap(
