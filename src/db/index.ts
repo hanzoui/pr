@@ -1,14 +1,15 @@
 import { $flatten } from "@/packages/mongodb-pipeline-ts/$flatten";
 import { $fresh, $stale } from "@/packages/mongodb-pipeline-ts/$fresh";
 import enhancedMs from "enhanced-ms";
+import hotResource from "hot-resource";
 import isCI from "is-ci";
 import { MongoClient } from "mongodb";
+import sflow from "sflow";
 
 // allow build without env
 const MONGODB_URI = process.env.MONGODB_URI ?? "mongodb://PLEASE_SET_MONGODB_URI:27017";
 
-type g = typeof global & { mongoClient: MongoClient };
-export const mongo = ((global as g).mongoClient ??= new MongoClient(MONGODB_URI));
+export const mongo = await hotResource(async () => [new MongoClient(MONGODB_URI), (conn) => conn.close()]);
 export const db = mongo.db();
 
 // allow db conn for 45 mins in CI env to prevent long running CI jobs
@@ -16,6 +17,7 @@ if (isCI) {
   setTimeout(
     async () => {
       await mongo.close();
+      // should not be needed, but just in case
       process.exit(0);
     },
     45 * 60 * 1000,
@@ -28,6 +30,11 @@ if (import.meta.main) {
   console.log(JSON.stringify($stale("7d")));
   console.log(JSON.stringify($flatten({ mtime: $stale("7d") })));
   console.log(JSON.stringify($flatten({ mtime: new Date() })));
+  console.log(
+    await sflow(db.listCollections())
+      .map((e) => e.name)
+      .toArray(),
+  );
 }
 
 export { $flatten as $flatten, $fresh, $stale };
