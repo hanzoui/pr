@@ -9,16 +9,21 @@ volumes:
 services:
   comfy-pr:
     # prod
-    image: comfy-pr
-    build: .
+    # image: comfy-pr
+    # build: .
+    # working_dir: /app/
 
-    # image: oven/bun
-    # command: bun dev --turbopack
+    # dev
+    image: oven/bun
+    command: bun dev --turbopack
+    working_dir: /app/
     
     # image: node
     # command: npx -y bun dev
     #
-    working_dir: /app/
+    develop:
+      command: bun dev --turbopack
+      image: oven/bun
     volumes:
       - ./:/app/
       # - dotnext:/app/.next
