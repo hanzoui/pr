@@ -85,6 +85,7 @@ if (import.meta.main) {
     .run();
 
   console.log("done");
+  if(isCI) process.exit(0);
   // Array.prototype.groupBy = function <T, K extends keyof T>(key: K) {
   //   const arr = this;
   //   return Object.groupBy(arr, (e) => e[key]);
