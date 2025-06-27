@@ -4,10 +4,14 @@ import * as d3 from "d3";
 import { groupBy, sum, uniq, uniqBy } from "rambda";
 import sflow from "sflow";
 import { GithubContributorAnalyzeTask, GithubContributorAnalyzeTaskFilter } from "./GithubContributorAnalyzeTask";
+import { db } from "@/src/db";
+import isCI from "is-ci";
 
 if (import.meta.main) {
   // analyze
   await summaryGithubContributorAnalyzeTask();
+  
+  if(isCI) process.exit(0);
 }
 
 export async function summaryGithubContributorAnalyzeTask() {
