@@ -1,11 +1,13 @@
-import { readFile } from "fs/promises";
+import { readFile, writeFile } from "fs/promises";
 import { $ } from "./cli/echoBunShell";
 import { getBranchWorkingDir } from "./getBranchWorkingDir";
 import { gh } from "./gh";
 import { GIT_USEREMAIL, GIT_USERNAME } from "./ghUser";
 import { parseUrlRepoOwner, stringifyGithubOrigin } from "./parseOwnerRepo";
 import { parseTitleBodyOfMarkdown } from "./parseTitleBodyOfMarkdown";
-import { tomlFillDescription } from "./tomlFillDescription";
+import DIE from "@snomiao/die";
+import toml from "toml";
+import { fetchRepoDescriptionMap } from "./fetchRepoDescriptionMap";
 
 export async function makePyprojectBranch(upstreamUrl: string, forkUrl: string) {
   const type = "pyproject" as const;
@@ -50,3 +52,17 @@ git push "${origin}" ${branch}:${branch}
   console.log(`Branch Push OK: ${branchUrl}`);
   return { type, title, body, branch };
 }
+
+async function tomlFillDescription(referenceUrl: string, pyprojectToml: string) {
+  const repoDescriptionMap = await fetchRepoDescriptionMap();
+  const matchedDescription = repoDescriptionMap[referenceUrl]?.toString() ||
+    DIE("Warn: missing description for " + referenceUrl);
+  const replaced = (await readFile(pyprojectToml, "utf8")).replace(
+    `description = ""`,
+    `description = ${JSON.stringify(matchedDescription)}`
+  );
+  // check validity
+  toml.parse(replaced);
+  await writeFile(pyprojectToml, replaced);
+}
+
