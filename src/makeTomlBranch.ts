@@ -17,9 +17,28 @@ export async function makePyprojectBranch(upstreamUrl: string, forkUrl: string) 
   const { title, body } = parseTitleBodyOfMarkdown(tmpl);
   const repo = parseUrlRepoOwner(forkUrl);
 
-  if (await gh.repos.getBranch({ ...repo, branch }).catch(() => null)) {
-    console.log("Skip changes as branch existed: " + branch);
-    return { type, title, body, branch };
+  const existingBranch = await gh.repos.getBranch({ ...repo, branch }).catch(() => null);
+  if (existingBranch) {
+    console.log("Branch exists, checking if outdated: " + branch);
+    
+    // Get upstream HEAD commit
+    const upstreamRepo = parseUrlRepoOwner(upstreamUrl);
+    const upstreamRepoInfo = await gh.repos.get(upstreamRepo);
+    const defaultBranch = upstreamRepoInfo.data.default_branch;
+    const upstreamHead = await gh.repos.getBranch({ ...upstreamRepo, branch: defaultBranch });
+    
+    // Get the base commit of the existing branch
+    const branchBaseCommit = existingBranch.data.commit.sha;
+    const upstreamHeadCommit = upstreamHead.data.commit.sha;
+    
+    // Check if branch is outdated (base commit differs from upstream HEAD)
+    if (branchBaseCommit === upstreamHeadCommit) {
+      console.log("Branch is up to date, skipping: " + branch);
+      return { type, title, body, branch };
+    }
+    
+    console.log("Branch is outdated, recreating and force-pushing: " + branch);
+    // Continue with the branch creation logic below (will force-push)
   }
   const src = parseUrlRepoOwner(upstreamUrl);
   const cwd = await getBranchWorkingDir(upstreamUrl, forkUrl, branch);
@@ -46,7 +65,7 @@ git config user.email ${GIT_USEREMAIL} && \
 git checkout -b ${branch} && \
 git add . && \
 git commit -am ${`chore(${branch}): ${title}`} && \
-git push "${origin}" ${branch}:${branch}
+git push ${existingBranch ? "--force" : ""} "${origin}" ${branch}:${branch}
 `;
   const branchUrl = `https://github.com/${repo.owner}/${repo.repo}/tree/${branch}`;
   console.log(`Branch Push OK: ${branchUrl}`);
