@@ -32,8 +32,8 @@
     "start": "next start",
     "test": "bun test",
     "test:watch": "bun test --watch",
-    "test:pyproject": "bun test src/makeTomlBranch.test.ts",
     "preview:pyproject": "bun scripts/preview-pyproject-minimal.ts",
+    "preview:pyproject-repo": "bun scripts/preview-pyproject-toml.ts",
     "vercel:build": "vercel build",
     "vercel:dev": "vercel dev"
   },
