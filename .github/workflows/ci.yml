@@ -10,6 +10,12 @@ jobs:
   test:
     runs-on: ubuntu-latest
     
+    services:
+      mongodb:
+        image: mongo:6
+        ports:
+          - 27017:27017
+    
     steps:
     - uses: actions/checkout@v4
     
@@ -30,9 +36,13 @@ jobs:
     
     - name: Run tests
       run: bun test
+      env:
+        MONGODB_URI: mongodb://localhost:27017/comfy-pr-test
     
     - name: Test pyproject.toml generation
       run: bun test src/pyproject-generation-simple.test.ts
+      env:
+        MONGODB_URI: mongodb://localhost:27017/comfy-pr-test
     
     - name: Type check
       run: bun run dev:tsc || true  # Allow to fail initially
