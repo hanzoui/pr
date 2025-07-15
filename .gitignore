@@ -55,5 +55,5 @@ package-lock.json
 # script reports
 report
 
-# bun dump
+# bun crash dump
 core
