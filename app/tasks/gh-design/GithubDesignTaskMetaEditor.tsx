@@ -52,10 +52,6 @@ function GithubDesignTaskMetaEditorComponent() {
   const [newReviewer, setNewReviewer] = useState("");
   const [newRepo, setNewRepo] = useState("");
 
-  useEffect(() => {
-    fetchMeta();
-  }, []);
-
   const fetchMeta = async () => {
     try {
       const response = await fetch("/api/tasks/gh-design/meta");
@@ -78,6 +74,12 @@ function GithubDesignTaskMetaEditorComponent() {
       setLoading(false);
     }
   };
+  
+  useEffect(() => {
+    fetchMeta();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
 
   const onSubmit = async (data: FormData) => {
     try {
