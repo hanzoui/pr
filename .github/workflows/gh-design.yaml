@@ -17,12 +17,8 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v1
-      # Run Design Label Scanner
       - run: bun i
-      # debug token
-      - run: bun src/slack/index.ts
-        env:
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+      # Run Design Label Scanner
       - run: bun app/tasks/gh-design/gh-design.ts
         env:
           GH_TOKEN: ${{ secrets.GH_TOKEN_COMFY_PR_BOT }} # Use the bot token request reviews
