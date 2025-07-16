@@ -162,38 +162,6 @@ export default async function GithubDesignTaskPage() {
                     ) : null}
                   </TableCell>
 
-                  {/* <TableCell>
-                    <div className="flex gap-1">
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        asChild
-                      >
-                        <a
-                          href={task.url}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          Remove Label
-                        </a>
-                      </Button>
-                      {task.slackUrl && (
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          asChild
-                        >
-                          <a
-                            href={task.slackUrl}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                          >
-                            Slack
-                          </a>
-                        </Button>
-                      )}
-                    </div>
-                  </TableCell> */}
                 </TableRow>
               ))
             )}
@@ -203,8 +171,7 @@ export default async function GithubDesignTaskPage() {
 
       <div className="mt-6 text-sm text-muted-foreground">
         <p>
-          This table shows all GitHub issues and pull requests with the "Design" label that have been processed by the automated tracking system.
-          The system monitors repositories, sends Slack notifications, and requests reviews for design-related items.
+          {('This table shows all GitHub issues and pull requests with the "Design" label that have been processed by the automated tracking system. The system monitors repositories, sends Slack notifications, and requests reviews for design-related items.')}
         </p>
       </div>
     </div>
