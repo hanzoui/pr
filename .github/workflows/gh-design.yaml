@@ -19,6 +19,10 @@ jobs:
       - uses: oven-sh/setup-bun@v1
       # Run Design Label Scanner
       - run: bun i
+      # debug token
+      - run: bun src/slack/index.ts
+        env:
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       - run: bun app/tasks/gh-design/gh-design.ts
         env:
           AUTH_GCLOUD_URL: https://comfy-pr.vercel.app
