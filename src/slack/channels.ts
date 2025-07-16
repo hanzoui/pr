@@ -6,6 +6,7 @@ export const slack = new WebClient(process.env.SLACK_BOT_TOKEN || DIE(new Error(
 if (import.meta.main) {
   await slack.api.test({}); // test token
   console.log("Slack API token is valid.");
+  console.log(JSON.stringify(await getSlackChannel("general")))
 }
 
 /**
@@ -13,7 +14,7 @@ if (import.meta.main) {
  * @author: snomiao <snomiao@gmail.com>
  */
 export async function getSlackChannel(name: string) {
-  return await sflow(slack.conversations.list({
+  return (await sflow(slack.conversations.list({
     types: "public_channel,private_channel",
     limit: 1000,
   }))
@@ -26,5 +27,5 @@ export async function getSlackChannel(name: string) {
     //   console.log(`Channel: ${channel.name} (${channel.id})`);
     //   console.log(`URL: ${channel.url}`);
     // })
-    .toExactlyOne()!
+    .toAtLeastOne())
 };

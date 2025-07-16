@@ -1,31 +1,51 @@
 import { GithubActionUpdateTask } from "@/src/GithubActionUpdateTask/GithubActionUpdateTask";
 import Link from "next/link";
+import { Suspense } from "react";
+import { GithubBountyTask } from "./gh-bounty/gh-bounty";
+import { GithubDesignTask } from "./gh-design/gh-design";
 import {
   GithubContributorAnalyzeTask,
   GithubContributorAnalyzeTaskFilter,
 } from "./github-contributor-analyze/GithubContributorAnalyzeTask";
-import { SuspenseUse } from "./SuspenseUse";
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+const Counts = {
+  GithubActionUpdateTask: () => <Suspense>{(GithubActionUpdateTask.estimatedDocumentCount())}</Suspense>,
+  GithubContributorAnalyzeTask: () => <Suspense>{(GithubContributorAnalyzeTask.estimatedDocumentCount())}</Suspense>,
+  GithubContributorAnalyzeTaskRemain: () => (
+    <Suspense>{(GithubContributorAnalyzeTask.countDocuments(GithubContributorAnalyzeTaskFilter))}</Suspense>
+  ),
+  GithubBountyTask: () => <Suspense>{GithubBountyTask.estimatedDocumentCount().then(async e => {
+    return e;
+  })}</Suspense>, 
+  GithubDesignTask: () => <Suspense>{GithubDesignTask.estimatedDocumentCount()}</Suspense>,
+};
 
 /**
  *
  * @author: snomiao <snomiao@gmail.com>
  */
 export default async function TasksIndexPage() {
-  const countBadges = {
-    GithubActionUpdateTask: <SuspenseUse>{GithubActionUpdateTask.estimatedDocumentCount()}</SuspenseUse>,
-    GithubContributorAnalyzeTask: <SuspenseUse>{GithubContributorAnalyzeTask.estimatedDocumentCount()}</SuspenseUse>,
-    GithubContributorAnalyzeTaskRemain: (
-      <SuspenseUse>{GithubContributorAnalyzeTask.countDocuments(GithubContributorAnalyzeTaskFilter)}</SuspenseUse>
-    ),
-  };
 
   return (
     <ol className="px-8">
       <li>
-        <Link href="/tasks/github-action-update">GithubActionUpdateTask x {countBadges.GithubActionUpdateTask}</Link>
+        <Link href="/tasks/github-action-update">GithubActionUpdateTask x {<Counts.GithubActionUpdateTask />}</Link>
+      </li>
+      <li>
         <Link href="/tasks/github-contributor-analyze">
-          GithubContributorAnalyzeTask Total {countBadges.GithubContributorAnalyzeTask} (remain:{" "}
-          {countBadges.GithubContributorAnalyzeTaskRemain})
+          GithubContributorAnalyzeTask Total {<Counts.GithubContributorAnalyzeTask />} (remain:{" "}
+          {<Counts.GithubContributorAnalyzeTaskRemain />})
+        </Link>
+      </li>
+      <li>
+        <Link href="/tasks/gh-bounty">
+          GithubBountyTask x {<Counts.GithubBountyTask />}
+        </Link>
+      </li>
+      <li>
+        <Link href="/tasks/gh-design">
+          GithubDesignTask x {<Counts.GithubDesignTask />}
         </Link>
       </li>
     </ol>

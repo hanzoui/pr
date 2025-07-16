@@ -10,7 +10,9 @@ import sflow from "sflow";
 const MONGODB_URI = process.env.MONGODB_URI ?? "mongodb://PLEASE_SET_MONGODB_URI:27017";
 
 export const mongo = await hotResource(async () => [new MongoClient(MONGODB_URI), (conn) => conn.close()]);
-export const db = mongo.db();
+export const db = Object.assign(mongo.db(), {
+  close: async () => await mongo.close()
+});
 
 // allow db conn for 45 mins in CI env to prevent long running CI jobs
 if (isCI) {
