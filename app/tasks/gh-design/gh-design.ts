@@ -93,7 +93,8 @@ if (import.meta.main) await runGithubDesignTask()
  * Note: This task is designed to run periodically to catch new design items.
  */
 export async function runGithubDesignTask() {
-  const dryRun = true
+  const dryRun = process.argv.includes("--dry-run");
+  
   tlog("Running gh design task...");
   let meta = await GithubDesignTaskMeta.save({
     name: "Github Design Issues Tracking Task",
