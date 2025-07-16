@@ -181,7 +181,7 @@ function GithubDesignTaskMetaEditorComponent() {
                 </p>
               )}
               <p className="text-sm text-muted-foreground">
-                Use {`{{ITEM_TYPE}}`}, {`{{URL}}`}, and {`{{TITLE}}`} as placeholders
+                Use {`{{USERNAME}}`}, {`{{ITEM_TYPE}}`}, {`{{URL}}`}, and {`{{TITLE}}`} as placeholders
               </p>
             </div>
 
