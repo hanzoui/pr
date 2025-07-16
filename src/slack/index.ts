@@ -1,7 +1,7 @@
 import { WebClient } from "@slack/web-api";
 import DIE from "phpdie";
 const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN || DIE(("missing env.SLACK_BOT_TOKEN"));
-console.log("Slack Bot Token:", SLACK_BOT_TOKEN.slice(0,6) + "..." + SLACK_BOT_TOKEN.slice(-6));
+console.log("Slack Bot Token:", JSON.stringify(SLACK_BOT_TOKEN.slice(0,6) + "..." + SLACK_BOT_TOKEN.slice(-6)));
 export const slack = new WebClient(SLACK_BOT_TOKEN);
 
 if (import.meta.main) {
