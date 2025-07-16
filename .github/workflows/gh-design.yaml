@@ -1,8 +1,8 @@
 name: gh-design
 on:
-  schedule:
-    # Runs every 30 minutes
-    - cron: "*/30 * * * *"
+  # schedule:
+  #   # Runs every 30 minutes
+  #   - cron: "*/30 * * * *"
   workflow_dispatch:
   push:
     branches:
