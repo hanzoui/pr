@@ -10,6 +10,7 @@ on:
       - sno-design-label-track
     paths:
       - ".github/workflows/gh-design.yaml"
+      
       - "app/tasks/gh-design/gh-design.ts"
 jobs:
   run_design_scanner:
@@ -25,9 +26,6 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       - run: bun app/tasks/gh-design/gh-design.ts
         env:
-          AUTH_GCLOUD_URL: https://comfy-pr.vercel.app
-          AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
-          AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
           COMFY_PR_REPO: ${{ secrets.COMFY_PR_REPO }}
           FORK_OWNER: "ComfyNodePRs"
           FORK_PREFIX: "PR-"
