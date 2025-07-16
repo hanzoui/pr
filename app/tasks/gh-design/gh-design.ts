@@ -158,7 +158,6 @@ export async function runGithubDesignTask() {
         comments: item.comments,
       })), { concurrency: 3 }) // concurrency 3 repos
     .confluenceByConcat() // merge page flows
-    .limit(1)
     .map(async function process(item) {
       tlog(`PROCESSING ${item.url}#${(item.title).replaceAll(/\s+/g, "+")}_${item.body?.slice(0, 20).replaceAll(/\s+/g, "+")}`);
       const url = item.url;
@@ -170,6 +169,7 @@ export async function runGithubDesignTask() {
         stateAt: new Date(item.stateAt),
         title: item.title,
         user: item.user || '?',
+        comments: item.comments || 0,
         bodyHash: item.body ? sha256(item.body) : undefined,
         lastRunAt: new Date(),
         taskStatus: "pending",
@@ -192,7 +192,7 @@ export async function runGithubDesignTask() {
         }
 
         const text = (meta.slackMessageTemplate || DIE('Missing Slack message template'))
-          .replace("{{COMMENTS}}", task.comments?.toString().replace(/(.*)/, '[r$1]') ?? '')
+          .replace("{{COMMENTS}}", task.comments?.toString().replace(/^(.*)$/, '[r$1]') ?? '')
           .replace("{{STATE}}", task.state.toUpperCase())
           .replace("{{USERNAME}}", task.user ?? '=??=')
           .replace("{{GITHUBUSER}}", `<https://github.com/${task.user}|@${task.user}>`)
