@@ -1,4 +1,5 @@
 import sflow from "sflow";
+import { slack } from ".";
 
 if (import.meta.main) {
   console.log(JSON.stringify(await getSlackChannel("general")))
