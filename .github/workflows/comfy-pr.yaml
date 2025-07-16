@@ -38,7 +38,7 @@ jobs:
           COMFY_PR_REPO: ${{ secrets.COMFY_PR_REPO }}
           FORK_OWNER: "ComfyNodePRs"
           FORK_PREFIX: "PR-"
-          GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR }}
+          GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR }} # human token
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           SLACK_BOT_CHANNEL: ${{ secrets.SLACK_BOT_CHANNEL }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

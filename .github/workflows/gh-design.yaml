@@ -10,7 +10,6 @@ on:
       - sno-design-label-track
     paths:
       - ".github/workflows/gh-design.yaml"
-      
       - "app/tasks/gh-design/gh-design.ts"
 jobs:
   run_design_scanner:
@@ -26,10 +25,7 @@ jobs:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
       - run: bun app/tasks/gh-design/gh-design.ts
         env:
-          COMFY_PR_REPO: ${{ secrets.COMFY_PR_REPO }}
-          FORK_OWNER: "ComfyNodePRs"
-          FORK_PREFIX: "PR-"
-          GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN_COMFY_PR_BOT }} # Use the bot token request reviews
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
