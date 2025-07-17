@@ -5,7 +5,7 @@ import { gh } from "./gh";
 import { GIT_USEREMAIL, GIT_USERNAME } from "./ghUser";
 import { parseUrlRepoOwner, stringifyGithubOrigin } from "./parseOwnerRepo";
 import { parseTitleBodyOfMarkdown } from "./parseTitleBodyOfMarkdown";
-import DIE from "@snomiao/die";
+import DIE from "phpdie";
 import toml from "toml";
 import { fetchRepoDescriptionMap } from "./fetchRepoDescriptionMap";
 

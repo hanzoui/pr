@@ -1,4 +1,4 @@
-import DIE from "@snomiao/die";
+import DIE from "phpdie";
 import md5 from "md5";
 import minimist from "minimist";
 import { db } from "./db";

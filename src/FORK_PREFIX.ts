@@ -1,4 +1,4 @@
-import DIE from "@snomiao/die";
+import DIE from "phpdie";
 
 export const FORK_PREFIX =
   process.env.FORK_PREFIX?.replace(/"/g, "")?.trim() ||
