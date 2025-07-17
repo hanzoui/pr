@@ -4,8 +4,7 @@ import { getAuthUser } from "../../api/auth/[...nextauth]/getAuthUser";
 
 export default async function RulesLayout({ children }: { children: ReactNode }) {
   const user = await getAuthUser();
-  // check authorization (permission)
-  const isAdmin = user.admin || user.email.endsWith("@drip.art");
+  const isAdmin = user.admin
   if (!isAdmin) return forbidden();
 
   return (

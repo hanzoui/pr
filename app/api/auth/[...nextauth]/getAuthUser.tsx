@@ -6,6 +6,10 @@ export async function getAuthUser() {
   const authUser = session?.user ?? (await signIn());
   const email = authUser.email || (await signIn()); // must have email
   const user = { ...{ ...authUser, email }, ...(await Users.findOne({ email })) };
-  user.admin ||= user.email.endsWith("@drip.art");
+
+  // TODO: move this into .env file, it's public anyway
+  user.admin ||= user.email.endsWith("@comfy.org");
+  user.admin ||= user.email.endsWith("@drip.art"); // legacy domain
+
   return user;
 }
