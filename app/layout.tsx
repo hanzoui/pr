@@ -1,3 +1,4 @@
+import { TRPCProvider } from "@/lib/trpc-provider";
 import pkg from "@/package.json";
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
@@ -18,8 +19,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {children}
-        <Toaster />
+        <TRPCProvider>
+          {children}
+          <Toaster />
+        </TRPCProvider>
       </body>
     </html>
   );

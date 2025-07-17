@@ -1,4 +1,4 @@
-import { generateOpenApiDocument } from "trpc-openapi";
+import { generateOpenApiDocument } from "trpc-to-openapi";
 import YAML from "yaml";
 import { router } from "./router";
 export const spec = generateOpenApiDocument(router, {
