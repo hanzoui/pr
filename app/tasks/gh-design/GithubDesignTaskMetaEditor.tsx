@@ -6,8 +6,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { trpc } from "@/lib/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Suspense, useEffect, useState } from "react";
+import React, { Suspense, useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
@@ -21,22 +22,14 @@ export function GithubDesignTaskMetaEditor() {
   </Suspense>;
 }
 function GithubDesignTaskMetaEditorComponent() {
-  const [loading, setLoading] = useState(true);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  // const defaultValues = use(fetch('/api/tasks/gh-design/meta').then(e => e.json()).then(({ meta }) => data as FormData))
+  // Use tRPC useQuery hook
+  const { data, isLoading, refetch } = trpc.getGithubDesignTaskMeta.useQuery({});
+  const updateMutation = trpc.updateGithubDesignTaskMeta.useMutation();
 
   const form = useForm<FormData>({
     resolver: zodResolver(zGithubDesignTaskMeta),
-    // defaultValues: {
-    //   slackMessageTemplate: "🎨 *New Design {{ITEM_TYPE}}*: <{{URL}}|{{TITLE}}>",
-    //   requestReviewers: [{ value: "PabloWiedemann" }],
-    //   repoUrls: [
-    //     { value: "https://github.com/Comfy-Org/ComfyUI_frontend" },
-    //     { value: "https://github.com/Comfy-Org/desktop" }
-    //   ],
-    // },
-    // defaultValues
   });
 
   const { fields: reviewerFields, append: appendReviewer, remove: removeReviewer } = useFieldArray({
@@ -52,13 +45,10 @@ function GithubDesignTaskMetaEditorComponent() {
   const [newReviewer, setNewReviewer] = useState("");
   const [newRepo, setNewRepo] = useState("");
 
-  const fetchMeta = async () => {
-    try {
-      const response = await fetch("/api/tasks/gh-design/meta");
-      const data = await response.json();
-      const metaData = data.meta || {};
-
-      // Update form with fetched data
+  // Update form when data is loaded
+  React.useEffect(() => {
+    if (data?.meta) {
+      const metaData = data.meta;
       form.reset({
         slackMessageTemplate: metaData.slackMessageTemplate || "🎨 *New Design {{ITEM_TYPE}}*: <{{URL}}|{{TITLE}}>",
         requestReviewers: (metaData.requestReviewers || ["PabloWiedemann"]).map((reviewer: string) => ({ value: reviewer })),
@@ -67,18 +57,8 @@ function GithubDesignTaskMetaEditorComponent() {
           "https://github.com/Comfy-Org/desktop"
         ]).map((repo: string) => ({ value: repo })),
       });
-    } catch (error) {
-      console.error("Failed to fetch metadata:", error);
-      toast.error("Failed to load configuration");
-    } finally {
-      setLoading(false);
     }
-  };
-  
-  useEffect(() => {
-    fetchMeta();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [data, form]);
 
 
   const onSubmit = async (data: FormData) => {
@@ -89,34 +69,16 @@ function GithubDesignTaskMetaEditorComponent() {
         repoUrls: data.repoUrls.map(r => r.value),
       };
 
-      const response = await fetch("/api/tasks/gh-design/meta", {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      const responseData = await response.json();
-
-      if (!response.ok) {
-        if (responseData.error === "Validation failed" && responseData.details) {
-          // The form validation should catch most issues, but handle server-side validation errors
-          toast.error("Server validation failed. Please check your input.");
-          console.error("Server validation details:", responseData.details);
-        } else {
-          toast.error(responseData.error || "Failed to save configuration");
-        }
-        return;
-      }
-
+      await updateMutation.mutateAsync(payload);
+      
       toast.success("Configuration saved successfully");
-      await fetchMeta(); // Refresh the data
+      await refetch(); // Refresh the data
       // hide config
       setIsExpanded(false);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Failed to save metadata:", error);
-      toast.error("Failed to save configuration");
+      const errorMessage = error?.message || "Failed to save configuration";
+      toast.error(errorMessage);
     }
   };
 
@@ -134,7 +96,7 @@ function GithubDesignTaskMetaEditorComponent() {
     }
   };
 
-  if (loading) {
+  if (isLoading) {
     return (
       <Card>
         <CardHeader>
@@ -260,10 +222,10 @@ function GithubDesignTaskMetaEditorComponent() {
             {/* Save Button */}
             <Button
               type="submit"
-              disabled={form.formState.isSubmitting}
+              disabled={form.formState.isSubmitting || updateMutation.isPending}
               className="w-full"
             >
-              {form.formState.isSubmitting ? "Saving..." : "Save Configuration"}
+              {form.formState.isSubmitting || updateMutation.isPending ? "Saving..." : "Save Configuration"}
             </Button>
           </form>
         </CardContent>

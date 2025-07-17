@@ -6,8 +6,9 @@ import { zPullsStatus } from "@/src/zod/zPullsStatus";
 import { initTRPC } from "@trpc/server";
 import DIE from "phpdie";
 import sflow from "sflow";
-import { type OpenApiMeta } from "trpc-openapi";
+import type { OpenApiMeta } from "trpc-to-openapi";
 import z from "zod";
+import { GithubDesignTaskMeta } from "../tasks/gh-design/gh-design";
 import { GithubContributorAnalyzeTask } from "../tasks/github-contributor-analyze/GithubContributorAnalyzeTask";
 
 export const t = initTRPC.meta<OpenApiMeta>().create(); /* 👈 */
@@ -16,14 +17,12 @@ export const router = t.router({
     .meta({ openapi: { method: "GET", path: "/say-hello", description: "say hello" } })
     .input(z.object({ name: z.string() }))
     .output(z.object({ greeting: z.string() }))
-    .query(({ input }) => {
-      return { greeting: `Hello ${input.name} 1!` };
-    }),
+    .query(({ input }) => ({ greeting: `Hello ${input.name} 1!` })),
   version: t.procedure
     .meta({ openapi: { method: "GET", path: "/version", description: "Get version of ComfyPR" } })
     .input(z.object({}))
     .output(z.object({ version: z.string() }))
-    .query(({}) => ({ version: pkg.version })),
+    .query(({ }) => ({ version: pkg.version })),
   dumpCsv: t.procedure
     .meta({ openapi: { method: "GET", path: "/dump.csv", description: "Get csv dump" } })
     .input(z.object({}))
@@ -96,4 +95,68 @@ export const router = t.router({
       const result = await githubContributorAnalyze(url);
       return result;
     }),
+
+  getGithubDesignTaskMeta: t.procedure
+    .meta({
+      openapi: { method: "GET", path: "/tasks/gh-design/meta", description: "Get github design task metadata" },
+    })
+    .input(z.object({}))
+    .output(z.object({ meta: z.any() }))
+    .query(async () => {
+      try {
+        const meta = await GithubDesignTaskMeta.findOne({ coll: "GithubDesignTask" });
+        return { meta };
+      } catch (error) {
+        console.error("Failed to fetch metadata:", error);
+        throw new Error("Failed to fetch metadata");
+      }
+    }),
+
+  updateGithubDesignTaskMeta: t.procedure
+    .meta({
+      openapi: { method: "PATCH", path: "/tasks/gh-design/meta", description: "Update github design task metadata" },
+    })
+    .input(z.object({
+      slackMessageTemplate: z.string()
+        .min(1, "Slack message template cannot be empty")
+        .refine(
+          (template) => template.includes("{{ITEM_TYPE}}"),
+          "Slack message template must include {{ITEM_TYPE}} placeholder"
+        )
+        .refine(
+          (template) => template.includes("{{URL}}"),
+          "Slack message template must include {{URL}} placeholder"
+        )
+        .refine(
+          (template) => template.includes("{{TITLE}}"),
+          "Slack message template must include {{TITLE}} placeholder"
+        )
+        .optional(),
+      requestReviewers: z.array(z.string().min(1, "Reviewer username cannot be empty")).optional(),
+      repoUrls: z.array(
+        z.string()
+          .url("Repository URL must be a valid URL")
+          .refine(
+            (url) => url.startsWith("https://github.com"),
+            "Repository URL must start with https://github.com"
+          )
+      ).optional(),
+    }))
+    .output(z.object({ success: z.boolean(), meta: z.any() }))
+    .mutation(async ({ input }) => {
+      try {
+        const updateData: any = {};
+        if (input.slackMessageTemplate !== undefined) updateData.slackMessageTemplate = input.slackMessageTemplate;
+        if (input.requestReviewers !== undefined) updateData.requestReviewers = input.requestReviewers;
+        if (input.repoUrls !== undefined) updateData.repoUrls = input.repoUrls;
+
+        const meta = await GithubDesignTaskMeta.save(updateData);
+        return { success: true, meta };
+      } catch (error) {
+        console.error("Failed to update metadata:", error);
+        throw new Error("Failed to update metadata");
+      }
+    }),
 });
+
+export type AppRouter = typeof router;
