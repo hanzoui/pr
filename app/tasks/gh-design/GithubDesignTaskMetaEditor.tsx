@@ -50,12 +50,9 @@ function GithubDesignTaskMetaEditorComponent() {
     if (data?.meta) {
       const metaData = data.meta;
       form.reset({
-        slackMessageTemplate: metaData.slackMessageTemplate || "🎨 *New Design {{ITEM_TYPE}}*: <{{URL}}|{{TITLE}}>",
-        requestReviewers: (metaData.requestReviewers || ["PabloWiedemann"]).map((reviewer: string) => ({ value: reviewer })),
-        repoUrls: (metaData.repoUrls || [
-          "https://github.com/Comfy-Org/ComfyUI_frontend",
-          "https://github.com/Comfy-Org/desktop"
-        ]).map((repo: string) => ({ value: repo })),
+        slackMessageTemplate: metaData.slackMessageTemplate ,
+        requestReviewers: (metaData.requestReviewers).map((reviewer: string) => ({ value: reviewer })),
+        repoUrls: (metaData.repoUrls).map((repo: string) => ({ value: repo })),
       });
     }
   }, [data, form]);
