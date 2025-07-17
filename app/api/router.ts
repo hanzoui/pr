@@ -187,7 +187,7 @@ export const router = t.router({
         if (input.requestReviewers !== undefined) updateData.requestReviewers = input.requestReviewers;
         if (input.repoUrls !== undefined) updateData.repoUrls = input.repoUrls;
 
-        const meta = await GithubDesignTaskMeta.save(updateData);
+        const meta = await GithubDesignTaskMeta.$set(updateData);
         return { success: true, meta };
       } catch (error) {
         console.error("Failed to update metadata:", error);
