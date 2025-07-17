@@ -15,9 +15,9 @@ export const TaskMetaCollection = <S extends z.ZodObject<any>, const COLLECTION_
       // Validate data with schema
       try {
         schema.partial().parse(data);
-      } catch (error) {
+      } catch (error: unknown | z.ZodError) {
         if (error instanceof z.ZodError) {
-          throw new Error(`Validation failed: ${error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`);
+          throw new Error(`Validation failed: ${error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`);
         }
         throw error;
       }
@@ -32,9 +32,9 @@ export const TaskMetaCollection = <S extends z.ZodObject<any>, const COLLECTION_
       // Validate data with schema
       try {
         schema.parse(data);
-      } catch (error) {
+      } catch (error: unknown | z.ZodError) {
         if (error instanceof z.ZodError) {
-          throw new Error(`Validation failed: ${error.errors.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`);
+          throw new Error(`Validation failed: ${error.issues.map(e => `${e.path.join('.')}: ${e.message}`).join(', ')}`);
         }
         throw error;
       }
