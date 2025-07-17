@@ -15,9 +15,7 @@ const Counts = {
   GithubContributorAnalyzeTaskRemain: () => (
     <Suspense>{(GithubContributorAnalyzeTask.countDocuments(GithubContributorAnalyzeTaskFilter))}</Suspense>
   ),
-  GithubBountyTask: () => <Suspense>{GithubBountyTask.estimatedDocumentCount().then(async e => {
-    return e;
-  })}</Suspense>, 
+  GithubBountyTask: () => <Suspense>{GithubBountyTask.estimatedDocumentCount()}</Suspense>, 
   GithubDesignTask: () => <Suspense>{GithubDesignTask.estimatedDocumentCount()}</Suspense>,
 };
 
