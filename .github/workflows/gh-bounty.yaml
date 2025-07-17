@@ -20,6 +20,7 @@ jobs:
       # Run Comfy-PR Worker
       - run: bun i
       - run: bun app/tasks/gh-bounty/gh-bounty.ts
+        timeout-minutes: 5 # usually runs under 1min
         env:
           AUTH_GCLOUD_URL: https://comfy-pr.vercel.app
           AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
