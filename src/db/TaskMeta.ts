@@ -18,13 +18,7 @@ export const TaskMetaCollection = <T extends Record<string, any>, const COLLECTI
   });
 };
 await TaskMetaCollection('TaskMeta').createIndex({ coll: 1 }, { unique: true }); // Ensure unique collection names
-/**
- * 
- * @author: snomiao <snomiao@gmail.com>
- */
-export async function saveTaskMeta() {
-  return
-};
+
 if (import.meta.main) {
   // Example usage
   const meta = await TaskMetaCollection<{
