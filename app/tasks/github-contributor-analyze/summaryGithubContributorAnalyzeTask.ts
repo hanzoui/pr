@@ -1,11 +1,10 @@
 import { yaml } from "@/src/utils/yaml";
 import { compareBy } from "comparing";
 import * as d3 from "d3";
+import isCI from "is-ci";
 import { groupBy, sum, uniq, uniqBy } from "rambda";
 import sflow from "sflow";
 import { GithubContributorAnalyzeTask, GithubContributorAnalyzeTaskFilter } from "./GithubContributorAnalyzeTask";
-import { db } from "@/src/db";
-import isCI from "is-ci";
 
 if (import.meta.main) {
   // analyze
@@ -53,10 +52,10 @@ export async function summaryGithubContributorAnalyzeTask() {
   };
   console.log(total);
   const date = new Date().toISOString().slice(0, 10)  ;
-  await Bun.write(`./report/uniq-contributor-emails.csv`, d3.csvFormat(json));
-  await Bun.write(`./report/uniq-contributor-emails-total.yaml`, yaml.stringify(total));
-  await Bun.write(`./report/${date}-uniq-contributor-emails.csv`, d3.csvFormat(json));
-  await Bun.write(`./report/${date}-uniq-contributor-emails-total.yaml`, yaml.stringify(total));
+  await globalThis.Bun?.write(`./report/uniq-contributor-emails.csv`, d3.csvFormat(json));
+  await globalThis.Bun?.write(`./report/uniq-contributor-emails-total.yaml`, yaml.stringify(total));
+  await globalThis.Bun?.write(`./report/${date}-uniq-contributor-emails.csv`, d3.csvFormat(json));
+  await globalThis.Bun?.write(`./report/${date}-uniq-contributor-emails-total.yaml`, yaml.stringify(total));
   console.log("done");
   return { json, total };
 }
