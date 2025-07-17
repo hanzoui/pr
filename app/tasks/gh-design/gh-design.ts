@@ -5,7 +5,7 @@ import { parseIssueUrl } from "@/src/parseIssueUrl";
 import { parseUrlRepoOwner } from "@/src/parseOwnerRepo";
 import { slack } from "@/src/slack";
 import { getSlackChannel } from "@/src/slack/channels";
-import DIE from "@snomiao/die";
+import DIE from "phpdie";
 import console from "console";
 import isCI from "is-ci";
 import sflow, { pageFlow } from "sflow";
