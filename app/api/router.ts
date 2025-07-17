@@ -88,7 +88,15 @@ export const router = t.router({
       openapi: { method: "GET", path: "/github-contributor-analyze", description: "Get github contributor analyze" },
     })
     .input(z.object({ url: z.string() }))
-    .output(z.any())
+    .output(z.object({
+      repoUrl: z.string(),
+      contributors: z.array(z.object({
+        count: z.number(),
+        name: z.string(),
+        email: z.string(),
+      })),
+      updatedAt: z.date(),
+    }))
     .query(async ({ input: { url } }) => {
       // await import { githubContributorAnalyze } from "../tasks/github-contributor-analyze/githubContributorAnalyze";
       const { githubContributorAnalyze } = await import("../tasks/github-contributor-analyze/githubContributorAnalyze");
@@ -101,7 +109,21 @@ export const router = t.router({
       openapi: { method: "GET", path: "/tasks/gh-design/meta", description: "Get github design task metadata" },
     })
     .input(z.object({}))
-    .output(z.object({ meta: z.any() }))
+    .output(z.object({ 
+      meta: z.object({
+        name: z.string().optional(),
+        description: z.string().optional(),
+        slackChannelName: z.string().optional(),
+        slackMessageTemplate: z.string().optional(),
+        repoUrls: z.array(z.string()).optional(),
+        requestReviewers: z.array(z.string()).optional(),
+        matchLabels: z.string().optional(),
+        slackChannelId: z.string().optional(),
+        lastRunAt: z.date().optional(),
+        lastStatus: z.enum(["success", "error", "running"]).optional(),
+        lastError: z.string().optional(),
+      }).nullable()
+    }))
     .query(async () => {
       try {
         const meta = await GithubDesignTaskMeta.findOne({ coll: "GithubDesignTask" });
@@ -142,7 +164,22 @@ export const router = t.router({
           )
       ).optional(),
     }))
-    .output(z.object({ success: z.boolean(), meta: z.any() }))
+    .output(z.object({ 
+      success: z.boolean(), 
+      meta: z.object({
+        name: z.string().optional(),
+        description: z.string().optional(),
+        slackChannelName: z.string().optional(),
+        slackMessageTemplate: z.string().optional(),
+        repoUrls: z.array(z.string()).optional(),
+        requestReviewers: z.array(z.string()).optional(),
+        matchLabels: z.string().optional(),
+        slackChannelId: z.string().optional(),
+        lastRunAt: z.date().optional(),
+        lastStatus: z.enum(["success", "error", "running"]).optional(),
+        lastError: z.string().optional(),
+      }).nullable()
+    }))
     .mutation(async ({ input }) => {
       try {
         const updateData: any = {};
