@@ -7,7 +7,7 @@ import { initTRPC } from "@trpc/server";
 import DIE from "phpdie";
 import sflow from "sflow";
 import type { OpenApiMeta } from "trpc-to-openapi";
-import z from "zod";
+import z from "zod-v3";
 import { GithubDesignTaskMeta } from "../tasks/gh-design/gh-design";
 import { GithubContributorAnalyzeTask } from "../tasks/github-contributor-analyze/GithubContributorAnalyzeTask";
 
