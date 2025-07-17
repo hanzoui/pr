@@ -10,30 +10,30 @@ import console from "console";
 import isCI from "is-ci";
 import sflow, { pageFlow } from "sflow";
 import sha256 from "sha256";
+import { z } from "zod";
 import { ghDesignDefaultConfig } from "./default-config";
 const createTimeLogger = (st = +new Date()) => (...args: any[]) => console.log(+new Date() - st, ...args);
 const tlog = createTimeLogger();
 // Task bot to scan for [Design] labels on PRs and issues and send notifications to product channel
 
-type GithubDesignTaskMeta = {
-  name?: string; // task name
-  description?: string; // task description
-
+// Schema for GithubDesignTaskMeta validation
+export const githubDesignTaskMetaSchema = z.object({
+  name: z.string().optional(),
+  description: z.string().optional(),
+  
   // task config
-  slackChannelName?: string; // Slack channel name,
-  slackMessageTemplate?: string;
-  repoUrls?: string[]; // list of repository URLs to scan, will be set after the first run
-  requestReviewers?: string[]; // list of reviewers to request for PRs
-  matchLabels?: string; // comma-separated list of labels to match, default is [Design]
+  slackChannelName: z.string().optional(),
+  slackMessageTemplate: z.string().optional(),
+  repoUrls: z.array(z.string().url()).optional(),
+  requestReviewers: z.array(z.string()).optional(),
+  matchLabels: z.string().optional(),
 
   // cache
-  slackChannelId?: string; // Slack channel ID, will be set after the first run
-
-  // task status
-  lastRunAt?: Date; // last time this task was run
-  lastStatus?: "success" | "error" | "running"; // last status of the task
-  lastError?: string; // last error message if any
-}
+  slackChannelId: z.string().optional(),
+  lastRunAt: z.date().optional(),
+  lastStatus: z.enum(["success", "error", "running"]).optional(),
+  lastError: z.string().optional(),
+});
 
 type GithubDesignTask = {
   url: string; // the github Design issue/PR url
@@ -66,7 +66,7 @@ type GithubDesignTask = {
 
 // task states
 const COLLECTION_NAME = "GithubDesignTask";
-export const GithubDesignTaskMeta = TaskMetaCollection<GithubDesignTaskMeta>(COLLECTION_NAME);
+export const GithubDesignTaskMeta = TaskMetaCollection(COLLECTION_NAME, githubDesignTaskMetaSchema);
 export const GithubDesignTask = db.collection<GithubDesignTask>(COLLECTION_NAME);
 await GithubDesignTask.createIndex({ url: 1 }, { unique: true });// ensure url is unique
 
@@ -97,7 +97,7 @@ export async function runGithubDesignTask() {
   const dryRun = process.argv.includes("--dry");
 
   tlog("Running gh design task...");
-  let meta = await GithubDesignTaskMeta.save({
+  let meta = await GithubDesignTaskMeta.$set({
     name: "Github Design Issues Tracking Task",
     description: "Task to scan for [Design] labeled issues and PRs in specified repositories and notify product channel",
     // Set defaults if not already set
@@ -109,14 +109,14 @@ export async function runGithubDesignTask() {
   })
 
   // save default values if not set
-  if (!meta.slackMessageTemplate) meta = await GithubDesignTaskMeta.save({ slackMessageTemplate: ghDesignDefaultConfig.SLACK_MESSAGE_TEMPLATE, })
-  if (!meta.requestReviewers) meta = await GithubDesignTaskMeta.save({ requestReviewers: ghDesignDefaultConfig.REQUEST_REVIEWERS, })
-  if (!meta.repoUrls) meta = await GithubDesignTaskMeta.save({ repoUrls: ghDesignDefaultConfig.REPOS_TO_SCAN_URLS, })
-  if (!meta.matchLabels) meta = await GithubDesignTaskMeta.save({ matchLabels: ghDesignDefaultConfig.MATCH_LABEL, })
-  if (!meta.slackChannelName) meta = await GithubDesignTaskMeta.save({ slackChannelName: ghDesignDefaultConfig.SLACK_CHANNEL_NAME, })
+  if (!meta.slackMessageTemplate) meta = await GithubDesignTaskMeta.$set({ slackMessageTemplate: ghDesignDefaultConfig.SLACK_MESSAGE_TEMPLATE, })
+  if (!meta.requestReviewers) meta = await GithubDesignTaskMeta.$set({ requestReviewers: ghDesignDefaultConfig.REQUEST_REVIEWERS, })
+  if (!meta.repoUrls) meta = await GithubDesignTaskMeta.$set({ repoUrls: ghDesignDefaultConfig.REPOS_TO_SCAN_URLS, })
+  if (!meta.matchLabels) meta = await GithubDesignTaskMeta.$set({ matchLabels: ghDesignDefaultConfig.MATCH_LABEL, })
+  if (!meta.slackChannelName) meta = await GithubDesignTaskMeta.$set({ slackChannelName: ghDesignDefaultConfig.SLACK_CHANNEL_NAME, })
   if (!meta.slackChannelId) {
     tlog("Fetching Slack product channel...");
-    meta = await GithubDesignTaskMeta.save({
+    meta = await GithubDesignTaskMeta.$set({
       slackChannelId: (await getSlackChannel(meta.slackChannelName!)).id,
     });
   }
@@ -251,7 +251,7 @@ export async function runGithubDesignTask() {
     .run();
 
   tlog("Github Design Task completed successfully.");
-  await GithubDesignTaskMeta.save({
+  await GithubDesignTaskMeta.$set({
     lastRunAt: new Date(),
     lastStatus: "success",
     lastError: '',
