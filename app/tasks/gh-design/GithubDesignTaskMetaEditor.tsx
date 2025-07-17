@@ -17,9 +17,7 @@ import { zGithubDesignTaskMeta } from "./zGithubDesignTaskMeta";
 type FormData = z.infer<typeof zGithubDesignTaskMeta>;
 
 export function GithubDesignTaskMetaEditor() {
-  return <Suspense fallback={<div>Loading...</div>}>
-    <GithubDesignTaskMetaEditorComponent />
-  </Suspense>;
+  return <GithubDesignTaskMetaEditorComponent />;
 }
 function GithubDesignTaskMetaEditorComponent() {
   const [isExpanded, setIsExpanded] = useState(false);
