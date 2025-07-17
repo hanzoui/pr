@@ -50,9 +50,9 @@ function GithubDesignTaskMetaEditorComponent() {
     if (data?.meta) {
       const metaData = data.meta;
       form.reset({
-        slackMessageTemplate: metaData.slackMessageTemplate ,
-        requestReviewers: (metaData.requestReviewers).map((reviewer: string) => ({ value: reviewer })),
-        repoUrls: (metaData.repoUrls).map((repo: string) => ({ value: repo })),
+        slackMessageTemplate: metaData.slackMessageTemplate ?? "🎨 *New Design {{ITEM_TYPE}}*: <{{URL}}|{{TITLE}}>",
+        requestReviewers: (metaData.requestReviewers ?? []).map((reviewer: string) => ({ value: reviewer })),
+        repoUrls: (metaData.repoUrls ?? []).map((repo: string) => ({ value: repo })),
       });
     }
   }, [data, form]);
@@ -67,7 +67,7 @@ function GithubDesignTaskMetaEditorComponent() {
       };
 
       await updateMutation.mutateAsync(payload);
-      
+
       toast.success("Configuration saved successfully");
       await refetch(); // Refresh the data
       // hide config
