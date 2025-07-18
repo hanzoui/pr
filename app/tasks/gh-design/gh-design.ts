@@ -5,14 +5,13 @@ import { parseIssueUrl } from "@/src/parseIssueUrl";
 import { parseUrlRepoOwner } from "@/src/parseOwnerRepo";
 import { slack } from "@/src/slack";
 import { getSlackChannel } from "@/src/slack/channels";
-import DIE from "phpdie";
-import console from "console";
+import DIE from "@snomiao/die";
 import isCI from "is-ci";
 import sflow, { pageFlow } from "sflow";
 import sha256 from "sha256";
 import { z } from "zod";
+import { createTimeLogger } from "./createTimeLogger";
 import { ghDesignDefaultConfig } from "./default-config";
-const createTimeLogger = (st = +new Date()) => (...args: any[]) => console.log(+new Date() - st, ...args);
 const tlog = createTimeLogger();
 // Task bot to scan for [Design] labels on PRs and issues and send notifications to product channel
 
@@ -159,7 +158,7 @@ export async function runGithubDesignTask() {
       })), { concurrency: 3 }) // concurrency 3 repos
     .confluenceByConcat() // merge page flows
     .map(async function process(item) {
-      tlog(`PROCESSING ${item.url}#${(item.title).replaceAll(/\s+/g, "+")}_${item.body?.slice(0, 20).replaceAll(/\s+/g, "+")}`);
+      tlog(`PROCESSING ${item.url}#${(item.title).replace(/\s+/g, "+")}_${item.body?.slice(0, 20).replaceAll(/\s+/g, "+")}`);
       const url = item.url;
       const { owner, repo, issue_number } = parseIssueUrl(url);
       // create task
