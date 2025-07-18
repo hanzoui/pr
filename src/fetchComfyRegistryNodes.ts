@@ -1,4 +1,4 @@
-import DIE from "phpdie";
+import DIE from "@snomiao/die";
 import type { mockPublishedNodes } from "../mocks/mockPublishedNodes";
 import { fetchJson } from "./utils/fetchJson";
 

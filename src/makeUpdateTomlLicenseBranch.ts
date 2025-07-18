@@ -1,6 +1,6 @@
 import { $pipeline } from "@/packages/mongodb-pipeline-ts/$pipeline";
 import { TaskError, TaskErrorOrNull, TaskOK, type Task } from "@/packages/mongodb-pipeline-ts/Task";
-import DIE from "phpdie";
+import DIE from "@snomiao/die";
 import { sleep } from "bun";
 import { readFile } from "fs/promises";
 import type { WithId } from "mongodb";

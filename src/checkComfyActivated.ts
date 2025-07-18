@@ -1,4 +1,4 @@
-import DIE from "phpdie";
+import DIE from "@snomiao/die";
 import { $ as bunSh } from "bun";
 import { os } from "zx";
 import { getActivateCMD } from "./cli/getActivateCMD";
