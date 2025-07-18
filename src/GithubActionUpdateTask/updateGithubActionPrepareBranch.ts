@@ -1,7 +1,7 @@
+import DIE from "@snomiao/die";
 import { readFile, writeFile } from "fs/promises";
 import { globby } from "globby";
 import pProps from "p-props";
-import DIE from "phpdie";
 import { $ } from "../cli/echoBunShell";
 import { parseUrlRepoOwner, stringifyGithubOrigin } from "../parseOwnerRepo";
 import { parseTitleBodyOfMarkdown } from "../parseTitleBodyOfMarkdown";
@@ -9,9 +9,9 @@ import { yaml } from "../utils/yaml";
 import { forkCheckoutRepoOnBranch } from "./forkCheckoutRepoOnBranch";
 import { gptWriter } from "./gptWriter";
 import {
-  referenceActionContent,
-  referenceActionContentHash,
-  referencePullRequestMessage,
+    referenceActionContent,
+    referenceActionContentHash,
+    referencePullRequestMessage,
 } from "./updateGithubActionTask";
 export const updateGithubActionPrepareBranchBanPatterns = [
   /if: \${{ github.repository_owner == 'NODE_AUTHOR_OWNER' }}/,
