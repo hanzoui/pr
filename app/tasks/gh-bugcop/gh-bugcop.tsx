@@ -242,7 +242,8 @@ export default async function runGithubBugcopTask() {
         tlog(chalk.bgBlue(`Issue ${url} is answered, removing label and adding answered label...`));
         await saveTask({
           status: "answered",
-          statusReason: isBodyAddedContent ? "body updated" : hasNewComment ? "new comment" : "unknown",
+          statusReason: isBodyAddedContent ? "body updated" : hasNewComment ? "new comment" : "unknow
+          n",
         });
         if (!isDryRun) {
           task = await saveTask({ taskAction: "- " + ASKING_LABEL + ", + " + ANSWERED_LABEL });
@@ -255,8 +256,9 @@ export default async function runGithubBugcopTask() {
               ...parseIssueUrl(issue.html_url),
               labels: [ANSWERED_LABEL],
             });
+          // 
           task = await saveTask({
-            labels: [...(task.labels?.filter((e) => e === ASKING_LABEL) || []), ANSWERED_LABEL],
+            labels: [...(task.labels?.filter((e) => e !== ASKING_LABEL) || []), ANSWERED_LABEL],
           });
           tlog('Removed "bug-cop:ask-for-info" label and added "bug-cop:answered" label to ' + issue.html_url);
           await saveTask({ body: issue.body ?? undefined });
