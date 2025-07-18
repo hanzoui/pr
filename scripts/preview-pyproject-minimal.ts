@@ -8,7 +8,7 @@ import { $ } from "../src/cli/echoBunShell";
  */
 
 async function previewMinimal() {
-  const tempDir = `/tmp/comfy-pr-minimal-${Date.now()}`;
+  const tempDir = path.join(os.tmpdir(), `comfy-pr-minimal-${Date.now()}`);
   
   try {
     // Create empty directory
