@@ -7,7 +7,7 @@ import DIE from "@snomiao/die";
 import { initTRPC } from "@trpc/server";
 import sflow from "sflow";
 import type { OpenApiMeta } from "trpc-to-openapi";
-import z from "zod-v3";
+import z from "zod/v3";
 import { GithubDesignTaskMeta } from "../tasks/gh-design/gh-design";
 import { GithubContributorAnalyzeTask } from "../tasks/github-contributor-analyze/GithubContributorAnalyzeTask";
 
@@ -41,7 +41,20 @@ export const router = t.router({
   analyzePullsStatus: t.procedure
     .meta({ openapi: { method: "GET", path: "/analyze-pulls-status", description: "Get current worker" } })
     .input(z.object({ skip: z.number(), limit: z.number() }).partial())
-    .output(zPullsStatus)
+    .output(z.object({
+      updated: z.string(), // deprecated
+      pull_updated: z.string(),
+      repo_updated: z.string(),
+      on_registry: z.boolean(),
+      state: z.enum(["OPEN", "MERGED", "CLOSED"]),
+      url: z.string(),
+      head: z.string(),
+      comments: z.number(),
+      lastcomment: z.string(),
+      ownername: z.string().optional(),
+      repository: z.string().optional(),
+      author_email: z.string().optional(),
+    }))
     .query(async ({ input: { limit = 0, skip = 0 } }) => (await analyzePullsStatus({ limit, skip })) as any),
   getRepoUrls: t.procedure
     .meta({ openapi: { method: "GET", path: "/repo-urls", description: "Get repo urls" } })
