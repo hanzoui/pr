@@ -1,4 +1,4 @@
-import DIE from "phpdie";
+import DIE from "@snomiao/die";
 // import type { Credentials } from "google-auth-library";
 import type { Credentials } from "google-auth-library";
 import { GoogleApis } from "googleapis";

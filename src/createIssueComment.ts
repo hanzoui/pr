@@ -1,4 +1,4 @@
-import DIE from "phpdie";
+import DIE from "@snomiao/die";
 import { gh } from "./gh";
 import { ghUser } from "./ghUser";
 import { parseIssueUrl } from "./parseIssueUrl";

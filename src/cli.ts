@@ -1,5 +1,5 @@
 #!bun
-import DIE from "phpdie";
+import DIE from "@snomiao/die";
 import { readFile } from "fs/promises";
 import { argv, $ as zx } from "zx";
 import { checkComfyActivated } from "./checkComfyActivated";

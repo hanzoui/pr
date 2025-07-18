@@ -5,7 +5,7 @@ import { TaskDataOrNull, TaskError, TaskErrorOrNull, TaskOK } from "@/packages/m
 import { GCloudOAuth2Credentials, getGCloudOAuth2Client } from "@/src/gcloud/GCloudOAuth2Credentials";
 import { sendGmail } from "@/src/sendGmail";
 import { yaml } from "@/src/utils/yaml";
-import DIE from "phpdie";
+import DIE from "@snomiao/die";
 import markdownIt from "markdown-it";
 import { revalidatePath } from "next/cache";
 import Link from "next/link";

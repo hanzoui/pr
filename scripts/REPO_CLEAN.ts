@@ -1,4 +1,4 @@
-import DIE from "phpdie";
+import DIE from "@snomiao/die";
 import { Octokit } from "octokit";
 const GH_TOKEN_FOR_DELETE_REPO =
   process.env.GH_TOKEN_FOR_DELETE_REPO ||

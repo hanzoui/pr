@@ -1,5 +1,5 @@
 import { $elemMatch } from "@/packages/mongodb-pipeline-ts/$elemMatch";
-import DIE from "phpdie";
+import DIE from "@snomiao/die";
 import gitDiff from "git-diff";
 import isCI from "is-ci";
 import stableStringify from "json-stable-stringify";
