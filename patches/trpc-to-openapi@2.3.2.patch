@@ -1,0 +1,147 @@
+diff --git a/dist/cjs/generator/schema.d.ts b/dist/cjs/generator/schema.d.ts
+index f303d5ed9067ed80f4a5a8a8ec22c8edd804d311..0d45871b6dce3c75868759fb5e475ca8e8b9deb5 100644
+--- a/dist/cjs/generator/schema.d.ts
++++ b/dist/cjs/generator/schema.d.ts
+@@ -1,5 +1,5 @@
+ import { TRPCError } from '@trpc/server';
+-import { AnyZodObject, ZodTypeAny, z } from 'zod';
++import { AnyZodObject, ZodTypeAny, z } from 'zod/v3';
+ import { ZodOpenApiParameters, ZodOpenApiRequestBodyObject, ZodOpenApiResponseObject, ZodOpenApiResponsesObject } from 'zod-openapi';
+ import { OpenApiContentType } from '../types';
+ import { HttpMethods } from './paths';
+diff --git a/dist/cjs/types.d.ts b/dist/cjs/types.d.ts
+index 31c67bc31d5432685953e0243b692e7714bd90c3..f2641313c25ff53ad638be2ac12566f4db13e456 100644
+--- a/dist/cjs/types.d.ts
++++ b/dist/cjs/types.d.ts
+@@ -1,7 +1,7 @@
+ import { TRPC_ERROR_CODE_KEY } from '@trpc/server/rpc';
+ import type { CreateRootTypes, Procedure, ProcedureType, Router, RouterRecord } from '@trpc/server/unstable-core-do-not-import';
+ import { IncomingMessage } from 'http';
+-import type { AnyZodObject, ZodIssue } from 'zod';
++import type { AnyZodObject, ZodIssue } from 'zod/v3';
+ export { type OpenAPIObject, type SecuritySchemeObject } from 'openapi3-ts/oas31';
+ export type OpenApiMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
+ type TRPCMeta = Record<string, unknown>;
+diff --git a/dist/cjs/utils/procedure.d.ts b/dist/cjs/utils/procedure.d.ts
+index 9d360552ca95ce951829f20ecc94d96ed70fa243..6113c030bd7808440c1059cad4f6c896958f0156 100644
+--- a/dist/cjs/utils/procedure.d.ts
++++ b/dist/cjs/utils/procedure.d.ts
+@@ -1,5 +1,5 @@
+ import { TRPCProcedureType } from '@trpc/server';
+-import { AnyZodObject } from 'zod';
++import { AnyZodObject } from 'zod/v3';
+ import { OpenApiMeta, OpenApiProcedure, OpenApiProcedureRecord } from '../types';
+ export declare const getInputOutputParsers: (procedure: OpenApiProcedure) => {
+     inputParser: AnyZodObject | undefined;
+diff --git a/dist/cjs/utils/zod.d.ts b/dist/cjs/utils/zod.d.ts
+index 7f1f1398530e0150534f266e62ae72a73908c7c9..b8535ae8d85af1e2d296411f59f5f93c7c69e7ea 100644
+--- a/dist/cjs/utils/zod.d.ts
++++ b/dist/cjs/utils/zod.d.ts
+@@ -1,4 +1,4 @@
+-import { ZodObject, ZodRawShape, z } from 'zod';
++import { ZodObject, ZodRawShape, z } from 'zod/v3';
+ export declare const instanceofZodType: (type: any) => type is z.ZodTypeAny;
+ export declare const instanceofZodTypeKind: <Z extends z.ZodFirstPartyTypeKind>(type: z.ZodTypeAny, zodTypeKind: Z) => type is InstanceType<(typeof z)[Z]>;
+ export declare const instanceofZodTypeOptional: (type: z.ZodTypeAny) => type is z.ZodOptional<z.ZodTypeAny>;
+diff --git a/dist/esm/adapters/node-http/core.mjs b/dist/esm/adapters/node-http/core.mjs
+index 38236fcaa0b3ff14696063471ce7004e202b46c0..52c1f58419eb70c56e46bd7ade7dbed887474a33 100644
+--- a/dist/esm/adapters/node-http/core.mjs
++++ b/dist/esm/adapters/node-http/core.mjs
+@@ -1,6 +1,6 @@
+ import { TRPCError } from '@trpc/server';
+ import { getErrorShape } from '@trpc/server/unstable-core-do-not-import';
+-import { ZodArray } from 'zod';
++import { ZodArray } from 'zod/v3';
+ import { generateOpenApiDocument } from '../../generator/index.mjs';
+ import { acceptsRequestBody, normalizePath, getInputOutputParsers, coerceSchema, instanceofZodTypeLikeVoid, instanceofZodTypeObject, unwrapZodType, zodSupportsCoerce, getContentType, getRequestSignal, } from '../../utils/index.mjs';
+ import { TRPC_ERROR_CODE_HTTP_STATUS, getErrorFromUnknown } from './errors.mjs';
+diff --git a/dist/esm/generator/paths.mjs b/dist/esm/generator/paths.mjs
+index 71d9f35f2d0df08c77e9ded0f5aca992fbd089b0..e90437cc503b99e2e0ed6bd249fa9b42316a5867 100644
+--- a/dist/esm/generator/paths.mjs
++++ b/dist/esm/generator/paths.mjs
+@@ -1,7 +1,7 @@
+ import { TRPCError } from '@trpc/server';
+-import { z } from 'zod';
+ import { extendZodWithOpenApi, } from 'zod-openapi';
+-import { acceptsRequestBody, getPathParameters, normalizePath, forEachOpenApiProcedure, getInputOutputParsers, instanceofZodType, instanceofZodTypeLikeVoid, instanceofZodTypeObject, unwrapZodType, } from '../utils/index.mjs';
++import { z } from 'zod/v3';
++import { acceptsRequestBody, forEachOpenApiProcedure, getInputOutputParsers, getPathParameters, instanceofZodType, instanceofZodTypeLikeVoid, instanceofZodTypeObject, normalizePath, unwrapZodType, } from '../utils/index.mjs';
+ import { getParameterObjects, getRequestBodyObject, getResponsesObject, hasInputs } from './schema.mjs';
+ extendZodWithOpenApi(z);
+ export var HttpMethods;
+diff --git a/dist/esm/generator/schema.d.ts b/dist/esm/generator/schema.d.ts
+index f303d5ed9067ed80f4a5a8a8ec22c8edd804d311..0d45871b6dce3c75868759fb5e475ca8e8b9deb5 100644
+--- a/dist/esm/generator/schema.d.ts
++++ b/dist/esm/generator/schema.d.ts
+@@ -1,5 +1,5 @@
+ import { TRPCError } from '@trpc/server';
+-import { AnyZodObject, ZodTypeAny, z } from 'zod';
++import { AnyZodObject, ZodTypeAny, z } from 'zod/v3';
+ import { ZodOpenApiParameters, ZodOpenApiRequestBodyObject, ZodOpenApiResponseObject, ZodOpenApiResponsesObject } from 'zod-openapi';
+ import { OpenApiContentType } from '../types';
+ import { HttpMethods } from './paths';
+diff --git a/dist/esm/generator/schema.mjs b/dist/esm/generator/schema.mjs
+index 266caa5a70d0c81ad24dc243d146d66a6a4642b1..b02d4ac8b0eb9cb3f9142d75d2c945d5ff3dd126 100644
+--- a/dist/esm/generator/schema.mjs
++++ b/dist/esm/generator/schema.mjs
+@@ -1,5 +1,5 @@
+ import { TRPCError } from '@trpc/server';
+-import { z } from 'zod';
++import { z } from 'zod/v3';
+ import { extendZodWithOpenApi, } from 'zod-openapi';
+ import { HTTP_STATUS_TRPC_ERROR_CODE, TRPC_ERROR_CODE_HTTP_STATUS, TRPC_ERROR_CODE_MESSAGE, } from '../adapters/index.mjs';
+ import { instanceofZodType, instanceofZodTypeCoercible, instanceofZodTypeKind, instanceofZodTypeLikeString, instanceofZodTypeLikeVoid, instanceofZodTypeOptional, unwrapZodType, zodSupportsCoerce, } from '../utils/index.mjs';
+diff --git a/dist/esm/types.d.ts b/dist/esm/types.d.ts
+index 31c67bc31d5432685953e0243b692e7714bd90c3..f2641313c25ff53ad638be2ac12566f4db13e456 100644
+--- a/dist/esm/types.d.ts
++++ b/dist/esm/types.d.ts
+@@ -1,7 +1,7 @@
+ import { TRPC_ERROR_CODE_KEY } from '@trpc/server/rpc';
+ import type { CreateRootTypes, Procedure, ProcedureType, Router, RouterRecord } from '@trpc/server/unstable-core-do-not-import';
+ import { IncomingMessage } from 'http';
+-import type { AnyZodObject, ZodIssue } from 'zod';
++import type { AnyZodObject, ZodIssue } from 'zod/v3';
+ export { type OpenAPIObject, type SecuritySchemeObject } from 'openapi3-ts/oas31';
+ export type OpenApiMethod = 'GET' | 'POST' | 'PATCH' | 'PUT' | 'DELETE';
+ type TRPCMeta = Record<string, unknown>;
+diff --git a/dist/esm/utils/procedure.d.ts b/dist/esm/utils/procedure.d.ts
+index 9d360552ca95ce951829f20ecc94d96ed70fa243..6113c030bd7808440c1059cad4f6c896958f0156 100644
+--- a/dist/esm/utils/procedure.d.ts
++++ b/dist/esm/utils/procedure.d.ts
+@@ -1,5 +1,5 @@
+ import { TRPCProcedureType } from '@trpc/server';
+-import { AnyZodObject } from 'zod';
++import { AnyZodObject } from 'zod/v3';
+ import { OpenApiMeta, OpenApiProcedure, OpenApiProcedureRecord } from '../types';
+ export declare const getInputOutputParsers: (procedure: OpenApiProcedure) => {
+     inputParser: AnyZodObject | undefined;
+diff --git a/dist/esm/utils/procedure.mjs b/dist/esm/utils/procedure.mjs
+index dca802b390d839d9db754417bc9136e5915ce329..675f1a824fc315196a21893ebe857c67f9beb31b 100644
+--- a/dist/esm/utils/procedure.mjs
++++ b/dist/esm/utils/procedure.mjs
+@@ -1,4 +1,4 @@
+-import { z } from 'zod';
++import { z } from 'zod/v3';
+ const mergeInputs = (inputParsers) => {
+     return inputParsers.reduce((acc, inputParser) => {
+         return acc.merge(inputParser);
+diff --git a/dist/esm/utils/zod.d.ts b/dist/esm/utils/zod.d.ts
+index 7f1f1398530e0150534f266e62ae72a73908c7c9..b8535ae8d85af1e2d296411f59f5f93c7c69e7ea 100644
+--- a/dist/esm/utils/zod.d.ts
++++ b/dist/esm/utils/zod.d.ts
+@@ -1,4 +1,4 @@
+-import { ZodObject, ZodRawShape, z } from 'zod';
++import { ZodObject, ZodRawShape, z } from 'zod/v3';
+ export declare const instanceofZodType: (type: any) => type is z.ZodTypeAny;
+ export declare const instanceofZodTypeKind: <Z extends z.ZodFirstPartyTypeKind>(type: z.ZodTypeAny, zodTypeKind: Z) => type is InstanceType<(typeof z)[Z]>;
+ export declare const instanceofZodTypeOptional: (type: z.ZodTypeAny) => type is z.ZodOptional<z.ZodTypeAny>;
+diff --git a/dist/esm/utils/zod.mjs b/dist/esm/utils/zod.mjs
+index c29455a4f47f8543644e0281ecfb837820e69dcd..c12b51dfab67f5b233334304a7f8e532e175c4ca 100644
+--- a/dist/esm/utils/zod.mjs
++++ b/dist/esm/utils/zod.mjs
+@@ -1,4 +1,4 @@
+-import { z } from 'zod';
++import { z } from 'zod/v3';
+ export const instanceofZodType = (type) => {
+     return !!type?._def?.typeName;
+ };
