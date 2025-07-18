@@ -1,4 +1,4 @@
-import DIE from "phpdie";
+import DIE from "@snomiao/die";
 import markdownIt from "markdown-it";
 import type { WithId } from "mongodb";
 import { sf } from "sflow";

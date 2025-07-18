@@ -1,4 +1,4 @@
-import DIE from "phpdie";
+import DIE from "@snomiao/die";
 import { Db, MongoClient, type ObjectId } from "mongodb";
 import { $fresh, $stale } from ".";
 

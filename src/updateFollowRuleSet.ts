@@ -1,6 +1,6 @@
 "use server";
 import { TaskDataOrNull } from "@/packages/mongodb-pipeline-ts/Task";
-import DIE from "phpdie";
+import DIE from "@snomiao/die";
 import pMap from "p-map";
 import { peekYaml } from "peek-log";
 import { TaskError, TaskOK } from "../packages/mongodb-pipeline-ts/Task";

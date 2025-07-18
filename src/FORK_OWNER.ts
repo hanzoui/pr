@@ -1,4 +1,4 @@
-import DIE from "phpdie";
+import DIE from "@snomiao/die";
 import { ghUser } from "./ghUser";
 
 export const FORK_OWNER =
