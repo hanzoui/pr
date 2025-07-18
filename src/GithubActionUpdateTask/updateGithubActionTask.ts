@@ -1,6 +1,6 @@
+import DIE from "@snomiao/die";
 import fastDiff from "fast-diff";
 import { readFile } from "fs/promises";
-import DIE from "phpdie";
 import sha256 from "sha256";
 import yaml from "yaml";
 import { createPR } from "../createGithubPullRequest";
