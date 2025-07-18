@@ -242,8 +242,7 @@ export default async function runGithubBugcopTask() {
         tlog(chalk.bgBlue(`Issue ${url} is answered, removing label and adding answered label...`));
         await saveTask({
           status: "answered",
-          statusReason: isBodyAddedContent ? "body updated" : hasNewComment ? "new comment" : "unknow
-          n",
+          statusReason: isBodyAddedContent ? "body updated" : hasNewComment ? "new comment" : "unknown",
         });
         if (!isDryRun) {
           task = await saveTask({ taskAction: "- " + ASKING_LABEL + ", + " + ANSWERED_LABEL });
