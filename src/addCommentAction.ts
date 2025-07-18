@@ -2,7 +2,7 @@
 import { $elemMatch } from "@/packages/mongodb-pipeline-ts/$elemMatch";
 import { $pipeline } from "@/packages/mongodb-pipeline-ts/$pipeline";
 import { TaskDataOrNull, type Task } from "@/packages/mongodb-pipeline-ts/Task";
-import DIE from "phpdie";
+import DIE from "@snomiao/die";
 import pMap from "p-map";
 import type { z } from "zod";
 import type { PullStatusShown } from "./analyzePullsStatus";

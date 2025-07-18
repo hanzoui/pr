@@ -1,4 +1,4 @@
-import DIE from "phpdie";
+import DIE from "@snomiao/die";
 import { slack } from "./slack";
 
 export async function postSlackMessage(text: string) {

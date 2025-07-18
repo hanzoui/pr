@@ -1,4 +1,4 @@
-import DIE from "phpdie";
+import DIE from "@snomiao/die";
 import pMap from "p-map";
 import { match } from "ts-pattern";
 import { $OK, TaskError, TaskOK } from "../packages/mongodb-pipeline-ts/Task";
