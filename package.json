@@ -162,5 +162,8 @@
     "@types/react": "19.0.4",
     "@types/react-dom": "19.0.2"
   },
-  "title": "Comfy-PR"
+  "title": "Comfy-PR",
+  "patchedDependencies": {
+    "trpc-to-openapi@2.3.2": "patches/trpc-to-openapi@2.3.2.patch"
+  }
 }
