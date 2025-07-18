@@ -85,36 +85,32 @@ export default async function runGithubBugcopTask() {
     .confluenceByParallel() // order does not matter, so we can run in parallel
     .filter((e) => e.length) // filter out empty pages
     .flat() // flatten the page results
-    .by((issueFlow) => {
-      const tr = new TransformStream<GH["issue"], GH["issue"]>();
-      const writer = tr.writable.getWriter();
-      issueFlow
-        // pipe downstream, but do not close the writer so that we can write to it later
-        .forkTo((s) => s.forEach((issue) => writer.write(issue)).run())
-        // collect all scanned issues in an array
-        .toArray()
-        // once a full scan for all repos is done
-        // there might be a few issues that are not in the list
-        // e.g. recently closed issue, will not be found in the list since we are filtering by "open" issues
-        // but they are still in db, as they were opened before the scan started
-        // so we need to update it
-        .then(async (openingIssues) => {
-          const scannedUrls = openingIssues.map((i) => i.html_url);
-          await sflow(GithubBugcopTask.find({ url: { $nin: scannedUrls } }, { projection: { url: 1 } }))
-            .map((e) => e as { url: string })
-            .map(
-              async ({ url }) =>
-                await gh.issues.get({
-                  ...parseIssueUrl(url),
-                }),
-            )
-            .map((e) => e.data)
-            .forEach((issue) => writer.write(issue))
-            .run();
-          await writer.close();
-        });
-      return tr.readable;
-    })
+    // .by((issueFlow) => {
+    //   const tr = new TransformStream<GH["issue"], GH["issue"]>();
+    //   const writer = tr.writable.getWriter();
+    //   // 
+    //   issueFlow
+    //     // pipe downstream, but do not close the writer so that we can write to it later
+    //     .forkTo((s) => s.forEach((issue) => writer.write(issue)).run())
+    //     // collect all scanned issues in an array
+    //     .toArray()
+    //     // once a full scan for all repos is done
+    //     // there might be a few issues that are not in the list
+    //     // e.g. recently closed issue, will not be found in the list since we are filtering by "open" issues
+    //     // but they are still in db, as they were opened before the scan started
+    //     // so we need to update it
+    //     .then(async (openingIssues) => {
+    //       // const scannedUrls = openingIssues.map((i) => i.html_url);
+    //       // await sflow(GithubBugcopTask.find({ url: { $nin: scannedUrls } }, { projection: { url: 1 } }))
+    //       //   .map((e) => e as { url: string })
+    //       //   .map(async ({ url }) => await gh.issues.get({ ...parseIssueUrl(url) }))
+    //       //   .map((e) => e.data)
+    //       //   .forEach((issue) => writer.write(issue))
+    //       //   .run();
+    //       // await writer.close();
+    //     });
+    //   return tr.readable;
+    // })
     .uniqBy((issue) => issue.html_url) // remove duplicates by issue URL, maybe not necessary, but good for redability
     .map(async (issue) => {
       const url = issue.html_url; // ?? ("issue.html_url is required")    ;
@@ -255,7 +251,7 @@ export default async function runGithubBugcopTask() {
               ...parseIssueUrl(issue.html_url),
               labels: [ANSWERED_LABEL],
             });
-          // 
+          //
           task = await saveTask({
             labels: [...(task.labels?.filter((e) => e !== ASKING_LABEL) || []), ANSWERED_LABEL],
           });
@@ -287,4 +283,5 @@ export default async function runGithubBugcopTask() {
       await saveTask({ lastChecked: new Date(), taskStatus: "ok" });
     })
     .run();
+  tlog(chalk.green("Github Bugcop Task completed successfully!"));
 }
