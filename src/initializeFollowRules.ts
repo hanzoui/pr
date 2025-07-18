@@ -1,4 +1,4 @@
-import DIE from "@snomiao/die";
+import DIE from "phpdie";
 import { readFile } from "fs/promises";
 import { FollowRuleSets } from "./FollowRules";
 
