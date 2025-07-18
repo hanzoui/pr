@@ -1,4 +1,4 @@
-import DIE from "@snomiao/die";
+import DIE from "phpdie";
 
 export function parseTitleBodyOfMarkdown(tmpl: string) {
   tmpl.startsWith("# ") || DIE("Unrecognized template format:" + tmpl);

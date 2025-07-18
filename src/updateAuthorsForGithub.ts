@@ -1,5 +1,5 @@
 import { $OK, TaskDataOrNull, TaskError, TaskOK } from "@/packages/mongodb-pipeline-ts/Task";
-import DIE from "@snomiao/die";
+import DIE from "phpdie";
 import console from "console";
 import { peekYaml } from "peek-log";
 import { sflow } from "sflow";
