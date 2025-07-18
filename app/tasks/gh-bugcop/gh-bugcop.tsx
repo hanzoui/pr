@@ -58,7 +58,10 @@ const tlog = createTimeLogger();
 
 if (import.meta.main) {
   await runGithubBugcopTask();
-  if (isCI) db.close();
+  if (isCI) {
+    await db.close();
+    process.exit()
+  }
 }
 
 export default async function runGithubBugcopTask() {
