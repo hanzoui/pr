@@ -26,7 +26,7 @@ async function previewPyprojectToml() {
   console.log(`\n🔍 Previewing pyproject.toml for: ${repoUrl}\n`);
 
   // Create temporary directory
-  const tempDir = `/tmp/comfy-pr-preview-${Date.now()}`;
+  const tempDir = path.join(os.tmpdir(), `comfy-pr-preview-${Date.now()}`);
   await mkdir(tempDir, { recursive: true });
 
   try {
