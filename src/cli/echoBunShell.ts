@@ -1,4 +1,4 @@
-import { $ as bunSh, ShellPromise, type ShellExpression } from "bun";
+import { $ as bunSh, type ShellExpression } from "bun";
 /**
  * @example
  * await $`echo 1 || echo 2\necho 3`
@@ -8,7 +8,7 @@ import { $ as bunSh, ShellPromise, type ShellExpression } from "bun";
  * // 1
  * // 3
  */
-export function $(strings: TemplateStringsArray, ...expressions: ShellExpression[]): ShellPromise {
+export function $(strings: TemplateStringsArray, ...expressions: ShellExpression[]) {
   console.log(
     strings
       .map((s, i) => s + (expressions[i] ?? ""))

@@ -1,5 +1,5 @@
+import DIE from "@snomiao/die";
 import type { ObjectId } from "mongodb";
-import DIE from "phpdie";
 import { omit } from "rambda";
 import { z } from "zod";
 import { db } from ".";
