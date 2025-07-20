@@ -194,6 +194,8 @@ export const router = t.router({
       }).nullable()
     }))
     .mutation(async ({ input }) => {
+      throw new Error("disabled"); 
+      // TODO(sno): add back later
       try {
         const updateData: any = {};
         if (input.slackMessageTemplate !== undefined) updateData.slackMessageTemplate = input.slackMessageTemplate;
