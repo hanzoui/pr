@@ -193,8 +193,8 @@ export const router = t.router({
       }).nullable()
     }))
     .mutation(async ({ input }) => {
-      throw new Error("disabled"); 
-      // TODO(sno): add back later
+      throw new Error("Meta editing functionality is temporarily disabled. This feature is under maintenance."); 
+      // TODO: add back later
       try {
         const updateData: any = {};
         if (input.slackMessageTemplate !== undefined) updateData.slackMessageTemplate = input.slackMessageTemplate;
