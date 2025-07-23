@@ -2,7 +2,6 @@ import pkg from "@/package.json";
 import { CNRepos } from "@/src/CNRepos";
 import { getWorkerInstance } from "@/src/WorkerInstances";
 import { analyzePullsStatus } from "@/src/analyzePullsStatus";
-import { zPullsStatus } from "@/src/zod/zPullsStatus";
 import DIE from "@snomiao/die";
 import { initTRPC } from "@trpc/server";
 import sflow from "sflow";
@@ -194,6 +193,8 @@ export const router = t.router({
       }).nullable()
     }))
     .mutation(async ({ input }) => {
+      throw new Error("Meta editing functionality is temporarily disabled. This feature is under maintenance."); 
+      // TODO: add back later
       try {
         const updateData: any = {};
         if (input.slackMessageTemplate !== undefined) updateData.slackMessageTemplate = input.slackMessageTemplate;
