@@ -235,50 +235,51 @@ export default async function runGithubBugcopTask() {
       // // TODO: maybe search in notion db about this issue, if it's answered in notion, then mark as answered
       // tlog('issue body not updated after last added time, checking comments...');
 
-      const isAnswered = hasNewComment || isBodyAddedContent; // TODO: check if the issue body is updated after the label added time, if so, then it's answered
+      const isAnsweredByUser = hasNewComment || isBodyAddedContent; // check if user answered by new comment or body update
 
-      if (isAnswered) {
-        tlog(chalk.bgBlue(`Issue ${url} is answered, removing label and adding answered label...`));
+      if (isAnsweredByUser) {
+        tlog(chalk.bgBlue(`Issue ${url} is answered by user, removing both ask-for-info and answered labels...`));
         await saveTask({
           status: "answered",
           statusReason: isBodyAddedContent ? "body updated" : hasNewComment ? "new comment" : "unknown",
         });
         if (!isDryRun) {
-          task = await saveTask({ taskAction: "- " + ASKING_LABEL + ", + " + ANSWERED_LABEL });
+          task = await saveTask({ taskAction: "- " + ASKING_LABEL + ", - " + ANSWERED_LABEL });
+          // Remove both ask-for-info and answered labels when user has answered
           await gh.issues.removeLabel({
             ...parseIssueUrl(issue.html_url),
             name: ASKING_LABEL,
           });
-          if (!task.labels?.includes(ANSWERED_LABEL))
-            await gh.issues.addLabels({
-              ...parseIssueUrl(issue.html_url),
-              labels: [ANSWERED_LABEL],
-            });
-          //
-          task = await saveTask({
-            labels: [...(task.labels?.filter((e) => e !== ASKING_LABEL) || []), ANSWERED_LABEL],
-          });
-          tlog('Removed "bug-cop:ask-for-info" label and added "bug-cop:answered" label to ' + issue.html_url);
-          await saveTask({ body: issue.body ?? undefined });
-        }
-      } else {
-        await saveTask({ status: "ask-for-info", statusReason: "nothing changed" });
-        if (task.labels?.includes(ANSWERED_LABEL)) {
-          tlog(chalk.bgRed(`Issue ${url} has answered label, but is not answered, removing answered label...`));
-          if (!isDryRun) {
-            task = await saveTask({ taskAction: "- " + ANSWERED_LABEL });
+          if (task.labels?.includes(ANSWERED_LABEL)) {
             await gh.issues.removeLabel({
               ...parseIssueUrl(issue.html_url),
               name: ANSWERED_LABEL,
             });
-            task = await saveTask({
-              status: "ask-for-info",
-              taskStatus: "processing",
-              labels: task.labels?.filter((l) => l !== ANSWERED_LABEL) || [],
+          }
+          task = await saveTask({
+            labels: task.labels?.filter((e) => e !== ASKING_LABEL && e !== ANSWERED_LABEL) || [],
+          });
+          tlog('Removed both "bug-cop:ask-for-info" and "bug-cop:answered" labels from ' + issue.html_url);
+          await saveTask({ body: issue.body ?? undefined });
+        }
+      } else {
+        // User hasn't answered yet, but we have ask-for-info label
+        await saveTask({ status: "ask-for-info", statusReason: "user not answered yet" });
+        if (!task.labels?.includes(ANSWERED_LABEL)) {
+          tlog(chalk.bgYellow(`Issue ${url} has ask-for-info but no answered label, adding answered label...`));
+          if (!isDryRun) {
+            task = await saveTask({ taskAction: "+ " + ANSWERED_LABEL });
+            await gh.issues.addLabels({
+              ...parseIssueUrl(issue.html_url),
+              labels: [ANSWERED_LABEL],
             });
+            task = await saveTask({
+              labels: [...(task.labels || []), ANSWERED_LABEL],
+            });
+            tlog('Added "bug-cop:answered" label to ' + issue.html_url);
           }
         } else {
-          tlog(`Issue ${url} is not answered, doing nothing...`);
+          tlog(`Issue ${url} already has both ask-for-info and answered labels, doing nothing...`);
         }
       }
 
