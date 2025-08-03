@@ -19,7 +19,7 @@ const tlog = createTimeLogger();
 export const githubDesignTaskMetaSchema = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
-  
+
   // task config
   slackChannelName: z.string().optional(),
   slackMessageTemplate: z.string().optional(),
@@ -262,7 +262,8 @@ export async function runGithubDesignTask() {
 
 export function slackMessageUrlStringify({ channel, ts }: { channel: string; ts: string; }) {
   // slack use microsecond as message id, uniq by channel
-  return ghDesignDefaultConfig.SLACK_MSG_URL_TEMPLATE
+  // TODO: move organization to env variable
+  return `https://comfy-organization.slack.com/archives/{{CHANNEL_ID}}/p{{TSNODOT}}`
     .replace("{{CHANNEL_ID}}", channel)
     .replace("{{TSNODOT}}", ts.replace(/\./g, ""));
 }
