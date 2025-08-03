@@ -7,6 +7,7 @@ import parseGithubUrl from "parse-github-url"
 import { slack } from "@/src/slack"
 import { getSlackChannel } from "@/src/slack/channels"
 import { slackMessageUrlParse, slackMessageUrlStringify } from "../gh-design/gh-design"
+import isCI from "is-ci"
 // workflow
 /**
  * 1. fetch repos latest releases
@@ -45,12 +46,19 @@ const save = async (task: GithubReleaseNotificationTask) => await GithubReleaseN
 ) || DIE('never')
 
 if (import.meta.main) {
+    await runGithubDesktopReleaseNotificationTask()
+    if (isCI) {
+        await db.close()
+        process.exit(0); // exit if running in CI
+    }
+}
+
+async function runGithubDesktopReleaseNotificationTask() {
     const pSlackChannelId = getSlackChannel(config.slackChannel).then(e => e.id || DIE(`unable to get slack channel ${config.slackChannel}`))
     // patch
-
     await GithubReleaseNotificationTask.deleteMany({
         url: /https:\/\/comfy-organization\.slack\.com\/.*/,
-    });
+    })
     await GithubReleaseNotificationTask.findOneAndUpdate({
         version: "v0.4.60"
     }, {
@@ -71,7 +79,7 @@ if (import.meta.main) {
             repo,
             per_page: 3,
         }).then(e => e.data))
-        .map(async release => {
+        .map(async (release) => {
             const url = release.html_url
             // create task
             let task = await save({
@@ -80,7 +88,7 @@ if (import.meta.main) {
                 version: release.tag_name,
                 releasedAt: new Date(release.published_at || DIE('no published_at in release')),
             })
-            if (!task.isStable) return task  // not a stable release, skip
+            if (!task.isStable) return task // not a stable release, skip
             if (+task.releasedAt! < +new Date(config.sendSince)) return task // skip releases before the sendSince date
 
             const draftSlackMessage = {
@@ -109,7 +117,7 @@ if (import.meta.main) {
                         slackMessage: {
                             ...task.slackMessage!,
                             url: slackMessageUrlStringify({ channel: task.slackMessage!.channel, ts: msg.ts || DIE('missing ts in edited slack message') }),
-                            text: draftSlackMessage.text!,  // update text
+                            text: draftSlackMessage.text!, // update text
                         }
                     }) // save the task with updated slack message
                 } else {
