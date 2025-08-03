@@ -78,7 +78,13 @@ async function saveGithubDesignTask(url: string, $set: Partial<GithubDesignTask>
   )) || DIE('NEVER');
 }
 
-if (import.meta.main) await runGithubDesignTask()
+if (import.meta.main) {
+  await runGithubDesignTask()
+  if (isCI) {
+    await db.close()
+    process.exit(0); // exit if running in CI
+  }
+}
 
 /**
  * Run the Github Design Task

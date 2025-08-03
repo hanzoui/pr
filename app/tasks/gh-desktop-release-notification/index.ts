@@ -145,3 +145,5 @@ async function runGithubDesktopReleaseNotificationTask() {
         .log()
         .run()
 }
+
+export default runGithubDesktopReleaseNotificationTask;
