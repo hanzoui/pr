@@ -16,6 +16,7 @@ import { slackMessageUrlParse, slackMessageUrlStringify } from "../gh-design/gh-
  */
 const config = {
     repos: [
+        'https://github.com/comfyanonymous/ComfyUI',
         'https://github.com/Comfy-Org/desktop',
     ],
     slackChannel: 'desktop',
@@ -35,7 +36,7 @@ type GithubReleaseNotificationTask = {
     }
 }
 
-const GithubReleaseNotificationTask = db.collection('GithubReleaseNotificationTask')
+const GithubReleaseNotificationTask = db.collection<GithubReleaseNotificationTask>('GithubReleaseNotificationTask')
 await GithubReleaseNotificationTask.createIndex({ url: 1 }, { unique: true })
 const save = async (task: GithubReleaseNotificationTask) => await GithubReleaseNotificationTask.findOneAndUpdate(
     { url: task.url },
@@ -45,6 +46,23 @@ const save = async (task: GithubReleaseNotificationTask) => await GithubReleaseN
 
 if (import.meta.main) {
     const pSlackChannelId = getSlackChannel(config.slackChannel).then(e => e.id || DIE(`unable to get slack channel ${config.slackChannel}`))
+    // patch
+
+    await GithubReleaseNotificationTask.deleteMany({
+        url: /https:\/\/comfy-organization\.slack\.com\/.*/,
+    });
+    await GithubReleaseNotificationTask.findOneAndUpdate({
+        version: "v0.4.60"
+    }, {
+        $set: {
+            // channel: "C07H3GLKDPF",
+            slackMessage: {
+                url: "https://comfy-organization.slack.com/archives/C07H3GLKDPF/p1754217152324349",
+                channel: await pSlackChannelId,
+                text: 'TODO',
+            }
+        }
+    })
 
     await sflow(config.repos)
         .map(parseUrlRepoOwner)
@@ -63,7 +81,7 @@ if (import.meta.main) {
                 releasedAt: new Date(release.published_at || DIE('no published_at in release')),
             })
             if (!task.isStable) return task  // not a stable release, skip
-            if (+task.releasedAt < +new Date(config.sendSince)) return task // skip releases before the sendSince date
+            if (+task.releasedAt! < +new Date(config.sendSince)) return task // skip releases before the sendSince date
 
             const draftSlackMessage = {
                 channel: config.slackChannel,
@@ -72,13 +90,15 @@ if (import.meta.main) {
                     .replace('{repo}', parseGithubUrl(task.url)?.repo || DIE(`unable parse REPO from URL ${task.url}`))
                     .replace('{version}', task.version || DIE(`unable to parse version from task ${JSON.stringify(task)}`)),
             }
-
+            console.log(task)
             if (task.slackMessage?.url) {
                 // already notified, check if we need to update the text
                 if (task.slackMessage.text !== draftSlackMessage.text) {
                     // update message content
                     const ts = slackMessageUrlParse(task.slackMessage.url).ts
-                    await slack.chat.update({
+                    console.log(draftSlackMessage)
+                    // console.log('slack.chat.update: ')
+                    const msg = await slack.chat.update({
                         channel: task.slackMessage.channel,
                         ts,
                         text: draftSlackMessage.text,
@@ -88,7 +108,8 @@ if (import.meta.main) {
                         url,
                         slackMessage: {
                             ...task.slackMessage!,
-                            text: draftSlackMessage.text, // update text
+                            url: slackMessageUrlStringify({ channel: task.slackMessage!.channel, ts: msg.ts || DIE('missing ts in edited slack message') }),
+                            text: draftSlackMessage.text!,  // update text
                         }
                     }) // save the task with updated slack message
                 } else {
@@ -102,16 +123,15 @@ if (import.meta.main) {
                     text: draftSlackMessage.text,
                     channel,
                 })
-                const url = slackMessageUrlStringify({ channel, ts: msg.ts! })
+                const slackUrl = slackMessageUrlStringify({ channel, ts: msg.ts! })
                 task = await save({
                     url,
                     slackMessage: {
                         ...draftSlackMessage,
-                        url, // set the url after sent
+                        url: slackUrl, // set the url after sent
                     }
                 }) // save the task with slack message
             }
-            console.log(draftSlackMessage)
             return task
         })
         .log()
