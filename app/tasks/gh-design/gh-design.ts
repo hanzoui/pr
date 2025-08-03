@@ -19,7 +19,7 @@ const tlog = createTimeLogger();
 export const githubDesignTaskMetaSchema = z.object({
   name: z.string().optional(),
   description: z.string().optional(),
-  
+
   // task config
   slackChannelName: z.string().optional(),
   slackMessageTemplate: z.string().optional(),
@@ -78,7 +78,13 @@ async function saveGithubDesignTask(url: string, $set: Partial<GithubDesignTask>
   )) || DIE('NEVER');
 }
 
-if (import.meta.main) await runGithubDesignTask()
+if (import.meta.main) {
+  await runGithubDesignTask()
+  if (isCI) {
+    await db.close()
+    process.exit(0); // exit if running in CI
+  }
+}
 
 /**
  * Run the Github Design Task
@@ -260,13 +266,14 @@ export async function runGithubDesignTask() {
   isCI && process.exit(0);
 }
 
-function slackMessageUrlStringify({ channel, ts }: { channel: string; ts: string; }) {
+export function slackMessageUrlStringify({ channel, ts }: { channel: string; ts: string; }) {
   // slack use microsecond as message id, uniq by channel
-  return ghDesignDefaultConfig.SLACK_MSG_URL_TEMPLATE
+  // TODO: move organization to env variable
+  return `https://comfy-organization.slack.com/archives/{{CHANNEL_ID}}/p{{TSNODOT}}`
     .replace("{{CHANNEL_ID}}", channel)
     .replace("{{TSNODOT}}", ts.replace(/\./g, ""));
 }
-function slackMessageUrlParse(url: string) {
+export function slackMessageUrlParse(url: string) {
   // slack use microsecond as message id, uniq by channel
   const match = url.match(/archives\/([^\/]+)\/p(\d+)/);
   if (!match) throw new Error(`Invalid Slack message URL: ${url}`);
