@@ -32,6 +32,14 @@ export const GithubBountyTask = db.collection<{
 }>("GithubBountyTask");
 
 if (import.meta.main) {
+  await runGithubBountyTask()
+  if (isCI) {
+    await db.close()
+    process.exit(0); // exit if running in CI
+  }
+}
+
+export default async function runGithubBountyTask() {
   // 1. list all issues in milestone
   // 2. for each issues, add 'Bounty' label if not exists
   // 3. leave comment on the issue with bounty message if not exists
@@ -122,7 +130,6 @@ if (import.meta.main) {
     })
     .run();
   console.log("All issues processed successfully.");
-  isCI && process.exit(0); // force exit in CI environment as mongodb will not exit automatically
 }
 
 export function parseMilestoneUrl(url: string) {
