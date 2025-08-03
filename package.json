@@ -1,7 +1,7 @@
 {
   "name": "comfy-pr",
   "version": "0.2.27",
-  "description": "Make PRs that publishes ComfyUI Custom Nodes to [ComfyUI Registry]( https://www.comfyregistry.org/ ).",
+  "description": "Make PRs that publishes ComfyUI Custom Nodes to [ComfyUI Registry]( https://registry.comfy.org/ ).",
   "keywords": [],
   "license": "ISC",
   "author": "snomiao <snomiao@gmail.com>",
@@ -27,6 +27,7 @@
     "dev": "next dev",
     "dev:tsc": "tsc -w",
     "lint": "next lint",
+    "prepare": "husky",
     "prerelease": "bun run build && bun run test && vercel --prod",
     "release": "bunx standard-version && npm publish",
     "start": "next start",
@@ -36,6 +37,19 @@
     "preview:pyproject-repo": "bun scripts/preview-pyproject-toml.ts",
     "vercel:build": "vercel build",
     "vercel:dev": "vercel dev"
+  },
+  "lint-staged": {
+    "*.{js,jsx,ts,tsx}": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md,yml,yaml}": [
+      "prettier --write"
+    ]
+  },
+  "overrides": {
+    "@types/react": "19.0.4",
+    "@types/react-dom": "19.0.2"
   },
   "dependencies": {
     "@auth/mongodb-adapter": "^3.4.2",
@@ -53,6 +67,7 @@
     "@trpc/react-query": "^11",
     "@trpc/server": "^11",
     "@types/ink": "^2.0.3",
+    "@types/parse-github-url": "^1.0.3",
     "@types/sha256": "^0.2.2",
     "async-sema": "^3.1.1",
     "bun": "^1.1.21",
@@ -98,6 +113,7 @@
     "openai": "^4.53.2",
     "p-map": "^7.0.2",
     "p-props": "^6.0.0",
+    "parse-github-url": "^1.0.3",
     "peek-log": "^0.0.8",
     "polyfill-text-decoder-stream": "^0.0.9",
     "polyfill-text-encoder-stream": "^0.0.8",
@@ -155,6 +171,8 @@
     "@types/react-dom": "19.0.2",
     "eslint": "^8.57.0",
     "eslint-config-next": "15.1.4",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
     "next": "^15.4.1",
     "postcss": "^8.4.40",
     "prettier-plugin-organize-imports": "^3.2.4",
@@ -168,12 +186,8 @@
   "peerDependencies": {
     "typescript": "^5.4.5"
   },
-  "overrides": {
-    "@types/react": "19.0.4",
-    "@types/react-dom": "19.0.2"
-  },
-  "title": "Comfy-PR",
   "patchedDependencies": {
     "trpc-to-openapi@2.3.2": "patches/trpc-to-openapi@2.3.2.patch"
-  }
+  },
+  "title": "Comfy-PR"
 }
