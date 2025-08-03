@@ -260,13 +260,13 @@ export async function runGithubDesignTask() {
   isCI && process.exit(0);
 }
 
-function slackMessageUrlStringify({ channel, ts }: { channel: string; ts: string; }) {
+export function slackMessageUrlStringify({ channel, ts }: { channel: string; ts: string; }) {
   // slack use microsecond as message id, uniq by channel
   return ghDesignDefaultConfig.SLACK_MSG_URL_TEMPLATE
     .replace("{{CHANNEL_ID}}", channel)
     .replace("{{TSNODOT}}", ts.replace(/\./g, ""));
 }
-function slackMessageUrlParse(url: string) {
+export function slackMessageUrlParse(url: string) {
   // slack use microsecond as message id, uniq by channel
   const match = url.match(/archives\/([^\/]+)\/p(\d+)/);
   if (!match) throw new Error(`Invalid Slack message URL: ${url}`);
