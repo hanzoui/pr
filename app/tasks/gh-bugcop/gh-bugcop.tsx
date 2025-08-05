@@ -72,25 +72,26 @@ export default async function runGithubBugcopTask() {
   tlog("Running Github Bugcop Task...");
   await sflow(REPOLIST)
     // list issues for each repo
-    .map((url) => {
+    .map((repoUrl) => {
       // tlog(`Fetching issues for ${url}...`);
       return pageFlow(1, async (page) => {
         const { data: issues } = await hotMemo(gh.issues.listForRepo, [
           {
-            ...parseUrlRepoOwner(url),
+            ...parseUrlRepoOwner(repoUrl),
             state: "open" as const,
             page,
             per_page: 100,
             labels: ASKING_LABEL,
           },
         ]);
-        tlog(`Found ${issues.length} matched issues in ${url}`);
+        tlog(`Found ${issues.length} matched issues in ${repoUrl}`);
         return { data: issues, next: issues.length >= 100 ? page + 1 : undefined };
-      });
+      })
+        .filter((e) => e.length)
+        .flat();
+      // .by(flats());
     })
     .confluenceByParallel() // order does not matter, so we can run in parallel
-    .filter((e) => e.length) // filter out empty pages
-    .flat() // flatten the page results
     // .by((issueFlow) => {
     //   const tr = new TransformStream<GH["issue"], GH["issue"]>();
     //   const writer = tr.writable.getWriter();
@@ -170,12 +171,13 @@ export default async function runGithubBugcopTask() {
         ]);
         return { data: events, next: events.length >= 100 ? page + 1 : undefined };
       })
+        // flat
         .filter((e) => e.length)
-        .flat()
+        .by((s) => s.pipeThrough(flats()))
         .toArray();
 
       // list all label events
-      const labelEvents = await sflow(timeline)
+      const labelEvents = await sflow([...timeline])
         .forEach((_e) => {
           if (_e.event === "labeled") {
             const e = _e as GH["labeled-issue-event"];
@@ -296,4 +298,16 @@ export default async function runGithubBugcopTask() {
     })
     .run();
   tlog(chalk.green("Github Bugcop Task completed successfully!"));
+}
+
+function flats<T>(): TransformStream<T[], T> {
+  return new TransformStream<T[], T>({
+    transform: (e, controller) => {
+      e.forEach((event) => controller.enqueue(event));
+    },
+    flush: (controller) => {
+      // No finalization needed
+      // Stream will be closed automatically after flush
+    },
+  });
 }
