@@ -1,25 +1,8 @@
 import { Badge } from "@/components/ui/badge";
 import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Link from "next/link";
-import { Suspense } from "react";
-import { renderToReadableStream } from "react-dom/server";
-import { sflow } from "sflow";
 import { GithubBugcopTask } from "./gh-bugcop";
-// import { GithubBugcopTaskMetaEditor } from "./GithubBugcopTaskMetaEditor";
-if (import.meta.main) {
-  console.log(
-    await sflow(
-      await renderToReadableStream(
-        <Suspense>
-          <GithubBugCopTaskPage />
-        </Suspense>,
-      ),
-    )
-      .by(new TextDecoderStream())
-      .log()
-      .run(),
-  );
-}
+
 /**
  * GitHub Bug Cop Task Dashboard
  * Displays all bug-cop-labeled issues and PRs being tracked
