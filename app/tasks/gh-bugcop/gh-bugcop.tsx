@@ -237,7 +237,7 @@ async function processIssue(issue: GH["issue"]) {
     closed: [], // clear bug-cop labels
   }[status];
 
-  const currentLabels = issue.labels.map((l) => (typeof l === "string" ? l : (l.name ?? ""))).filter(Boolean);
+  const currentLabels = issue.labels.filter(l => l != null).map((l) => (typeof l === "string" ? l : (l.name ?? ""))).filter(Boolean);
   const addLabels = difference(labelSet, currentLabels);
   const removeLabels = difference(
     currentLabels.filter((label) => workinglabels.includes(label)),
