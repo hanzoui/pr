@@ -307,7 +307,7 @@ function flats<T>(): TransformStream<T[], T> {
     },
     flush: (controller) => {
       // No finalization needed
-      controller.terminate(); // Ensure the stream is closed properly
+      // Stream will be closed automatically after flush
     },
   });
 }
