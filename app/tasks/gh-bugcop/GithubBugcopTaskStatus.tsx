@@ -87,7 +87,7 @@ export default function GithubBugcopTaskStatus({}) {
 
         // Status colors
         const taskStatusColor =
-          task.status === "answered" ? "green" : task.status === "ask-for-info" ? "yellow" : "red";
+          task.status === "responseReceived" ? "green" : task.status === "askForInfo" ? "yellow" : "red";
         const taskActionColor =
           task.taskStatus === "ok"
             ? "green"
