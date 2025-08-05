@@ -11,7 +11,9 @@ import { compareBy } from "comparing";
 import fastDiff from "fast-diff";
 import hotMemo from "hot-memo";
 import isCI from "is-ci";
+import { difference, union } from "rambda";
 import sflow, { pageFlow } from "sflow";
+import { match } from "ts-pattern";
 import z from "zod";
 import { createTimeLogger } from "../gh-design/createTimeLogger";
 // import Lock from 'async-sema';
@@ -24,6 +26,7 @@ export const REPOLIST = [
 ];
 export const ASKING_LABEL = "bug-cop:ask-for-info";
 export const ANSWERED_LABEL = "bug-cop:answered";
+export const RESPONSE_RECEIVED_LABEL = "bug-cop:response-received";
 export const GithubBugcopTaskDefaultMeta = {
   repoUrls: REPOLIST,
   matchLabel: [ASKING_LABEL],
@@ -60,7 +63,7 @@ if (import.meta.main) {
   await runGithubBugcopTask();
   if (isCI) {
     await db.close();
-    process.exit()
+    process.exit();
   }
 }
 
@@ -91,7 +94,7 @@ export default async function runGithubBugcopTask() {
     // .by((issueFlow) => {
     //   const tr = new TransformStream<GH["issue"], GH["issue"]>();
     //   const writer = tr.writable.getWriter();
-    //   // 
+    //   //
     //   issueFlow
     //     // pipe downstream, but do not close the writer so that we can write to it later
     //     .forkTo((s) => s.forEach((issue) => writer.write(issue)).run())
@@ -115,8 +118,9 @@ export default async function runGithubBugcopTask() {
     //   return tr.readable;
     // })
     .uniqBy((issue) => issue.html_url) // remove duplicates by issue URL, maybe not necessary, but good for redability
-    .map(async (issue) => {
+    .map(async function processIssue(issue) {
       const url = issue.html_url; // ?? ("issue.html_url is required")    ;
+      const issueId = parseIssueUrl(issue.html_url); // = {owner, repo, issue_number}
       let task = await GithubBugcopTask.findOne({ url });
       const saveTask = async (data: Partial<GithubBugcopTask>) =>
         (task =
@@ -159,7 +163,7 @@ export default async function runGithubBugcopTask() {
       const timeline = await pageFlow(1, async (page) => {
         const { data: events } = await hotMemo(gh.issues.listEventsForTimeline, [
           {
-            ...parseIssueUrl(issue.html_url),
+            ...issueId,
             page,
             per_page: 100,
           },
@@ -213,11 +217,7 @@ export default async function runGithubBugcopTask() {
         // 1. list issue comments that is updated/created later than this label last added
         const comments = await pageFlow(1, async (page) => {
           const { data: comments } = await hotMemo(gh.issues.listComments.bind(gh.issues), [
-            {
-              ...parseIssueUrl(issue.html_url),
-              page,
-              per_page: 100,
-            },
+            { ...issueId, page, per_page: 100 },
           ]);
           return { data: comments, next: comments.length >= 100 ? page + 1 : undefined };
         })
@@ -232,59 +232,67 @@ export default async function runGithubBugcopTask() {
         tlog("Found " + JSON.stringify(comments));
         return !!comments.length;
       })();
+
       // // TODO: maybe search in notion db about this issue, if it's answered in notion, then mark as answered
       // tlog('issue body not updated after last added time, checking comments...');
 
-      const isAnsweredByUser = hasNewComment || isBodyAddedContent; // check if user answered by new comment or body update
+      const responseReceived = hasNewComment || isBodyAddedContent; // check if user responsed info by new comment or body update
+      const status: "responseReceived" | "asking" = responseReceived ? "responseReceived" : "asking";
 
-      if (isAnsweredByUser) {
-        tlog(chalk.bgBlue(`Issue ${url} is answered by user, removing both ask-for-info and answered labels...`));
-        await saveTask({
-          status: "answered",
-          statusReason: isBodyAddedContent ? "body updated" : hasNewComment ? "new comment" : "unknown",
-        });
-        if (!isDryRun) {
-          task = await saveTask({ taskAction: "- " + ASKING_LABEL + ", - " + ANSWERED_LABEL });
-          // Remove both ask-for-info and answered labels when user has answered
-          await gh.issues.removeLabel({
-            ...parseIssueUrl(issue.html_url),
-            name: ASKING_LABEL,
-          });
-          if (task.labels?.includes(ANSWERED_LABEL)) {
-            await gh.issues.removeLabel({
-              ...parseIssueUrl(issue.html_url),
-              name: ANSWERED_LABEL,
-            });
-          }
+      return await match(status)
+        .with("responseReceived", async () => {
+          tlog(
+            chalk.bgBlue(
+              `Issue ${url} is answered by user, removing ask-for-info and answered labels, adding response-received label...`,
+            ),
+          );
           task = await saveTask({
-            labels: task.labels?.filter((e) => e !== ASKING_LABEL && e !== ANSWERED_LABEL) || [],
+            status: "answered",
+            statusReason: isBodyAddedContent ? "body updated" : hasNewComment ? "new comment" : "unknown",
           });
-          tlog('Removed both "bug-cop:ask-for-info" and "bug-cop:answered" labels from ' + issue.html_url);
-          await saveTask({ body: issue.body ?? undefined });
-        }
-      } else {
-        // User hasn't answered yet, but we have ask-for-info label
-        await saveTask({ status: "ask-for-info", statusReason: "user not answered yet" });
-        if (!task.labels?.includes(ANSWERED_LABEL)) {
-          tlog(chalk.bgYellow(`Issue ${url} has ask-for-info but no answered label, adding answered label...`));
-          if (!isDryRun) {
-            task = await saveTask({ taskAction: "+ " + ANSWERED_LABEL });
-            await gh.issues.addLabels({
-              ...parseIssueUrl(issue.html_url),
-              labels: [ANSWERED_LABEL],
-            });
-            task = await saveTask({
-              labels: [...(task.labels || []), ANSWERED_LABEL],
-            });
-            tlog('Added "bug-cop:answered" label to ' + issue.html_url);
-          }
-        } else {
-          tlog(`Issue ${url} already has both ask-for-info and answered labels, doing nothing...`);
-        }
-      }
 
-      // still not answered, do nothing
-      await saveTask({ lastChecked: new Date(), taskStatus: "ok" });
+          if (isDryRun) return;
+
+          task = await saveTask({
+            taskAction: "- " + ASKING_LABEL + ", - " + ANSWERED_LABEL + ", + " + RESPONSE_RECEIVED_LABEL,
+          });
+          // Remove both ask-for-info and answered labels when user has answered
+          if (task.labels?.includes(ASKING_LABEL)) await gh.issues.removeLabel({ ...issueId, name: ASKING_LABEL });
+          if (task.labels?.includes(ANSWERED_LABEL)) await gh.issues.removeLabel({ ...issueId, name: ANSWERED_LABEL });
+          task.labels = difference(task.labels || [], [ASKING_LABEL, ANSWERED_LABEL]);
+
+          // Add response-received label
+          if (!task.labels?.includes(RESPONSE_RECEIVED_LABEL))
+            await gh.issues.addLabels({ ...issueId, labels: [RESPONSE_RECEIVED_LABEL] });
+          task.labels = union(task.labels || [], [RESPONSE_RECEIVED_LABEL]);
+
+          task = await saveTask({ labels: task.labels });
+
+          tlog(
+            'Removed "bug-cop:ask-for-info" and "bug-cop:answered" labels, added "bug-cop:response-received" label to ' +
+              issue.html_url,
+          );
+          await saveTask({ body: issue.body ?? undefined });
+        })
+        .with("asking", async () => {
+          tlog(chalk.bgYellow(`Issue ${url} is still asking for info, updating task status...`));
+
+          // User hasn't answered yet, but we have ask-for-info label
+          task = await saveTask({ status: "ask-for-info", statusReason: "user not answered yet" });
+
+          if (isDryRun) return;
+
+          if (!task.labels?.includes(ANSWERED_LABEL))
+            await gh.issues.addLabels({ ...issueId, labels: [ANSWERED_LABEL] });
+          task.labels = union(task.labels || [], [ANSWERED_LABEL]);
+
+          if (task.labels?.includes(RESPONSE_RECEIVED_LABEL))
+            await gh.issues.removeLabel({ ...issueId, name: RESPONSE_RECEIVED_LABEL });
+          task.labels = difference(task.labels || [], [RESPONSE_RECEIVED_LABEL]);
+
+          task = await saveTask({ lastChecked: new Date(), taskStatus: "ok", labels: task.labels });
+        })
+        .exhaustive();
     })
     .run();
   tlog(chalk.green("Github Bugcop Task completed successfully!"));
