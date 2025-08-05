@@ -1,17 +1,25 @@
 import { Badge } from "@/components/ui/badge";
-import {
-  Table,
-  TableBody,
-  TableCaption,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Table, TableBody, TableCaption, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import Link from "next/link";
+import { Suspense } from "react";
+import { renderToReadableStream } from "react-dom/server";
+import { sflow } from "sflow";
 import { GithubBugcopTask } from "./gh-bugcop";
 // import { GithubBugcopTaskMetaEditor } from "./GithubBugcopTaskMetaEditor";
-
+if (import.meta.main) {
+  console.log(
+    await sflow(
+      await renderToReadableStream(
+        <Suspense>
+          <GithubBugCopTaskPage />
+        </Suspense>,
+      ),
+    )
+      .by(new TextDecoderStream())
+      .log()
+      .run(),
+  );
+}
 /**
  * GitHub Bug Cop Task Dashboard
  * Displays all bug-cop-labeled issues and PRs being tracked
@@ -19,7 +27,6 @@ import { GithubBugcopTask } from "./gh-bugcop";
 export default async function GithubBugCopTaskPage() {
   // Fetch all tasks from the database
   const tasks = await GithubBugcopTask.find({}).sort({ lastChecked: -1 }).toArray();
-
 
   const formatDate = (date: Date | string | undefined) => {
     if (!date) return "N/A";
@@ -35,7 +42,6 @@ export default async function GithubBugCopTaskPage() {
       return "Invalid Date";
     }
   };
-
 
   const getIssueNumber = (url: string) => {
     const match = url.match(/\/(\d+)$/);
@@ -60,8 +66,7 @@ export default async function GithubBugCopTaskPage() {
           <TableCaption>
             {tasks.length === 0
               ? "No bug cop tasks found"
-              : `A list of ${tasks.length} bug cop task${tasks.length !== 1 ? 's' : ''} being tracked`
-            }
+              : `A list of ${tasks.length} bug cop task${tasks.length !== 1 ? "s" : ""} being tracked`}
           </TableCaption>
           <TableHeader>
             <TableRow>
@@ -86,8 +91,12 @@ export default async function GithubBugCopTaskPage() {
               tasks.map((task: any) => (
                 <TableRow key={task.url}>
                   <TableCell>
-                    <Link className="text-sm text-muted-foreground outline outline-[1px] rounded-full px-2 py-1 whitespace-pre" href={`https://github.com/${task.user}`}
-                      target="_blank" rel="noopener noreferrer">
+                    <Link
+                      className="text-sm text-muted-foreground outline outline-[1px] rounded-full px-2 py-1 whitespace-pre"
+                      href={`https://github.com/${task.user}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       @{task.user}
                     </Link>
                   </TableCell>
@@ -100,19 +109,15 @@ export default async function GithubBugCopTaskPage() {
                     >
                       <div className="flex items-center gap-2">
                         <Badge className="w-16 text-center justify-center">
-                          {({ "pull_request": "PR", 'issue': "Issue" } as any)[task.type] || "Task"}
+                          {({ pull_request: "PR", issue: "Issue" } as any)[task.type] || "Task"}
                         </Badge>
-                        <span className="text-sm text-muted-foreground">
-                          {getIssueNumber(task.url)}
-                        </span>
-                        <h3>
-                          {task.title}
-                        </h3>
+                        <span className="text-sm text-muted-foreground">{getIssueNumber(task.url)}</span>
+                        <h3>{task.title}</h3>
                       </div>
                     </Link>
                   </TableCell>
                   <TableCell className="text-center">
-                    <Badge variant={'outline'}>{task.status?.toUpperCase() || '?'}</Badge>
+                    <Badge variant={"outline"}>{task.status?.toUpperCase() || "?"}</Badge>
                   </TableCell>
                   <TableCell className="text-center text-sm text-muted-foreground">
                     {formatDate(task.updatedAt)}
@@ -126,13 +131,11 @@ export default async function GithubBugCopTaskPage() {
                           </Badge>
                         ))}
                       </div>
-                    ) : (
-                      null
-                    )}</TableCell>
+                    ) : null}
+                  </TableCell>
                   <TableCell className="text-center text-sm text-muted-foreground">
                     {formatDate(task.lastChecked)}
                   </TableCell>
-
                 </TableRow>
               ))
             )}
@@ -142,7 +145,9 @@ export default async function GithubBugCopTaskPage() {
 
       <div className="mt-6 text-sm text-muted-foreground">
         <p>
-          {('This table shows all GitHub issues and pull requests with the "Bug Cop" label that have been processed by the automated tracking system. The system monitors repositories, sends Slack notifications, and requests reviews for bug-cop-related items.')}
+          {
+            'This table shows all GitHub issues and pull requests with the "Bug Cop" label that have been processed by the automated tracking system. The system monitors repositories, sends Slack notifications, and requests reviews for bug-cop-related items.'
+          }
         </p>
       </div>
     </div>
