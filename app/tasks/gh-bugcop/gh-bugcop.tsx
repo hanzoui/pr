@@ -217,7 +217,7 @@ async function processIssue(issue: GH["issue"]) {
       .filter((e) => e.user) // filter out comments without user
       .filter((e) => !e.user?.login.match(/\[bot\]$|-bot/)) // no bots
       .filter((e) => !["COLLABORATOR", "CONTRIBUTOR", "MEMBER", "OWNER"].includes(e.author_association)) // not by collaborators, usually askForInfo for more info
-      .filter((e) => e.user!.login !== latestLabeledEvent.actor.login) // ignore the user who added the label
+      .filter((e) => e.user?.login !== latestLabeledEvent.actor.login) // ignore the user who added the label
       .filter((e) => +new Date(e.updated_at) > +new Date(labelLastAddedTime)) // only comments that is updated later than the label added time
       .toArray();
     newComments.length && tlog("Found " + newComments.length + " comments after last added time for " + issue.html_url);
