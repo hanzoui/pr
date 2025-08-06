@@ -15,13 +15,15 @@ export const GCloudOAuth2Credentials = db.collection<{
 export type RedirectFn = (url: string) => Awaitable<never>;
 if (import.meta.main) {
   // await GCloudOAuth2Credentials.drop()
-  await sf(
-    GCloudOAuth2Credentials.find({
-      scopes: {
-        $all: ["https://www.googleapis.com/auth/gmail.compose", "https://www.googleapis.com/auth/userinfo.email"],
-      },
-    }),
-  ).toLog();
+  await sf
+    .sflow(
+      GCloudOAuth2Credentials.find({
+        scopes: {
+          $all: ["https://www.googleapis.com/auth/gmail.compose", "https://www.googleapis.com/auth/userinfo.email"],
+        },
+      }),
+    )
+    .toLog();
 }
 /**
  * Get an scope authenticated GCloud OAuth2 Client (cached in db.GCloudOAuth2Credentials)
