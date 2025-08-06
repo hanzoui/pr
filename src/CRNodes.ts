@@ -17,11 +17,13 @@ await CRNodes.createIndex({ repository: 1 }, { unique: false }); // WARN: duplic
 
 if (import.meta.main) {
   // peek cr nodes
-  const r = await sf(
-    $pipeline(CNRepos)
-      .match({ cr: { $exists: true } })
-      .replaceRoot({ newRoot: "$cr" })
-      .aggregate(),
-  ).toArray();
+  const r = await sf
+    .sflow(
+      $pipeline(CNRepos)
+        .match({ cr: { $exists: true } })
+        .replaceRoot({ newRoot: "$cr" })
+        .aggregate(),
+    )
+    .toArray();
   peekYaml({ r, len: r.length });
 }
