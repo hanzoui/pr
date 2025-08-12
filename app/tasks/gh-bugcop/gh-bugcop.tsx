@@ -196,7 +196,6 @@ async function processIssue(issue: GH["issue"]) {
       .filter((e) => e.label?.name === labelName)
       .sort(compareBy((e) => e.created_at))
       .reverse()[0];
-
   const latestLabeledEvent = lastLabeled(BUGCOP_ASKING_FOR_INFO) || lastLabeled(BUGCOP_ANSWERED);
   if (!latestLabeledEvent) {
     lastLabeled(BUGCOP_RESPONSE_RECEIVED) ||
