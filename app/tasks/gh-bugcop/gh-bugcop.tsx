@@ -189,13 +189,15 @@ async function processIssue(issue: GH["issue"]) {
   tlog("Found " + labelEvents.length + " unlabeled/labeled/commented events");
   await saveTask({ timeline: labelEvents as any });
 
-  const lastLabeled = (labelName: string) =>
-    labelEvents
-      .filter((e) => e.event === "labeled")
+  function lastLabeled(labelName: string) {
+    return labelEvents
+      .filter((e) => e?.event === "labeled")
       .map((e) => e as GH["labeled-issue-event"])
       .filter((e) => e.label?.name === labelName)
       .sort(compareBy((e) => e.created_at))
       .reverse()[0];
+  }
+
   const latestLabeledEvent = lastLabeled(BUGCOP_ASKING_FOR_INFO) || lastLabeled(BUGCOP_ANSWERED);
   if (!latestLabeledEvent) {
     lastLabeled(BUGCOP_RESPONSE_RECEIVED) ||
@@ -211,9 +213,7 @@ async function processIssue(issue: GH["issue"]) {
   const hasNewComment = await (async function () {
     const labelLastAddedTime = new Date(latestLabeledEvent?.created_at);
     const newComments = await pageFlow(1, async (page) => {
-      const { data: comments } = await hotMemo(gh.issues.listComments, [
-        { ...issueId, page, per_page: 100 },
-      ]);
+      const { data: comments } = await hotMemo(gh.issues.listComments, [{ ...issueId, page, per_page: 100 }]);
       return { data: comments, next: comments.length >= 100 ? page + 1 : undefined };
     })
       .flat()
@@ -261,15 +261,6 @@ async function processIssue(issue: GH["issue"]) {
     lastChecked: new Date(),
     labels: union(task.labels || [], addLabels).filter((e) => !removeLabels.includes(e)),
   });
-
-  function lastLabeled(labelName: string) {
-    return labelEvents
-      .filter((e) => e.event === "labeled")
-      .map((e) => e as GH["labeled-issue-event"])
-      .filter((e) => e.label?.name === labelName)
-      .sort(compareBy((e) => e.created_at))
-      .reverse()[0];
-  }
 }
 
 async function fetchAllIssueTimeline(issueId: { owner: string; repo: string; issue_number: number }) {
