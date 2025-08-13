@@ -5,7 +5,7 @@ import prettyMilliseconds from "pretty-ms";
 import { useEffect, useState } from "react";
 import sflow from "sflow";
 import useAsyncEffect from "use-async-effect";
-import { ASKING_LABEL, GithubBugcopTask } from "./gh-bugcop";
+import { BUGCOP_ANSWERED, BUGCOP_ASKING_FOR_INFO, BUGCOP_RESPONSE_RECEIVED, GithubBugcopTask } from "./gh-bugcop";
 
 if (import.meta.main) render(<GithubBugcopTaskStatus />);
 
@@ -16,8 +16,9 @@ export default function GithubBugcopTaskStatus({}) {
 
   // Color mappers
   const getStatusColor = (labels?: string[]) => {
-    if (labels?.includes(ASKING_LABEL)) return "yellow";
-    // if (labels?.includes(ANSWERED_LABEL)) return "green";
+    if (labels?.includes(BUGCOP_ASKING_FOR_INFO)) return "yellow";
+    if (labels?.includes(BUGCOP_ANSWERED)) return "blue";
+    if (labels?.includes(BUGCOP_RESPONSE_RECEIVED)) return "green";
     return "red";
   };
 
