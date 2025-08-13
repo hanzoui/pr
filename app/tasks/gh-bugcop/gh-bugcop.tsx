@@ -1,4 +1,4 @@
-#!/usr/env/bin bun --watch
+#!/usr/bin/env bun --watch
 /**
  * Github Bugcop Bot
  * 1. bot matches issues for label "bug-cop:ask-for-info"
