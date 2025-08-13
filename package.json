@@ -53,6 +53,7 @@
     "@ctrl/mac-address": "^3.0.3",
     "@hookform/resolvers": "^5.1.1",
     "@kbox-labs/react-echarts": "^1.2.0",
+    "@keyv/sqlite": "^4.0.5",
     "@monaco-editor/react": "^4.6.0",
     "@radix-ui/react-slot": "^1.2.3",
     "@slack/web-api": "^7.3.1",
