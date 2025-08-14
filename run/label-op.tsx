@@ -1,4 +1,5 @@
 import { gh } from "@/src/gh";
+import crypto from "crypto";
 
 export const REPOLIST = [
   "https://github.com/Comfy-Org/Comfy-PR",
@@ -7,15 +8,29 @@ export const REPOLIST = [
   "https://github.com/Comfy-Org/desktop",
 ];
 
+const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET || "your-webhook-secret-here";
+const USE_WEBHOOKS = process.env.USE_WEBHOOKS === "true";
+
 interface RepoMonitorState {
   lastCheckTime: Date;
   lastIssueId: number;
   lastPRId: number;
 }
 
+interface WebhookPayload {
+  action?: string;
+  issue?: any;
+  pull_request?: any;
+  comment?: any;
+  label?: any;
+  repository?: any;
+  sender?: any;
+}
+
 class RepoEventMonitor {
   private monitorState = new Map<string, RepoMonitorState>();
   private pollInterval = 30000; // 30 seconds
+  private webhookSetupComplete = false;
 
   constructor() {
     // Initialize state for each repo
@@ -40,16 +55,205 @@ class RepoEventMonitor {
     return new Date().toISOString();
   }
 
+  verifyWebhookSignature(payload: string, signature: string): boolean {
+    if (!signature) return false;
+
+    const expectedSignature = `sha256=${crypto.createHmac("sha256", WEBHOOK_SECRET).update(payload).digest("hex")}`;
+
+    return crypto.timingSafeEqual(Buffer.from(signature), Buffer.from(expectedSignature));
+  }
+
+  handleWebhookEvent(eventType: string, payload: WebhookPayload): void {
+    const timestamp = this.formatTimestamp();
+    const repo = payload.repository;
+    const repoName = repo ? `${repo.owner.login}/${repo.name}` : "unknown";
+
+    switch (eventType) {
+      case "issues":
+        this.handleIssueEvent(payload, timestamp, repoName);
+        break;
+      case "pull_request":
+        this.handlePREvent(payload, timestamp, repoName);
+        break;
+      case "issue_comment":
+        this.handleCommentEvent(payload, timestamp, repoName);
+        break;
+      case "pull_request_review":
+      case "pull_request_review_comment":
+        this.handlePRReviewEvent(payload, timestamp, repoName);
+        break;
+      case "label":
+        this.handleLabelEvent(payload, timestamp, repoName);
+        break;
+      default:
+        console.log(`[${timestamp}] 📥 WEBHOOK: ${eventType} event received for ${repoName}`);
+    }
+  }
+
+  private handleIssueEvent(payload: WebhookPayload, timestamp: string, repoName: string): void {
+    const { action, issue, sender } = payload;
+    const issueNumber = issue?.number;
+    const issueTitle = issue?.title;
+    const username = sender?.login;
+
+    switch (action) {
+      case "opened":
+        console.log(`[${timestamp}] 🆕 NEW ISSUE (WEBHOOK): ${repoName}#${issueNumber} - ${issueTitle} by ${username}`);
+        break;
+      case "closed":
+        console.log(`[${timestamp}] ✅ ISSUE CLOSED (WEBHOOK): ${repoName}#${issueNumber} by ${username}`);
+        break;
+      case "reopened":
+        console.log(`[${timestamp}] 🔄 ISSUE REOPENED (WEBHOOK): ${repoName}#${issueNumber} by ${username}`);
+        break;
+      case "labeled":
+      case "unlabeled":
+        const label = payload.label?.name;
+        console.log(
+          `[${timestamp}] 🏷️  ISSUE ${action.toUpperCase()} (WEBHOOK): ${repoName}#${issueNumber} - ${label} by ${username}`,
+        );
+        break;
+      default:
+        console.log(
+          `[${timestamp}] 📝 ISSUE ${action?.toUpperCase()} (WEBHOOK): ${repoName}#${issueNumber} by ${username}`,
+        );
+    }
+  }
+
+  private handlePREvent(payload: WebhookPayload, timestamp: string, repoName: string): void {
+    const { action, pull_request, sender } = payload;
+    const prNumber = pull_request?.number;
+    const prTitle = pull_request?.title;
+    const username = sender?.login;
+
+    switch (action) {
+      case "opened":
+        console.log(`[${timestamp}] 🔄 NEW PR (WEBHOOK): ${repoName}#${prNumber} - ${prTitle} by ${username}`);
+        break;
+      case "closed":
+        const merged = pull_request?.merged;
+        if (merged) {
+          console.log(`[${timestamp}] 🎉 PR MERGED (WEBHOOK): ${repoName}#${prNumber} by ${username}`);
+        } else {
+          console.log(`[${timestamp}] ❌ PR CLOSED (WEBHOOK): ${repoName}#${prNumber} by ${username}`);
+        }
+        break;
+      case "reopened":
+        console.log(`[${timestamp}] 🔄 PR REOPENED (WEBHOOK): ${repoName}#${prNumber} by ${username}`);
+        break;
+      case "labeled":
+      case "unlabeled":
+        const label = payload.label?.name;
+        console.log(
+          `[${timestamp}] 🏷️  PR ${action.toUpperCase()} (WEBHOOK): ${repoName}#${prNumber} - ${label} by ${username}`,
+        );
+        break;
+      default:
+        console.log(`[${timestamp}] 📝 PR ${action?.toUpperCase()} (WEBHOOK): ${repoName}#${prNumber} by ${username}`);
+    }
+  }
+
+  private handleCommentEvent(payload: WebhookPayload, timestamp: string, repoName: string): void {
+    const { action, comment, issue, sender } = payload;
+    const issueNumber = issue?.number;
+    const username = sender?.login;
+    const isPR = !!issue?.pull_request;
+
+    if (action === "created") {
+      const type = isPR ? "PR" : "ISSUE";
+      console.log(`[${timestamp}] 💬 NEW ${type} COMMENT (WEBHOOK): ${repoName}#${issueNumber} by ${username}`);
+    }
+  }
+
+  private handlePRReviewEvent(payload: WebhookPayload, timestamp: string, repoName: string): void {
+    const { action, pull_request, sender } = payload;
+    const prNumber = pull_request?.number;
+    const username = sender?.login;
+
+    if (action === "created" || action === "submitted") {
+      console.log(`[${timestamp}] 🔍 NEW PR REVIEW COMMENT (WEBHOOK): ${repoName}#${prNumber} by ${username}`);
+    }
+  }
+
+  private handleLabelEvent(payload: WebhookPayload, timestamp: string, repoName: string): void {
+    const { action, label, sender } = payload;
+    const labelName = label?.name;
+    const username = sender?.login;
+
+    console.log(
+      `[${timestamp}] 🏷️  LABEL ${action?.toUpperCase()} (WEBHOOK): ${repoName} - ${labelName} by ${username}`,
+    );
+  }
+
+  async setupWebhooks(): Promise<void> {
+    if (this.webhookSetupComplete) return;
+
+    console.log(`[${this.formatTimestamp()}] Setting up webhooks for repositories...`);
+
+    for (const repoUrl of REPOLIST) {
+      try {
+        const { owner, repo } = this.parseRepoUrl(repoUrl);
+
+        // Check if webhook already exists
+        const { data: hooks } = await gh.repos.listWebhooks({ owner, repo });
+        const webhookUrl = `${process.env.WEBHOOK_BASE_URL || "http://localhost:3000"}/webhook`;
+        const existingHook = hooks.find((hook) => hook.config?.url === webhookUrl);
+
+        if (existingHook) {
+          console.log(`[${this.formatTimestamp()}] ✅ Webhook already exists for ${owner}/${repo}`);
+          continue;
+        }
+
+        // Create webhook
+        await gh.repos.createWebhook({
+          owner,
+          repo,
+          config: {
+            url: webhookUrl,
+            content_type: "json",
+            secret: WEBHOOK_SECRET,
+          },
+          events: [
+            "issues",
+            "pull_request",
+            "issue_comment",
+            "pull_request_review",
+            "pull_request_review_comment",
+            "label",
+          ],
+        });
+
+        console.log(`[${this.formatTimestamp()}] ✅ Webhook created for ${owner}/${repo}`);
+      } catch (error: any) {
+        if (error.status === 403) {
+          console.warn(
+            `[${this.formatTimestamp()}] ⚠️  No permission to create webhook for ${repoUrl}. Falling back to polling.`,
+          );
+        } else {
+          console.error(`[${this.formatTimestamp()}] ❌ Error creating webhook for ${repoUrl}:`, error.message);
+        }
+      }
+    }
+
+    this.webhookSetupComplete = true;
+  }
+
   async start() {
     console.log(`[${this.formatTimestamp()}] Starting repository event monitor...`);
     console.log(`[${this.formatTimestamp()}] Monitoring repos: ${REPOLIST.join(", ")}`);
 
-    setInterval(() => {
-      this.checkAllRepos();
-    }, this.pollInterval);
+    if (USE_WEBHOOKS) {
+      console.log(`[${this.formatTimestamp()}] Using webhooks for real-time notifications`);
+      await this.setupWebhooks();
+    } else {
+      console.log(`[${this.formatTimestamp()}] Using polling mode (30s interval)`);
+      setInterval(() => {
+        this.checkAllRepos();
+      }, this.pollInterval);
 
-    // Initial check
-    await this.checkAllRepos();
+      // Initial check
+      await this.checkAllRepos();
+    }
   }
 
   private async checkAllRepos() {
@@ -216,14 +420,47 @@ class RepoEventMonitor {
 }
 
 if (import.meta.main) {
-  const server = Bun.serve({
-    routes: {
-      "/health": () => new Response("ok"),
-    },
-  });
-  console.log("listening" + server.url);
-
   // Start the monitoring system
   const monitor = new RepoEventMonitor();
+
+  const server = Bun.serve({
+    port: process.env.PORT || 3000,
+    async fetch(req) {
+      const url = new URL(req.url);
+
+      if (url.pathname === "/health") {
+        return new Response("ok");
+      }
+
+      if (url.pathname === "/webhook" && req.method === "POST") {
+        try {
+          const body = await req.text();
+          const signature = req.headers.get("x-hub-signature-256") || "";
+          const eventType = req.headers.get("x-github-event") || "";
+
+          // Verify webhook signature if secret is configured
+          if (WEBHOOK_SECRET !== "your-webhook-secret-here") {
+            if (!monitor.verifyWebhookSignature(body, signature)) {
+              return new Response("Unauthorized", { status: 401 });
+            }
+          }
+
+          const payload = JSON.parse(body);
+          monitor.handleWebhookEvent(eventType, payload);
+
+          return new Response("OK");
+        } catch (error) {
+          console.error("Webhook error:", error);
+          return new Response("Error", { status: 500 });
+        }
+      }
+
+      return new Response("Not Found", { status: 404 });
+    },
+  });
+
+  console.log(`Server listening on ${server.url}`);
+  console.log(`Webhook endpoint: ${server.url}webhook`);
+
   monitor.start();
 }
