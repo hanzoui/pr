@@ -107,7 +107,8 @@ async function runGithubDesktopReleaseNotificationTask() {
           .replace("{url}", task.url)
           .replace("{repo}", parseGithubUrl(task.url)?.repo || DIE(`unable parse REPO from URL ${task.url}`))
           .replace("{version}", task.version || DIE(`unable to parse version from task ${JSON.stringify(task)}`))
-          .replace("{status}", task.status),
+          .replace("{status}", task.status)
+          .replace(/$/, !coreTask?.version ? "" : " Core: " + coreTask.version),
       };
 
       // upsert drafting message if new/changed
@@ -125,12 +126,14 @@ async function runGithubDesktopReleaseNotificationTask() {
       // upsert stable message if new/changed
       const shouldSendMessage = task.isStable || task.slackMessage?.url;
       if (shouldSendMessage && task.slackMessage?.text?.trim() !== newSlackMessage.text.trim()) {
+        // const replyUrl =
+        //   coreTask?.slackMessageDrafting?.url || coreTask?.slackMessage?.url || task.slackMessageDrafting?.url;
         task = await save({
           url,
           slackMessage: await upsertSlackMessage({
             ...newSlackMessage,
-            replyUrl:
-              coreTask?.slackMessageDrafting?.url || coreTask?.slackMessage?.url || task.slackMessageDrafting?.url,
+            // replyUrl: replyUrl,
+            // reply_broadcast: replyUrl ? true : false,
           }),
         });
       }
