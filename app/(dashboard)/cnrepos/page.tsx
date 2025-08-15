@@ -1,27 +1,65 @@
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { CNRepos, type CNRepo } from "@/src/CNRepos";
 import { Suspense } from "react";
 import yaml from "yaml";
 
 export default async function CNReposPage() {
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-4">Custom Node Repositories</h1>
-
-      <div className="mb-6 p-4 bg-gray-100 rounded-lg">
-        <h2 className="text-lg font-semibold mb-2">Legend:</h2>
-        <div className="grid grid-cols-2 gap-2 text-sm">
-          <div>✅: Listed in Registry + ComfyUI-Manager</div>
-          <div>✔️: Listed in Registry only</div>
-          <div>🧪: Ready to Create PR</div>
-          <div>👀: Pending Review</div>
-          <div>🫗: Outside ComfyUI-Manager</div>
-          <div>❗: Error occurred</div>
-        </div>
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight">Custom Node Repositories</h1>
+        <p className="text-muted-foreground">
+          Manage and monitor ComfyUI custom node repositories and their registry integration status.
+        </p>
       </div>
 
-      <Suspense fallback={<div className="text-center p-8">⏳ Loading repositories...</div>}>
-        <CNReposTable />
-      </Suspense>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg">Status Legend</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-lg">✅</span>
+              <span className="text-sm">Registry + ComfyUI-Manager</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">✔️</span>
+              <span className="text-sm">Registry only</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🧪</span>
+              <span className="text-sm">Ready to Create PR</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">👀</span>
+              <span className="text-sm">Pending Review</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">🫗</span>
+              <span className="text-sm">Outside ComfyUI-Manager</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-lg">❗</span>
+              <span className="text-sm">Error occurred</span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Repositories</CardTitle>
+          <CardDescription>Recent repositories and their integration status</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Suspense fallback={<div className="flex justify-center p-8">⏳ Loading repositories...</div>}>
+            <CNReposTable />
+          </Suspense>
+        </CardContent>
+      </Card>
     </div>
   );
 }
@@ -34,26 +72,24 @@ async function CNReposTable() {
   }
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full bg-white border border-gray-300">
-        <thead className="bg-gray-50">
-          <tr>
-            <th className="px-4 py-2 border-b text-left">Status</th>
-            <th className="px-4 py-2 border-b text-left">Repository</th>
-            <th className="px-4 py-2 border-b text-left">Registry</th>
-            <th className="px-4 py-2 border-b text-left">ComfyUI-Manager</th>
-            <th className="px-4 py-2 border-b text-left">Candidate</th>
-            <th className="px-4 py-2 border-b text-left">Pull Requests</th>
-            <th className="px-4 py-2 border-b text-left">Info</th>
-          </tr>
-        </thead>
-        <tbody>
-          {repos.map((repo) => (
-            <CNRepoRow key={repo._id?.toString()} repo={repo} />
-          ))}
-        </tbody>
-      </table>
-    </div>
+    <Table>
+      <TableHeader>
+        <TableRow>
+          <TableHead className="w-16">Status</TableHead>
+          <TableHead>Repository</TableHead>
+          <TableHead className="w-24 text-center">Registry</TableHead>
+          <TableHead className="w-32 text-center">ComfyUI-Manager</TableHead>
+          <TableHead className="w-24 text-center">Candidate</TableHead>
+          <TableHead>Pull Requests</TableHead>
+          <TableHead className="w-24">Info</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {repos.map((repo) => (
+          <CNRepoRow key={repo._id?.toString()} repo={repo} />
+        ))}
+      </TableBody>
+    </Table>
   );
 }
 
@@ -74,61 +110,76 @@ function CNRepoRow({ repo }: { repo: CNRepo }) {
   };
 
   return (
-    <tr className="hover:bg-gray-50">
-      <td className="px-4 py-2 border-b text-center text-lg" title={getStatusDescription()}>
+    <TableRow>
+      <TableCell className="text-center text-lg" title={getStatusDescription()}>
         {getStatusIcon()}
-      </td>
-      <td className="px-4 py-2 border-b">
+      </TableCell>
+      <TableCell>
         <a
           href={repo.repository}
           target="_blank"
           rel="noreferrer"
-          className="text-blue-600 hover:underline font-mono text-sm"
+          className="text-primary hover:underline font-mono text-sm transition-colors"
         >
           {getRepoName(repo.repository)}
         </a>
-      </td>
-      <td className="px-4 py-2 border-b text-center">
+      </TableCell>
+      <TableCell className="text-center">
         {repo.cr_ids?.length || repo.cr ? (
-          <span className="text-green-600">✓</span>
+          <Badge variant="secondary" className="text-xs px-2">
+            ✓
+          </Badge>
         ) : (
-          <span className="text-gray-400">-</span>
+          <span className="text-muted-foreground">-</span>
         )}
-      </td>
-      <td className="px-4 py-2 border-b text-center">
+      </TableCell>
+      <TableCell className="text-center">
         {repo.cm_ids?.length || repo.cm ? (
-          <span className="text-green-600">✓</span>
+          <Badge variant="secondary" className="text-xs px-2">
+            ✓
+          </Badge>
         ) : (
-          <span className="text-gray-400">-</span>
+          <span className="text-muted-foreground">-</span>
         )}
-      </td>
-      <td className="px-4 py-2 border-b text-center">
-        {repo.candidate?.data ? <span className="text-orange-600">✓</span> : <span className="text-gray-400">-</span>}
-      </td>
-      <td className="px-4 py-2 border-b">
+      </TableCell>
+      <TableCell className="text-center">
+        {repo.candidate?.data ? (
+          <Badge variant="outline" className="text-xs px-2">
+            ✓
+          </Badge>
+        ) : (
+          <span className="text-muted-foreground">-</span>
+        )}
+      </TableCell>
+      <TableCell>
         <div className="space-y-1">
           {repo.crPulls?.data?.map((pull, idx) => (
             <div key={idx} className="text-xs">
               {pull.pull?.html_url ? (
-                <a href={pull.pull.html_url} target="_blank" rel="noreferrer" className="text-blue-600 hover:underline">
+                <a
+                  href={pull.pull.html_url}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="text-primary hover:underline transition-colors"
+                >
                   #{pull.pull.html_url.split("/").pop()} ({pull.type})
                 </a>
               ) : (
-                <span className="text-gray-500">Pending</span>
+                <span className="text-muted-foreground">Pending</span>
               )}
             </div>
           ))}
           {repo.crPulls?.error && (
-            <div className="text-xs text-red-600" title={repo.crPulls.error}>
-              Error occurred
-            </div>
+            <Badge variant="destructive" className="text-xs" title={repo.crPulls.error}>
+              Error
+            </Badge>
           )}
         </div>
-      </td>
-      <td className="px-4 py-2 border-b">
+      </TableCell>
+      <TableCell>
         <details className="text-xs">
-          <summary className="cursor-pointer text-blue-600">Details</summary>
-          <pre className="mt-2 p-2 bg-gray-100 rounded text-xs overflow-auto max-h-32">
+          <summary className="cursor-pointer text-primary hover:text-primary/80 transition-colors">Details</summary>
+          <pre className="mt-2 p-3 bg-muted rounded-md text-xs overflow-auto max-h-32 font-mono">
             {yaml.stringify({
               repository: repo.repository,
               cr_ids: repo.cr_ids?.length,
@@ -146,8 +197,8 @@ function CNRepoRow({ repo }: { repo: CNRepo }) {
             })}
           </pre>
         </details>
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 
   function getStatusDescription() {
