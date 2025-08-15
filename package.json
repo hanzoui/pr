@@ -97,7 +97,7 @@
     "is-hotkey-esm": "^1.0.0",
     "js-yaml": "^4.1.0",
     "json-stable-stringify": "^1.1.1",
-    "keyv": "^4.5.4",
+    "keyv": "^5.5.0",
     "keyv-cached-with": "^0.0.13",
     "lodash-es": "^4.17.21",
     "lucide-react": "^0.408.0",

@@ -1,0 +1,215 @@
+// important-review-tracker
+
+import { tsmatch } from "@/packages/mongodb-pipeline-ts/Task";
+import { db } from "@/src/db";
+import type { GH } from "@/src/gh";
+import { ghc } from "@/src/ghc";
+import { parseIssueUrl } from "@/src/parseIssueUrl";
+import { parseUrlRepoOwner } from "@/src/parseOwnerRepo";
+import DIE from "@snomiao/die";
+import chalk from "chalk";
+import sflow, { pageFlow } from "sflow";
+import { P } from "ts-pattern";
+
+// rules:
+// Scann all github prs with labels Core-*
+//   when Core-Important
+//     when after pr-review/pr-comment, add comment can set "Core-Ready-For-Review", by '+Core-Ready-For-Review'
+//
+export const coreReviewTrackerConfig = {
+  REPOLIST: [
+    "https://github.com/Comfy-Org/Comfy-PR",
+    "https://github.com/comfyanonymous/ComfyUI",
+    "https://github.com/Comfy-Org/ComfyUI_frontend",
+    "https://github.com/Comfy-Org/desktop",
+  ],
+  labels: ["Core", "CoreImportant"],
+  minReminderInterval: "24h", // edit-existed-slack-message < this-interval < send-another-slack-message
+  messageUpdatePattern: "<!-- COMFY_PR_BOT_TRACKER -->",
+  staleMessage: `<!-- COMFY_PR_BOT_TRACKER --> This PR has been waiting for a response for too long. A reminder is being sent to @comfyanonymous.`,
+  reviewedMessage: `<!-- COMFY_PR_BOT_TRACKER --> This PR is reviewed! When it's ready for review again, please add a comment with **+label:Core-Ready-for-Review** to reminder @comfyanonymous to restart the review process.`,
+};
+const cfg = coreReviewTrackerConfig;
+
+export const LABELS = ["Core", "Core-Important"];
+
+type ComfyCorePRs = {
+  url: string;
+  title: string;
+  /**
+   * status matchers:
+   * closed: closed, ignore
+   * unrelated: Core-Important is not labeled anymore
+   * reviewed: reviewed after the label , => -label:Core-Important, +label:Core-Reviewed, send cfg.reviewedMessage
+   * fresh: not reviewed yet after the label, < 24h since Core-Important labeled
+   * stale: not reviewed yet after the label, > 24h since Core-Important labeled, send cfg.staleMessage
+   */
+  status: "fresh" | "stale" | "reviewed" | "closed" | "unrelated";
+  statusMsg: string; // send to slack
+  created_at: Date;
+  labels: string[];
+  // review status
+  last_labeled_at?: Date;
+  last_reviewed_at?: Date;
+  last_commented_at?: Date;
+  task_updated_at: Date;
+};
+export const ComfyCorePRs = db.collection<ComfyCorePRs>("ComfyCorePRs");
+const saveTask = async (pr: Partial<ComfyCorePRs> & { url: string }) => {
+  return (
+    (await ComfyCorePRs.findOneAndUpdate(
+      { url: pr.url },
+      { $set: { ...pr, task_updated_at: new Date() } },
+      { upsert: true, returnDocument: "after" },
+    )) || DIE("fail to save task" + JSON.stringify(pr))
+  );
+};
+
+if (import.meta.main) {
+  console.log("start", import.meta.file);
+  let freshCount = 0;
+
+  await sflow(coreReviewTrackerConfig.REPOLIST)
+    .flatMap((repoUrl) => [
+      // handle opening pr and it's comments
+      pageFlow(1, async (page, per_page = 100) => {
+        const { data } = await ghc.pulls.list({ ...parseUrlRepoOwner(repoUrl), page, per_page, state: "open" });
+        return { data, next: data.length >= per_page ? page + 1 : null };
+      })
+        .flat()
+
+        .map(async (pr) => {
+          const html_url = pr.html_url;
+          const corePrLabel = pr.labels.find((e) =>
+            tsmatch(e)
+              .with({ name: P.union("Core", "Core-Important") }, (l) => l)
+              .otherwise(() => null),
+          );
+          let task = await saveTask({
+            url: pr.html_url,
+            title: pr.title,
+            created_at: new Date(pr.created_at),
+            labels: pr.labels.map((e) => e.name),
+          });
+
+          if (!corePrLabel) return saveTask({ url: html_url, status: "unrelated" });
+          if (pr.state === "closed") return saveTask({ url: html_url, status: "closed" });
+
+          // check timeline events
+          const timeline = await fetchFullTimeline(html_url);
+
+          // Check recent events
+          const lastLabelEvent =
+            timeline
+              .map((e) =>
+                tsmatch(e)
+                  .with({ label: { name: corePrLabel.name } }, (e) => e)
+                  .otherwise(() => null),
+              )
+              .findLast(Boolean) || DIE(`No ${corePrLabel.name} label event found`);
+
+          task = await saveTask({ url: pr.html_url, last_labeled_at: new Date(lastLabelEvent.created_at) });
+          const lastReviewEvent =
+            timeline
+              .map((e) =>
+                tsmatch(e)
+                  .with(
+                    {
+                      event: "reviewed",
+                      author_association: P.union("COLLABORATOR", "MEMBER", "OWNER"),
+                      submitted_at: P.string,
+                    },
+                    (e) => e as GH["timeline-reviewed-event"],
+                  )
+                  .otherwise(() => null),
+              )
+              .filter((e) => e?.submitted_at) // ignore pending reviews
+              .findLast(Boolean) || null;
+          if (lastReviewEvent)
+            task = await saveTask({ url: pr.html_url, last_reviewed_at: new Date(lastReviewEvent.submitted_at!) });
+
+          const lastCommentEvent =
+            timeline
+              .map((e) =>
+                tsmatch(e)
+                  .with(
+                    { event: "commented", author_association: P.union("COLLABORATOR", "MEMBER", "OWNER") },
+                    (e) => e as GH["timeline-comment-event"],
+                  )
+                  .otherwise(() => null),
+              )
+              .findLast(Boolean) || null;
+          if (lastCommentEvent)
+            task = await saveTask({ url: pr.html_url, last_reviewed_at: new Date(lastCommentEvent.created_at) });
+
+          //
+          lastReviewEvent && console.log({ lastLabelEvent, lastReviewEvent });
+          const isReviewed = task?.last_reviewed_at && +task.last_reviewed_at > +task.last_labeled_at!;
+          const isCommented = task?.last_commented_at && +task.last_commented_at > +task.last_labeled_at!;
+
+          const createdAt = new Date(lastLabelEvent.created_at);
+          const now = new Date();
+          const diff = now.getTime() - createdAt.getTime();
+          const isFresh = diff <= 24 * 60 * 60 * 1000;
+
+          const status = isReviewed ? "reviewed" : isCommented ? "reviewed" : isFresh ? "fresh" : "stale";
+
+          const hours = Math.floor(diff / (60 * 60 * 1000));
+          const statusMsg = `${corePrLabel.name} PR <${pr.html_url}|${pr.title.replace(/\W+/g, " ").trim()}> has been labeled for more than ${hours} hours.`;
+          console.log(statusMsg);
+          console.log(pr.html_url + " " + pr.labels.map((e) => e.name));
+
+          return await saveTask({ url: html_url, status, statusMsg });
+        }),
+
+      // // handle issue comments, (also including pr comments)
+      // pageFlow(1, async (page, per_page = 100) => {
+      //   const { data } = await ghc.issues.listCommentsForRepo({ ...parseUrlRepoOwner(repoUrl), page, per_page });
+      //   return { data, next: data.length >= per_page ? page + 1 : null };
+      // }).flat(),
+
+      // // handle pr review comments
+      // pageFlow(1, async (page, per_page = 100) => {
+      //   const { data } = await ghc.pulls.listReviewCommentsForRepo({ ...parseUrlRepoOwner(repoUrl), page, per_page });
+      //   return { data, next: data.length >= per_page ? page + 1 : null };
+      // }).flat(),
+    ])
+    .confluenceByConcat()
+    .map((pr) => {
+      // console.log(e);
+      // e.body;
+    })
+    .run();
+
+  const corePRs = await ComfyCorePRs.find({}).sort({ last_labeled_at: -1 }).toArray();
+
+  console.log("ready to send slack message to notify @comfy");
+  const staleCorePRs = corePRs.filter((pr) => pr.status === "stale");
+  const staleCorePRsMessage = staleCorePRs
+    .map((pr) => pr.statusMsg || `- <${pr.url}|${pr.title}> ${pr.labels}`)
+    .join("\n");
+  const freshCorePRs = corePRs.filter((pr) => pr.status === "fresh");
+
+  const notifyMessage = `Hey <@comfy>, Here's x${staleCorePRs.length} Core/Important PRs waiting your feedback!\n${staleCorePRsMessage}\n... and there are ${freshCorePRs.length} more fresh Core/Core-Important PRs. cc <@Yoland>`;
+  console.log(chalk.bgBlue(notifyMessage));
+
+  // TODO: update message with delete line when it's reviewed
+
+  console.log("done", import.meta.file);
+}
+/**
+ * get full timeline
+ * - [Issue event types - GitHub Docs]( https://docs.github.com/en/rest/using-the-rest-api/issue-event-types?apiVersion=2022-11-28 )
+ */
+async function fetchFullTimeline(html_url: string) {
+  return await pageFlow(1, async (page, per_page = 100) => {
+    const { data } = await ghc.issues.listEventsForTimeline({
+      ...parseIssueUrl(html_url),
+      page,
+      per_page,
+    });
+    return { data, next: data.length >= per_page ? page + 1 : null };
+  })
+    .flat()
+    .toArray();
+}
