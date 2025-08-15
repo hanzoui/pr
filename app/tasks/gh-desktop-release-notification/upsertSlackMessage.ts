@@ -2,20 +2,23 @@ import { slack } from "@/src/slack";
 import { getSlackChannel } from "@/src/slack/channels";
 import KeyvSqlite from "@keyv/sqlite";
 import DIE from "@snomiao/die";
-import { mkdir } from "fs/promises";
 import Keyv from "keyv";
 import { slackMessageUrlParse, slackMessageUrlStringify } from "../gh-design/gh-design";
+import { COMFY_PR_CACHE_DIR } from "./COMFY_PR_CACHE_DIR";
 
-const cacheDir = "./node_modules/.cache/comfy-pr";
-await mkdir(cacheDir, { recursive: true });
 const SlackChannelIdsCache = new Keyv<string>({
-  store: new KeyvSqlite("sqlite://" + cacheDir + "/slackChannelIdCache.sqlite"),
+  store: new KeyvSqlite("sqlite://" + COMFY_PR_CACHE_DIR + "/slackChannelIdCache.sqlite"),
+});
+const SlackUserIdsCache = new Keyv<string>({
+  store: new KeyvSqlite("sqlite://" + COMFY_PR_CACHE_DIR + "/slackUserIdCache.sqlite"),
 });
 
 /**
- * upsert slack message
+ * Create or update existing slack message
  *
  * Note: the returned value 'channel' is a channel id, not name
+ *
+ * To tag a user, use <@UserId>, e.g. <@snomiao>
  */
 export async function upsertSlackMessage({
   text,
@@ -46,6 +49,7 @@ export async function upsertSlackMessage({
   if (!channel) DIE(`No slack channel specified`);
 
   if (process.env.DRY_RUN) throw new Error("sending slack message: " + JSON.stringify({ text, channel, url }));
+
   if (!url) {
     const thread_ts = !replyUrl ? undefined : slackMessageUrlParse(replyUrl).ts;
     const msg = !thread_ts
@@ -61,26 +65,29 @@ export async function upsertSlackMessage({
 }
 
 if (import.meta.main) {
+  // const myMsg = slackMessageUrlParse('https://comfy-organization.slack.com/archives/C095SJWUYMR/p1755243753632819')
+
   // post new message
   const msg = await upsertSlackMessage({
     channelName: "sno-test-channel",
-    text: "Hello @snomiao, this is a test message from upsertSlackMessage function.",
+    text: "Hello @sno @snomiao <@sno> <@snomiao>, this is a test message from upsertSlackMessage function.",
   });
-  console.log(msg);
+  // console.log(msg)
+  console.log(msg.url);
 
-  // edit that by providing msg url
+  // // edit that by providing msg url
   const msgEdited = await upsertSlackMessage({
     ...msg,
     text: msg.text + "\nThis is a msg edit",
   });
   console.log(msgEdited);
 
-  // reply that msg by providing reply url
-  const msgReplied = await upsertSlackMessage({
-    channel: msgEdited.channel,
-    text: "Hello @snomiao, this is a reply to last message.",
-    replyUrl: msgEdited.url,
-    reply_broadcast: true,
-  });
-  console.log(msgReplied);
+  // // reply that msg by providing reply url
+  // const msgReplied = await upsertSlackMessage({
+  //   channel: msgEdited.channel,
+  //   text: "Hello @snomiao, this is a reply to last message.",
+  //   replyUrl: msgEdited.url,
+  //   reply_broadcast: true,
+  // });
+  // console.log(msgReplied)
 }

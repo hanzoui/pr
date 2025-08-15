@@ -273,6 +273,9 @@ export async function runGithubDesignTask() {
   });
 }
 
+/**
+ * @deprecated use slack.chat.getPermalink instead
+ */
 export function slackMessageUrlStringify({ channel, ts }: { channel: string; ts: string }) {
   // slack use microsecond as message id, uniq by channel
   // TODO: move organization to env variable
