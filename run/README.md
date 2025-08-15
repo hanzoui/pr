@@ -1,30 +1,117 @@
-# gh-service: GitHub Repository Event Monitor
+# GitHub Webhook Service Deployment
 
-Real-time monitoring system for GitHub repository events across multiple repositories.
+This directory contains the GitHub webhook service and deployment configuration for Google Cloud Run.
 
-## Features
+## Overview
 
-- **Real-time notifications** for issues, PRs, comments, and label changes
-- **Dual mode support**: Webhooks (real-time) or Polling (30s interval)
-- **Multi-repository monitoring** across 4 Comfy-Org repositories
-- **Secure webhook verification** with HMAC signatures
-- **Automatic webhook setup** with graceful fallback to polling
+The webhook service (`index.tsx`) monitors GitHub repositories for events like issues, pull requests, and comments. It can operate in two modes:
 
-## Quick Start
+- **Webhook mode**: Real-time event handling via GitHub webhooks
+- **Polling mode**: Fallback polling when webhooks can't be configured
 
-### Polling Mode (Default)
+## Prerequisites
+
+1. **Google Cloud CLI**: Install and authenticate with `gcloud auth login`
+2. **Docker**: Required for building container images
+3. **Project Setup**: Enable billing on your Google Cloud project
+4. **GitHub Token**: Personal Access Token with repo permissions
+5. **Webhook Secret**: Secret for securing webhook payloads
+
+## Environment Variables
+
+The service requires these environment variables:
+
+### Required
+
+- `GITHUB_TOKEN`: GitHub Personal Access Token
+- `GITHUB_WEBHOOK_SECRET`: Secret for webhook signature validation
+- `PORT`: Server port (defaults to 8080)
+
+### Optional
+
+- `GITHUB_WEBHOOK_BASEURL`: Base URL for webhook endpoints
+- `GITHUB_WEBHOOK_PORT`: Alternative port setting
+
+## Deployment
+
+### Quick Deploy
 
 ```bash
-bun run run/gh-service.tsx
+# Set environment variables
+export GOOGLE_CLOUD_PROJECT="your-project-id"
+export GITHUB_TOKEN="ghp_your_token_here"
+export GITHUB_WEBHOOK_SECRET="your_webhook_secret"
+
+# Deploy
+cd run
+./deploy.sh
 ```
 
-### Webhook Mode (Real-time)
+### Manual Deploy Steps
+
+1. **Enable APIs**:
+
+   ```bash
+   gcloud services enable cloudbuild.googleapis.com run.googleapis.com artifactregistry.googleapis.com secretmanager.googleapis.com
+   ```
+
+2. **Create Artifact Registry**:
+
+   ```bash
+   gcloud artifacts repositories create github-webhook-service \
+       --repository-format=docker \
+       --location=us-central1
+   ```
+
+3. **Create Secrets**:
+
+   ```bash
+   echo "$GITHUB_TOKEN" | gcloud secrets create github-token --data-file=-
+   echo "$GITHUB_WEBHOOK_SECRET" | gcloud secrets create github-webhook-secret --data-file=-
+   ```
+
+4. **Build and Deploy**:
+   ```bash
+   gcloud builds submit . --config=cloudbuild.yaml
+   ```
+
+## Files
+
+- `index.tsx` - Main webhook service application
+- `Dockerfile` - Container build configuration
+- `cloudbuild.yaml` - Cloud Build deployment configuration
+- `deploy.sh` - Automated deployment script
+- `README.md` - This documentation
+
+## Service Endpoints
+
+- `/` - Root endpoint with basic info
+- `/api/github/webhook` - GitHub webhook endpoint
+- `/health` - Health check endpoint
+
+## GitHub Webhook Configuration
+
+After deployment, configure your GitHub repositories:
+
+1. Go to Repository Settings → Webhooks
+2. Add webhook with URL: `https://your-service-url/api/github/webhook`
+3. Set content type to `application/json`
+4. Enter your webhook secret
+5. Select events: Issues, Pull requests, Issue comments, Pull request reviews, Labels
+
+## Local Development
 
 ```bash
-export USE_WEBHOOKS=true
-export GITHUB_WEBHOOK_SECRET=your-webhook-secret
-export WEBHOOK_BASE_URL=https://your-public-domain.com
-bun run run/gh-service.tsx
+# Install dependencies
+bun install
+
+# Set environment variables
+export GITHUB_TOKEN="your_token"
+export GITHUB_WEBHOOK_SECRET="your_secret"
+export PORT=3000
+
+# Run locally
+bun run index.tsx
 ```
 
 ## Getting Your Webhook Secret
