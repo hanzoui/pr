@@ -1,6 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { TaskDataOrNull, TaskErrorOrNull } from "@/packages/mongodb-pipeline-ts/Task";
 import { CNRepos, type CNRepo } from "@/src/CNRepos";
 import { Suspense } from "react";
 import yaml from "yaml";
@@ -101,7 +102,7 @@ function CNRepoRow({ repo }: { repo: CNRepo }) {
     if (!!repo.cr && !repo.cm) return "✔️";
     if (!repo.crPulls) return "🧪";
     if (repo.crPulls.state === "ok") return "👀";
-    if (repo.crPulls.error) return "❗";
+    if (TaskErrorOrNull(repo.crPulls)) return "❗";
     return "❓";
   };
 
@@ -143,7 +144,7 @@ function CNRepoRow({ repo }: { repo: CNRepo }) {
         )}
       </TableCell>
       <TableCell className="text-center">
-        {repo.candidate?.data ? (
+        {TaskDataOrNull(repo.candidate) ? (
           <Badge variant="outline" className="text-xs px-2">
             ✓
           </Badge>
@@ -153,7 +154,7 @@ function CNRepoRow({ repo }: { repo: CNRepo }) {
       </TableCell>
       <TableCell>
         <div className="space-y-1">
-          {repo.crPulls?.data?.map((pull, idx) => (
+          {TaskDataOrNull(repo.crPulls)?.map((pull, idx) => (
             <div key={idx} className="text-xs">
               {pull.pull?.html_url ? (
                 <a
@@ -169,8 +170,8 @@ function CNRepoRow({ repo }: { repo: CNRepo }) {
               )}
             </div>
           ))}
-          {repo.crPulls?.error && (
-            <Badge variant="destructive" className="text-xs" title={repo.crPulls.error}>
+          {TaskErrorOrNull(repo.crPulls) && (
+            <Badge variant="destructive" className="text-xs" title={TaskErrorOrNull(repo.crPulls) || ""}>
               Error
             </Badge>
           )}
@@ -184,15 +185,15 @@ function CNRepoRow({ repo }: { repo: CNRepo }) {
               repository: repo.repository,
               cr_ids: repo.cr_ids?.length,
               cm_ids: repo.cm_ids?.length,
-              candidate: repo.candidate?.data,
-              info: repo.info?.data
+              candidate: TaskDataOrNull(repo.candidate),
+              info: TaskDataOrNull(repo.info)
                 ? {
-                    archived: repo.info.data.archived,
-                    private: repo.info.data.private,
-                    default_branch: repo.info.data.default_branch,
+                    archived: TaskDataOrNull(repo.info)?.archived,
+                    private: TaskDataOrNull(repo.info)?.private,
+                    default_branch: TaskDataOrNull(repo.info)?.default_branch,
                   }
                 : null,
-              pulls_count: repo.pulls?.data?.length,
+              pulls_count: TaskDataOrNull(repo.pulls)?.length,
               crPulls_state: repo.crPulls?.state,
             })}
           </pre>
