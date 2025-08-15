@@ -19,6 +19,9 @@
   "files": [
     "*.ts"
   ],
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
     "_postinstall": "bun ./src/muteInstances.ts",
     "build": "next build",
@@ -179,6 +182,7 @@
     "react-dom": "19.0.0",
     "tailwindcss": "^3.4.7",
     "ts-toolbelt": "^9.6.0",
+    "type-fest": "^4.41.0",
     "typescript": "^5.5.4"
   },
   "peerDependencies": {

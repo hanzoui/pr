@@ -57,3 +57,6 @@ report
 
 # bun crash dump
 core
+
+# gh-service sqlite cache
+gh-service/state.sqlite
