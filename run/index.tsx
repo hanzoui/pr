@@ -1,6 +1,3 @@
-import { gh, type GH } from "@/src/gh";
-import { ghc } from "@/src/ghc";
-import { parseUrlRepoOwner } from "@/src/parseOwnerRepo";
 import KeyvSqlite from "@keyv/sqlite";
 import DIE from "@snomiao/die";
 import crypto from "crypto";
@@ -8,6 +5,9 @@ import Keyv from "keyv";
 import sflow, { pageFlow } from "sflow";
 import { match, P } from "ts-pattern";
 import { type UnionToIntersection } from "type-fest";
+import { gh, type GH } from "../src/gh/index.js";
+import { ghc } from "../src/ghc.js";
+import { parseUrlRepoOwner } from "../src/parseOwnerRepo.js";
 import { processIssueCommentForLableops } from "./easylabel";
 import type { WEBHOOK_EVENT } from "./github-webhook-event-type";
 export const REPOLIST = [
@@ -17,7 +17,7 @@ export const REPOLIST = [
   "https://github.com/Comfy-Org/desktop",
 ];
 
-const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET;
+const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET; // generate one with `openssl rand -hex 32`
 const WEBHOOK_BASE_URL = process.env.GITHUB_WEBHOOK_BASEURL;
 const WEBHOOK_URL = WEBHOOK_BASE_URL?.replace(/$/, `/api/github/webhook`);
 

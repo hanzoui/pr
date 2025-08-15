@@ -10,16 +10,32 @@ import DIE from "@snomiao/die";
 import chalk from "chalk";
 import sflow, { pageFlow } from "sflow";
 import { P } from "ts-pattern";
-
-// rules:
-// Scann all github prs with labels Core-*
-//   when Core-Important
-//     when after pr-review/pr-comment, add comment can set "Core-Ready-For-Review", by '+Core-Ready-For-Review'
-//
+/**
+ * [Comfy- CorePing] The Core/Important PR Review Reminder Service
+ * This service reminders @comfyanonymous for unreviewed Core/Core-Important PRs every 24 hours in the morning 8am of california
+ *
+ * Environment: it's designed to be run in github actions by cron-job.
+ *
+ * Usage: run this script in github actions by cron job, it will scan all Core/Important PRs and send a slack message to @comfyanonymous
+ *
+ * How should it works:
+ *
+ * Scan all comfy-prs, with labels 'Core-*'
+ *    match theLabel("Core-Important") or theLabel("Core")
+ *      check if the pr is reviewed (after the label added):
+ *        when it's not reviewed yet:
+ *          < 24h since the labeled event to now: fresh
+ *          > 24h since the labeled event to now: stale
+ *            Collect and send @comfy reminder
+ *        when it's reviewed by @comfy after label:
+ *          after pr-review/pr-comment, add comment can set "Core-Ready-For-Review", by '+label:Core-Ready-For-Review'
+ *    match theLabel('Core-Ready-For-Review'):
+ *
+ */
 export const coreReviewTrackerConfig = {
   REPOLIST: [
-    "https://github.com/Comfy-Org/Comfy-PR",
     "https://github.com/comfyanonymous/ComfyUI",
+    "https://github.com/Comfy-Org/Comfy-PR",
     "https://github.com/Comfy-Org/ComfyUI_frontend",
     "https://github.com/Comfy-Org/desktop",
   ],
@@ -190,7 +206,7 @@ if (import.meta.main) {
     .join("\n");
   const freshCorePRs = corePRs.filter((pr) => pr.status === "fresh");
 
-  const notifyMessage = `Hey <@comfy>, Here's x${staleCorePRs.length} Core/Important PRs waiting your feedback!\n${staleCorePRsMessage}\n... and there are ${freshCorePRs.length} more fresh Core/Core-Important PRs. cc <@Yoland>`;
+  const notifyMessage = `Hey <@comfy>, Here's x${staleCorePRs.length} Core/Important PRs waiting your feedback!\n\n${staleCorePRsMessage}\n... and there are ${freshCorePRs.length} more fresh Core/Core-Important PRs.\n cc <@Yoland> <@snomiao>`;
   console.log(chalk.bgBlue(notifyMessage));
 
   // TODO: update message with delete line when it's reviewed
