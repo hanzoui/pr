@@ -7,28 +7,42 @@ volumes:
 
 # dev server
 services:
-  comfy-pr:
-    # prod
-    # image: comfy-pr
-    # build: .
-    # working_dir: /app/
+  # comfy-pr:
+  #   # prod
+  #   # image: comfy-pr
+  #   # build: .
+  #   # working_dir: /app/
 
-    # dev
+  #   # dev
+  #   image: oven/bun
+  #   command: bun dev --turbopack
+  #   working_dir: /app/
+
+  #   # image: node
+  #   # command: npx -y bun dev
+  #   #
+  #   develop:
+  #     command: bun dev --turbopack
+  #     image: oven/bun
+  #   volumes:
+  #     - ./:/app/
+  #     # - dotnext:/app/.next
+  #   environment:
+  #     PORT: 80
+  #   env_file:
+  #     - .env.local
+
+  gh-service:
     image: oven/bun
-    command: bun dev --turbopack
-    working_dir: /app/
-    
-    # image: node
-    # command: npx -y bun dev
-    #
-    develop:
-      command: bun dev --turbopack
-      image: oven/bun
-    volumes:
-      - ./:/app/
-      # - dotnext:/app/.next
+    # command: bun --hot run/index.tsx
+    # dev environment
+    # docker compose run gh-service
+    command: bun run/index.tsx
+    working_dir: /app
+    volumes: [./:/app]
+    ports: [14215:14215]
     environment:
-      PORT: 80
+      PORT: 14215
     env_file:
       - .env.local
   # comfy-pr:
@@ -43,7 +57,7 @@ services:
   #   env_file:
   #     - .env
   #     - .env.test
-  # 
+  #
   # db is not necessary for local dev
   # todo: use .override.yml to enable testing dmongodb
   # comfy-pr-db:

@@ -23,7 +23,7 @@ import Keyv from "keyv";
 import { union } from "rambda";
 import sflow, { pageFlow } from "sflow";
 import z from "zod";
-import { createTimeLogger } from "../gh-design/createTimeLogger";
+import { createTimeLogger } from "../../app/tasks/gh-design/createTimeLogger";
 // import Lock from 'async-sema';
 // import deferClose from "defer-close";
 export const REPOLIST = [

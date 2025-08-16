@@ -3,6 +3,7 @@ import { basename, dirname } from "path";
 /**
  * Parse owner and repo obj
  * @param gitUrl git@github.ocm:owner/repo or https://github.ocm/owner/repo
+ * @deprecated TODO: rename this to parseGithubRepoUrl
  */
 export function parseUrlRepoOwner(gitUrl: string) {
   return {
