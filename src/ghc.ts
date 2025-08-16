@@ -18,7 +18,9 @@ export type GH = ghComponents["schemas"];
 
 const CACHE_DIR = path.join(process.cwd(), "node_modules/.cache/Comfy-PR");
 const CACHE_FILE = path.join(CACHE_DIR, "gh-cache.sqlite");
-const DEFAULT_TTL = 30 * 60 * 1000; // 30 minutes
+const DEFAULT_TTL = process.env.LOCAL_DEV
+  ? 30 * 60 * 1000 // cache 30 minutes when local dev
+  : 1 * 60 * 1000; // cache 1 minute in production
 
 await fs.mkdir(CACHE_DIR, { recursive: true });
 
