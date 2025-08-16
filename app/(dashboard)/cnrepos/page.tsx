@@ -15,13 +15,14 @@ import { Suspense } from "react";
 import yaml from "yaml";
 
 interface CNReposPageProps {
-  searchParams?: {
+  searchParams?: Promise<{
     page?: string;
-  };
+  }>;
 }
 
 export default async function CNReposPage({ searchParams }: CNReposPageProps) {
-  const page = Number(searchParams?.page) || 1;
+  const resolvedSearchParams = await searchParams;
+  const page = Number(resolvedSearchParams?.page) || 1;
 
   return (
     <div className="container mx-auto p-6 space-y-6">
