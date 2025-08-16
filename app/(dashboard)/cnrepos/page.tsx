@@ -1,12 +1,28 @@
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Pagination,
+  PaginationContent,
+  PaginationItem,
+  PaginationLink,
+  PaginationNext,
+  PaginationPrevious,
+} from "@/components/ui/pagination";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { TaskDataOrNull, TaskErrorOrNull } from "@/packages/mongodb-pipeline-ts/Task";
 import { CNRepos, type CNRepo } from "@/src/CNRepos";
 import { Suspense } from "react";
 import yaml from "yaml";
 
-export default async function CNReposPage() {
+interface CNReposPageProps {
+  searchParams?: {
+    page?: string;
+  };
+}
+
+export default async function CNReposPage({ searchParams }: CNReposPageProps) {
+  const page = Number(searchParams?.page) || 1;
+
   return (
     <div className="container mx-auto p-6 space-y-6">
       <div className="space-y-2">
@@ -57,7 +73,7 @@ export default async function CNReposPage() {
         </CardHeader>
         <CardContent>
           <Suspense fallback={<div className="flex justify-center p-8">⏳ Loading repositories...</div>}>
-            <CNReposTable />
+            <CNReposTable page={page} />
           </Suspense>
         </CardContent>
       </Card>
@@ -65,32 +81,44 @@ export default async function CNReposPage() {
   );
 }
 
-async function CNReposTable() {
-  const repos = await CNRepos.find({}).sort({ _id: -1 }).limit(100).toArray();
+async function CNReposTable({ page }: { page: number }) {
+  const pageSize = 20;
+  const skip = (page - 1) * pageSize;
+
+  const [repos, totalCount] = await Promise.all([
+    CNRepos.find({}).sort({ _id: -1 }).skip(skip).limit(pageSize).toArray(),
+    CNRepos.countDocuments({}),
+  ]);
+
+  const totalPages = Math.ceil(totalCount / pageSize);
 
   if (!repos.length) {
     return <div className="text-center p-8">No repositories found</div>;
   }
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow>
-          <TableHead className="w-16">Status</TableHead>
-          <TableHead>Repository</TableHead>
-          <TableHead className="w-24 text-center">Registry</TableHead>
-          <TableHead className="w-32 text-center">ComfyUI-Manager</TableHead>
-          <TableHead className="w-24 text-center">Candidate</TableHead>
-          <TableHead>Pull Requests</TableHead>
-          <TableHead className="w-24">Info</TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {repos.map((repo) => (
-          <CNRepoRow key={repo._id?.toString()} repo={repo} />
-        ))}
-      </TableBody>
-    </Table>
+    <div className="space-y-4">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead className="w-16">Status</TableHead>
+            <TableHead>Repository</TableHead>
+            <TableHead className="w-24 text-center">Registry</TableHead>
+            <TableHead className="w-32 text-center">ComfyUI-Manager</TableHead>
+            <TableHead className="w-24 text-center">Candidate</TableHead>
+            <TableHead>Pull Requests</TableHead>
+            <TableHead className="w-24">Info</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {repos.map((repo) => (
+            <CNRepoRow key={repo._id?.toString()} repo={repo} />
+          ))}
+        </TableBody>
+      </Table>
+
+      {totalPages > 1 && <CNReposPagination currentPage={page} totalPages={totalPages} />}
+    </div>
   );
 }
 
@@ -216,4 +244,74 @@ function CNRepoRow({ repo }: { repo: CNRepo }) {
     };
     return descriptions[icon as keyof typeof descriptions] || "Unknown status";
   }
+}
+
+function CNReposPagination({ currentPage, totalPages }: { currentPage: number; totalPages: number }) {
+  const maxVisiblePages = 5;
+
+  let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+  let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+  if (endPage - startPage + 1 < maxVisiblePages) {
+    startPage = Math.max(1, endPage - maxVisiblePages + 1);
+  }
+
+  const createPageUrl = (page: number) => {
+    const params = new URLSearchParams();
+    if (page > 1) params.set("page", page.toString());
+    return `/cnrepos${params.toString() ? "?" + params.toString() : ""}`;
+  };
+
+  return (
+    <div className="flex items-center justify-between">
+      <div className="text-sm text-muted-foreground">
+        Page {currentPage} of {totalPages}
+      </div>
+
+      <Pagination>
+        <PaginationContent>
+          {currentPage > 1 && (
+            <PaginationItem>
+              <PaginationPrevious href={createPageUrl(currentPage - 1)} />
+            </PaginationItem>
+          )}
+
+          {startPage > 1 && (
+            <>
+              <PaginationItem>
+                <PaginationLink href={createPageUrl(1)}>1</PaginationLink>
+              </PaginationItem>
+              {startPage > 2 && <PaginationItem>...</PaginationItem>}
+            </>
+          )}
+
+          {Array.from({ length: endPage - startPage + 1 }, (_, i) => {
+            const page = startPage + i;
+            return (
+              <PaginationItem key={page}>
+                <PaginationLink href={createPageUrl(page)} isActive={page === currentPage}>
+                  {page}
+                </PaginationLink>
+              </PaginationItem>
+            );
+          })}
+
+          {endPage < totalPages && (
+            <>
+              {endPage < totalPages - 1 && <PaginationItem>...</PaginationItem>}
+              <PaginationItem>
+                <PaginationLink href={createPageUrl(totalPages)}>{totalPages}</PaginationLink>
+              </PaginationItem>
+            </>
+          )}
+
+          {currentPage < totalPages && (
+            <PaginationItem>
+              <PaginationNext href={createPageUrl(currentPage + 1)} />
+            </PaginationItem>
+          )}
+        </PaginationContent>
+      </Pagination>
+    </div>
+  );
 }
