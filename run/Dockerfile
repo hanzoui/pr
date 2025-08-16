@@ -11,12 +11,7 @@ COPY package.json bun.lock ./
 RUN bun install --production --ignore-scripts
 
 # Copy source code
-COPY src ./src
-COPY run ./run
-
-# Create necessary directories and set permissions
-RUN mkdir -p /app/node_modules/.cache/Comfy-PR && \
-    chmod 755 /app/node_modules/.cache/Comfy-PR
+COPY ../ .
 
 # Expose port
 EXPOSE 8080

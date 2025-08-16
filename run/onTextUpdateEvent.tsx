@@ -43,4 +43,26 @@ export function onIssueComment(
 }
 export function onIssue(
   payload: GH["webhook-issues-opened"] | GH["webhook-issues-edited"] | GH["webhook-issues-deleted"],
-);
+): void {
+  const timestamp = new Date().toISOString();
+  const repoName = `${payload.repository.owner.login}/${payload.repository.name}`;
+  const { action, issue, sender } = payload;
+
+  const issueNumber = issue.number;
+  const username = sender.login;
+
+  match(action)
+    .with("opened", () => {
+      console.log(`[${timestamp}] 🆕 NEW ISSUE: ${repoName}#${issueNumber} by ${username}`);
+      if (issue.title) {
+        console.log(`[${timestamp}] 📋 Title: "${issue.title}"`);
+      }
+    })
+    .with("edited", () => {
+      console.log(`[${timestamp}] ✏️  ISSUE EDITED: ${repoName}#${issueNumber} by ${username}`);
+    })
+    .with("deleted", () => {
+      console.log(`[${timestamp}] 🗑️  ISSUE DELETED: ${repoName}#${issueNumber} by ${username}`);
+    })
+    .exhaustive();
+}
