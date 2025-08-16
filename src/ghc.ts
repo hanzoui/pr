@@ -22,12 +22,22 @@ const DEFAULT_TTL = process.env.LOCAL_DEV
   ? 30 * 60 * 1000 // cache 30 minutes when local dev
   : 1 * 60 * 1000; // cache 1 minute in production
 
-await fs.mkdir(CACHE_DIR, { recursive: true });
+async function ensureCacheDir() {
+  await fs.mkdir(CACHE_DIR, { recursive: true });
+}
 
-const keyv = new Keyv({
-  store: new KeyvSqlite(CACHE_FILE),
-  ttl: DEFAULT_TTL,
-});
+let keyv: Keyv | null = null;
+
+async function getKeyv() {
+  if (!keyv) {
+    await ensureCacheDir();
+    keyv = new Keyv({
+      store: new KeyvSqlite(CACHE_FILE),
+      ttl: DEFAULT_TTL,
+    });
+  }
+  return keyv;
+}
 
 function createCacheKey(basePath: string[], prop: string | symbol, args: any[]): string {
   // Create a deterministic key from the path and arguments
@@ -58,9 +68,10 @@ function createCachedProxy(target: any, basePath: string[] = []): any {
       if (typeof value === "function") {
         return async function (...args: any[]) {
           const cacheKey = createCacheKey(basePath, prop, args);
+          const keyvInstance = await getKeyv();
 
           // Try to get from cache first
-          const cached = await keyv.get(cacheKey);
+          const cached = await keyvInstance.get(cacheKey);
           if (cached !== undefined) {
             // console.log(`HIT|${cacheKey}`); // cache hit info for debug
             return cached;
@@ -70,7 +81,7 @@ function createCachedProxy(target: any, basePath: string[] = []): any {
           const result = await value.apply(obj, args);
 
           // Cache the result
-          await keyv.set(cacheKey, result);
+          await keyvInstance.set(cacheKey, result);
 
           return result;
         };
@@ -95,7 +106,8 @@ type DeepAsyncWrapper<T> = {
 };
 
 export async function clearGhCache(): Promise<void> {
-  await keyv.clear();
+  const keyvInstance = await getKeyv();
+  await keyvInstance.clear();
 }
 
 export async function getGhCacheStats(): Promise<{ size: number; keys: string[] }> {
@@ -108,22 +120,26 @@ export const ghc = createCachedProxy(gh) as DeepAsyncWrapper<typeof gh>;
 
 // manual test with real api
 if (import.meta.main) {
-  // Test the cached client
-  console.log("Testing cached GitHub client...");
+  async function runTest() {
+    // Test the cached client
+    console.log("Testing cached GitHub client...");
 
-  // This should make a real API call
-  const result1 = await ghc.repos.get({
-    owner: "octocat",
-    repo: "Hello-World",
-  });
-  console.log("First call result:", result1.data.name);
+    // This should make a real API call
+    const result1 = await ghc.repos.get({
+      owner: "octocat",
+      repo: "Hello-World",
+    });
+    console.log("First call result:", result1.data.name);
 
-  // This should use cache
-  const result2 = await ghc.repos.get({
-    owner: "octocat",
-    repo: "Hello-World",
-  });
-  console.log("Second call result (cached):", result2.data.name);
+    // This should use cache
+    const result2 = await ghc.repos.get({
+      owner: "octocat",
+      repo: "Hello-World",
+    });
+    console.log("Second call result (cached):", result2.data.name);
 
-  console.log("Cache test complete!");
+    console.log("Cache test complete!");
+  }
+
+  runTest().catch(console.error);
 }
