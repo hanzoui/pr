@@ -20,7 +20,7 @@ import { mkdir } from "fs/promises";
 import hotMemo from "hot-memo";
 import isCI from "is-ci";
 import Keyv from "keyv";
-import { union } from "rambda";
+import { difference, union } from "rambda";
 import sflow, { pageFlow } from "sflow";
 import z from "zod";
 import { createTimeLogger } from "../../app/tasks/gh-design/createTimeLogger";
@@ -235,9 +235,12 @@ async function processIssue(issue: GH["issue"]) {
       lastChecked: new Date(),
     });
   }
-
-  const addLabels = [BUGCOP_RESPONSE_RECEIVED].filter((e) => !issueLabels.includes(e)); // add response received label if not already added
-  const removeLabels = [latestLabeledEvent.label.name].filter((e) => issueLabels.includes(e)); // remove the triggering label if it exists on the issue
+  const desiredLabels = union(
+    issueLabels.filter((label) => label !== latestLabeledEvent.label.name),
+    [BUGCOP_RESPONSE_RECEIVED],
+  );
+  const addLabels = difference(desiredLabels, issueLabels);
+  const removeLabels = difference(issueLabels, desiredLabels);
 
   if (isResponseReceived) {
     console.log(chalk.bgBlue("Adding:"), addLabels);
@@ -246,21 +249,25 @@ async function processIssue(issue: GH["issue"]) {
 
   if (isDryRun) return task;
 
-  await sflow(addLabels)
-    .forEach((label) => tlog(`Adding label ${label} to ${issue.html_url}`))
-    .map((label) => gh.issues.addLabels({ ...issueId, labels: [label] }))
-    .run();
-  await sflow(removeLabels)
-    .forEach((label) => tlog(`Removing label ${label} from ${issue.html_url}`))
-    .map((label) => gh.issues.removeLabel({ ...issueId, name: label }))
-    .run();
+  if (addLabels.length > 0) {
+    await sflow(addLabels)
+      .forEach((label) => tlog(`Adding label ${label} to ${issue.html_url}`))
+      .map((label) => gh.issues.addLabels({ ...issueId, labels: [label] }))
+      .run();
+  }
+  if (removeLabels.length > 0) {
+    await sflow(removeLabels)
+      .forEach((label) => tlog(`Removing label ${label} from ${issue.html_url}`))
+      .map((label) => gh.issues.removeLabel({ ...issueId, name: label }))
+      .run();
+  }
 
   return await saveTask({
     // status,
     statusReason: isBodyAddedContent ? "body updated" : hasNewComment ? "new comment" : "unknown",
     taskStatus: "ok",
     lastChecked: new Date(),
-    labels: union(task.labels || [], addLabels).filter((e) => !removeLabels.includes(e)),
+    labels: desiredLabels,
   });
 }
 
