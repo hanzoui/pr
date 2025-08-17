@@ -235,8 +235,8 @@ async function processIssue(issue: GH["issue"]) {
       lastChecked: new Date(),
     });
   }
-  const addLabels = [BUGCOP_RESPONSE_RECEIVED];
-  const removeLabels = [latestLabeledEvent.label.name];
+  const addLabels = [BUGCOP_RESPONSE_RECEIVED].filter((e) => !issueLabels.includes(e)); // add response received label if not already added
+  const removeLabels = [latestLabeledEvent.label.name].filter((e) => issueLabels.includes(e)); // remove
 
   if (isResponseReceived) {
     console.log(chalk.bgBlue("Adding:"), addLabels);
