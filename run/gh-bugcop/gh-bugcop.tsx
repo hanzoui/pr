@@ -237,7 +237,7 @@ async function processIssue(issue: GH["issue"]) {
   }
 
   const addLabels = [BUGCOP_RESPONSE_RECEIVED].filter((e) => !issueLabels.includes(e)); // add response received label if not already added
-  const removeLabels = [latestLabeledEvent.label.name].filter((e) => issueLabels.includes(e)); // remove
+  const removeLabels = [latestLabeledEvent.label.name].filter((e) => issueLabels.includes(e)); // remove the triggering label if it exists on the issue
 
   if (isResponseReceived) {
     console.log(chalk.bgBlue("Adding:"), addLabels);
