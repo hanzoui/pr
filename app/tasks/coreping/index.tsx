@@ -200,8 +200,8 @@ if (import.meta.main) {
           const status = isReviewed ? "reviewed" : isCommented ? "reviewed" : isFresh ? "fresh" : "stale";
 
           const hours = Math.floor(diff / (60 * 60 * 1000));
-          const santizedTitle = pr.title.replace(/\W+/g, " ").trim();
-          const statusMsg = `@${pr.user?.login}'s ${corePrLabel.name} PR <${pr.html_url}|${santizedTitle}> is waiting for your feedback for more than ${hours} hours.`;
+          const sanitizedTitle = pr.title.replace(/\W+/g, " ").trim();
+          const statusMsg = `@${pr.user?.login}'s ${corePrLabel.name} PR <${pr.html_url}|${sanitizedTitle}> is waiting for your feedback for more than ${hours} hours.`;
           console.log(statusMsg);
           console.log(pr.html_url + " " + pr.labels.map((e) => e.name));
 
