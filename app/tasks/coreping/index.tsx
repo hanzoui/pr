@@ -243,26 +243,26 @@ if (import.meta.main) {
   // TODO: update message with delete line when it's reviewed
   // send or update slack message
   let meta = await Meta.$upsert({});
-  if (meta.lastSlackMessage) {
-    // if <24 h since last sent (not edit), update that msg
-    if (
-      meta.lastSlackMessage.sendAt &&
-      new Date().getTime() - new Date(meta.lastSlackMessage.sendAt).getTime() < 24 * 60 * 60 * 1000
-    ) {
-      const msg = await upsertSlackMessage({
-        text: notifyMessage,
-        channelName: cfg.slackChannelName,
-        url: meta.lastSlackMessage.url,
-      });
-      meta = await Meta.$upsert({ lastSlackMessage: { text: msg.text, url: msg.url, sendAt: new Date() } });
-    } else {
-      // if >24h, deprecate last message and post a new msg
-      const msg = await upsertSlackMessage({
-        text: notifyMessage,
-        channelName: cfg.slackChannelName,
-      });
-      meta = await Meta.$upsert({ lastSlackMessage: { text: msg.text, url: msg.url, sendAt: new Date() } });
-    }
+  // if <24 h since last sent (not edit), update that msg
+  if (
+    meta.lastSlackMessage &&
+    meta.lastSlackMessage.sendAt &&
+    new Date().getTime() - new Date(meta.lastSlackMessage.sendAt).getTime() < 24 * 60 * 60 * 1000
+  ) {
+    const msg = await upsertSlackMessage({
+      text: notifyMessage,
+      channelName: cfg.slackChannelName,
+      url: meta.lastSlackMessage.url,
+    });
+    meta = await Meta.$upsert({ lastSlackMessage: { text: msg.text, url: msg.url, sendAt: new Date() } });
+    return;
+  } else {
+    // if >24h or not exist, post a new msg
+    const msg = await upsertSlackMessage({
+      text: notifyMessage,
+      channelName: cfg.slackChannelName,
+    });
+    meta = await Meta.$upsert({ lastSlackMessage: { text: msg.text, url: msg.url, sendAt: new Date() } });
   }
 
   console.log("done", import.meta.file);
