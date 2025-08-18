@@ -1,0 +1,34 @@
+name: "CorePing - Core PR Review Reminder"
+
+on:
+  schedule:
+    # Runs at 11am San Francisco time (19:00 UTC), Monday to Saturday
+    # 0 19 * * 1-6 means: minute=0, hour=19 (7pm UTC), any day of month, any month, Mon-Sat (1-6)
+    - cron: "0 19 * * 1-6"
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/coreping.yaml"
+      - "app/tasks/coreping/**"
+
+jobs:
+  run_coreping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v1
+
+      # Install dependencies
+      - run: bun i
+
+      # Run CorePing task
+      - run: bun app/tasks/coreping/index.tsx
+        timeout-minutes: 8
+        env:
+          GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR_BOT }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          SLACK_BOT_CHANNEL: ${{ secrets.SLACK_BOT_CHANNEL }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
