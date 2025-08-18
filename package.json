@@ -29,6 +29,7 @@
     "predev": "bun i",
     "dev": "next dev",
     "dev:tsc": "tsc -w",
+    "gh-service": "bun run/index.ts",
     "lint": "next lint",
     "prepare": "husky",
     "prerelease": "bun run build && bun run test && vercel --prod",
