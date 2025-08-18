@@ -236,7 +236,9 @@ if (import.meta.main) {
     .join("\n");
   const freshCorePRs = corePRs.filter((pr) => pr.status === "fresh");
 
-  const freshMsg = !freshCorePRs ? "" : `and there are ${freshCorePRs.length} more fresh Core/Core-Important PRs.\n`;
+  const freshMsg = !freshCorePRs.length
+    ? ""
+    : `and there are ${freshCorePRs.length} more fresh Core/Core-Important PRs.\n`;
   const notifyMessage = `Hey <@comfy>, Here's x${staleCorePRs.length} Core/Important PRs waiting your feedback!\n\n${staleCorePRsMessage}\n${freshMsg}\nSent from <CorePing> by <@snomiao> cc <@Yoland>`;
   console.log(chalk.bgBlue(notifyMessage));
 
