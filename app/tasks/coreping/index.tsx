@@ -44,7 +44,7 @@ export const coreReviewTrackerConfig = {
   ],
   labels: ["Core", "CoreImportant"],
   minReminderInterval: "24h", // edit-existed-slack-message < this-interval < send-another-slack-message
-  slackChannelName: "sno-test-channel", // develop channel, without notification
+  slackChannelName: "develop", // develop channel, without notification
 
   // github message
   messageUpdatePattern: "<!-- COMFY_PR_BOT_TRACKER -->",
