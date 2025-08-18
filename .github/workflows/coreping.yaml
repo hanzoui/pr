@@ -6,12 +6,12 @@ on:
     # 0 19 * * 1-6 means: minute=0, hour=19 (7pm UTC), any day of month, any month, Mon-Sat (1-6)
     - cron: "0 19 * * 1-6"
   workflow_dispatch:
-  push:
-    branches:
-      - main
-    paths:
-      - ".github/workflows/coreping.yaml"
-      - "app/tasks/coreping/**"
+  # push:
+  #   branches:
+  #     - main
+  #   paths:
+  #     - ".github/workflows/coreping.yaml"
+  #     - "app/tasks/coreping/**"
 
 jobs:
   run_coreping:
