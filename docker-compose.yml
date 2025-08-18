@@ -33,11 +33,11 @@ services:
   #     - .env.local
 
   gh-service:
-    image: oven/bun
+    image: oven/bun:latest
     # command: bun --hot run/index.tsx
     # dev environment
     # docker compose run gh-service
-    command: bun run/index.tsx
+    command: sh -c "bun run/index.ts"
     working_dir: /app
     volumes: [./:/app]
     ports: [14215:14215]

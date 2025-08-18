@@ -2,6 +2,7 @@
 
 import { tsmatch } from "@/packages/mongodb-pipeline-ts/Task";
 import { db } from "@/src/db";
+import { TaskMetaCollection } from "@/src/db/TaskMeta";
 import type { GH } from "@/src/gh";
 import { ghc } from "@/src/ghc";
 import { parseIssueUrl } from "@/src/parseIssueUrl";
@@ -10,6 +11,8 @@ import DIE from "@snomiao/die";
 import chalk from "chalk";
 import sflow, { pageFlow } from "sflow";
 import { P } from "ts-pattern";
+import z from "zod";
+import { upsertSlackMessage } from "../gh-desktop-release-notification/upsertSlackMessage";
 /**
  * [Comfy- CorePing] The Core/Important PR Review Reminder Service
  * This service reminders @comfyanonymous for unreviewed Core/Core-Important PRs every 24 hours in the morning 8am of california
@@ -41,6 +44,9 @@ export const coreReviewTrackerConfig = {
   ],
   labels: ["Core", "CoreImportant"],
   minReminderInterval: "24h", // edit-existed-slack-message < this-interval < send-another-slack-message
+  slackChannelName: "develop", // develop channel, without notification
+
+  // github message
   messageUpdatePattern: "<!-- COMFY_PR_BOT_TRACKER -->",
   staleMessage: `<!-- COMFY_PR_BOT_TRACKER --> This PR has been waiting for a response for too long. A reminder is being sent to @comfyanonymous.`,
   reviewedMessage: `<!-- COMFY_PR_BOT_TRACKER --> This PR is reviewed! When it's ready for review again, please add a comment with **+label:Core-Ready-for-Review** to reminder @comfyanonymous to restart the review process.`,
@@ -71,6 +77,26 @@ type ComfyCorePRs = {
   task_updated_at: Date;
 };
 export const ComfyCorePRs = db.collection<ComfyCorePRs>("ComfyCorePRs");
+
+/* only one */
+// type ComfyCorePRsLastMessage = {
+//   url: string;
+//   text: string;
+// };
+// export const ComfyCorePRsLastMessage = db.collection<ComfyCorePRsLastMessage>("ComfyCorePRsLastMessage");
+const Meta = TaskMetaCollection(
+  "ComfyCorePRs",
+  z.object({
+    lastSlackMessage: z
+      .object({
+        url: z.string(),
+        text: z.string(),
+        sendAt: z.date(),
+      })
+      .optional(),
+  }),
+);
+
 const saveTask = async (pr: Partial<ComfyCorePRs> & { url: string }) => {
   return (
     (await ComfyCorePRs.findOneAndUpdate(
@@ -82,6 +108,9 @@ const saveTask = async (pr: Partial<ComfyCorePRs> & { url: string }) => {
 };
 
 if (import.meta.main) {
+  // Designed to be mon to sat, TIME CHECKING
+  // Pacific Daylight Time
+
   console.log("start", import.meta.file);
   let freshCount = 0;
 
@@ -171,7 +200,8 @@ if (import.meta.main) {
           const status = isReviewed ? "reviewed" : isCommented ? "reviewed" : isFresh ? "fresh" : "stale";
 
           const hours = Math.floor(diff / (60 * 60 * 1000));
-          const statusMsg = `${corePrLabel.name} PR <${pr.html_url}|${pr.title.replace(/\W+/g, " ").trim()}> has been labeled for more than ${hours} hours.`;
+          const sanitizedTitle = pr.title.replace(/\W+/g, " ").trim();
+          const statusMsg = `@${pr.user?.login}'s ${corePrLabel.name} PR <${pr.html_url}|${sanitizedTitle}> is waiting for your feedback for more than ${hours} hours.`;
           console.log(statusMsg);
           console.log(pr.html_url + " " + pr.labels.map((e) => e.name));
 
@@ -197,7 +227,7 @@ if (import.meta.main) {
     })
     .run();
 
-  const corePRs = await ComfyCorePRs.find({}).sort({ last_labeled_at: -1 }).toArray();
+  const corePRs = await ComfyCorePRs.find({}).sort({ last_labeled_at: 1 }).toArray();
 
   console.log("ready to send slack message to notify @comfy");
   const staleCorePRs = corePRs.filter((pr) => pr.status === "stale");
@@ -206,13 +236,39 @@ if (import.meta.main) {
     .join("\n");
   const freshCorePRs = corePRs.filter((pr) => pr.status === "fresh");
 
-  const notifyMessage = `Hey <@comfy>, Here's x${staleCorePRs.length} Core/Important PRs waiting your feedback!\n\n${staleCorePRsMessage}\n... and there are ${freshCorePRs.length} more fresh Core/Core-Important PRs.\n cc <@Yoland> <@snomiao>`;
+  const freshMsg = !freshCorePRs.length
+    ? ""
+    : `and there are ${freshCorePRs.length} more fresh Core/Core-Important PRs.\n`;
+  const notifyMessage = `Hey <@comfy>, Here's x${staleCorePRs.length} Core/Important PRs waiting your feedback!\n\n${staleCorePRsMessage}\n${freshMsg}\nSent from <CorePing> by <@snomiao> cc <@Yoland>`;
   console.log(chalk.bgBlue(notifyMessage));
 
   // TODO: update message with delete line when it's reviewed
+  // send or update slack message
+  let meta = await Meta.$upsert({});
+  // if <24 h since last sent (not edit), update that msg
+  if (
+    meta.lastSlackMessage &&
+    meta.lastSlackMessage.sendAt &&
+    new Date().getTime() - new Date(meta.lastSlackMessage.sendAt).getTime() < 23.9 * 60 * 60 * 1000
+  ) {
+    const msg = await upsertSlackMessage({
+      text: notifyMessage,
+      channelName: cfg.slackChannelName,
+      url: meta.lastSlackMessage.url,
+    });
+    meta = await Meta.$upsert({ lastSlackMessage: { text: msg.text, url: msg.url, sendAt: new Date() } });
+  } else {
+    // if >24h or not exist, post a new msg
+    const msg = await upsertSlackMessage({
+      text: notifyMessage,
+      channelName: cfg.slackChannelName,
+    });
+    meta = await Meta.$upsert({ lastSlackMessage: { text: msg.text, url: msg.url, sendAt: new Date() } });
+  }
 
   console.log("done", import.meta.file);
 }
+
 /**
  * get full timeline
  * - [Issue event types - GitHub Docs]( https://docs.github.com/en/rest/using-the-rest-api/issue-event-types?apiVersion=2022-11-28 )
