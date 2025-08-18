@@ -255,7 +255,6 @@ if (import.meta.main) {
       url: meta.lastSlackMessage.url,
     });
     meta = await Meta.$upsert({ lastSlackMessage: { text: msg.text, url: msg.url, sendAt: new Date() } });
-    return;
   } else {
     // if >24h or not exist, post a new msg
     const msg = await upsertSlackMessage({
