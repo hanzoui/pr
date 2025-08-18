@@ -249,7 +249,7 @@ if (import.meta.main) {
   if (
     meta.lastSlackMessage &&
     meta.lastSlackMessage.sendAt &&
-    new Date().getTime() - new Date(meta.lastSlackMessage.sendAt).getTime() < 24 * 60 * 60 * 1000
+    new Date().getTime() - new Date(meta.lastSlackMessage.sendAt).getTime() < 23.9 * 60 * 60 * 1000
   ) {
     const msg = await upsertSlackMessage({
       text: notifyMessage,
