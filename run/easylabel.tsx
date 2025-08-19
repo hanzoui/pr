@@ -30,7 +30,8 @@ const cfg = {
     "https://github.com/Comfy-Org/ComfyUI_frontend",
     "https://github.com/Comfy-Org/desktop",
   ],
-  coreLabels: ["Core", "Core-Important", "Core-Ready-for-Review"],
+  // allow all users to edit bugcop:*, area:*, Core-*, labels
+  allow: [/^(?:Core|Core-.*)$/, /^(?:bug-cop|area):.*$/],
 };
 type GithubIssueLabelOps = {
   target_url: string; // can be comment or issue
@@ -42,7 +43,7 @@ type GithubIssueLabelOps = {
 };
 
 const GithubIssueLabelOps = db.collection<GithubIssueLabelOps>("GithubIssueLabelOps");
-GithubIssueLabelOps.createIndex({ target_url: 1 }, { unique: true });
+await GithubIssueLabelOps.createIndex({ target_url: 1 }, { unique: true });
 
 const saveTask = async (task: Partial<GithubIssueLabelOps> & { target_url: string }) =>
   (await GithubIssueLabelOps.findOneAndUpdate(
@@ -112,6 +113,9 @@ export async function processIssueCommentForLableops({
       // skip already added/removed in issueLables
       if (op === "+" && issueLabels.includes(name)) return false;
       if (op === "-" && !issueLabels.includes(name)) return false;
+      // skip not allowed labels
+      if (op === "+" && !cfg.allow.some((pattern) => name.match(pattern))) return false;
+      if (op === "-" && !cfg.allow.some((pattern) => name.match(pattern))) return false;
       return true;
     });
 
