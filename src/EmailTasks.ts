@@ -25,10 +25,10 @@ export const EmailTasks = db.collection<EmailTask>("EmailTasks");
 await EmailTasks.createIndex({ from: 1, to: 1, subject: 1 });
 
 if (import.meta.main) {
-  sf(EmailTasks.find({}))
+  sf.sflow(EmailTasks.find({}))
     .map((e) => e.state)
     .toLog();
-  // sf(EmailTasks.watch([], { fullDocument: "whenAvailable" }))
+  // sf.sflow(EmailTasks.watch([], { fullDocument: "whenAvailable" }))
   //   // .filter((c) => c.operationType === "modify")
   //   .toLog()
   //   .then(() => console.log("all done"));
@@ -64,8 +64,9 @@ export async function enqueueEmailTask(task: z.infer<typeof zSendEmailAction>) {
   );
 }
 export async function updateEmailTasks() {
-  const count = await sf(EmailTasks.find({ state: "waiting" }))
-    .merge(sf(EmailTasks.find({ state: "sending", mtime: $stale("1m") })))
+  const count = await sf
+    .sflow(EmailTasks.find({ state: "waiting" }))
+    .merge(sf.sflow(EmailTasks.find({ state: "sending", mtime: $stale("1m") })))
     .map(async (e) => {
       const { _id, state } = e;
       if (state === "waiting") {

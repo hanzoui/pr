@@ -101,7 +101,7 @@ export async function runGithubDesignTask() {
   const dryRun = process.argv.includes("--dry");
 
   tlog("Running gh design task...");
-  let meta = await GithubDesignTaskMeta.$set({
+  let meta = await GithubDesignTaskMeta.$upsert({
     name: "Github Design Issues Tracking Task",
     description:
       "Task to scan for [Design] labeled issues and PRs in specified repositories and notify product channel",
@@ -115,16 +115,16 @@ export async function runGithubDesignTask() {
 
   // save default values if not set
   if (!meta.slackMessageTemplate)
-    meta = await GithubDesignTaskMeta.$set({ slackMessageTemplate: ghDesignDefaultConfig.SLACK_MESSAGE_TEMPLATE });
+    meta = await GithubDesignTaskMeta.$upsert({ slackMessageTemplate: ghDesignDefaultConfig.SLACK_MESSAGE_TEMPLATE });
   if (!meta.requestReviewers)
-    meta = await GithubDesignTaskMeta.$set({ requestReviewers: ghDesignDefaultConfig.REQUEST_REVIEWERS });
-  if (!meta.repoUrls) meta = await GithubDesignTaskMeta.$set({ repoUrls: ghDesignDefaultConfig.REPOS_TO_SCAN_URLS });
-  if (!meta.matchLabels) meta = await GithubDesignTaskMeta.$set({ matchLabels: ghDesignDefaultConfig.MATCH_LABEL });
+    meta = await GithubDesignTaskMeta.$upsert({ requestReviewers: ghDesignDefaultConfig.REQUEST_REVIEWERS });
+  if (!meta.repoUrls) meta = await GithubDesignTaskMeta.$upsert({ repoUrls: ghDesignDefaultConfig.REPOS_TO_SCAN_URLS });
+  if (!meta.matchLabels) meta = await GithubDesignTaskMeta.$upsert({ matchLabels: ghDesignDefaultConfig.MATCH_LABEL });
   if (!meta.slackChannelName)
-    meta = await GithubDesignTaskMeta.$set({ slackChannelName: ghDesignDefaultConfig.SLACK_CHANNEL_NAME });
+    meta = await GithubDesignTaskMeta.$upsert({ slackChannelName: ghDesignDefaultConfig.SLACK_CHANNEL_NAME });
   if (!meta.slackChannelId) {
     tlog("Fetching Slack product channel...");
-    meta = await GithubDesignTaskMeta.$set({
+    meta = await GithubDesignTaskMeta.$upsert({
       slackChannelId: (await getSlackChannel(meta.slackChannelName!)).id,
     });
   }
@@ -266,13 +266,16 @@ export async function runGithubDesignTask() {
     .run();
 
   tlog("Github Design Task completed successfully.");
-  await GithubDesignTaskMeta.$set({
+  await GithubDesignTaskMeta.$upsert({
     lastRunAt: new Date(),
     lastStatus: "success",
     lastError: "",
   });
 }
 
+/**
+ * @deprecated use slack.chat.getPermalink instead
+ */
 export function slackMessageUrlStringify({ channel, ts }: { channel: string; ts: string }) {
   // slack use microsecond as message id, uniq by channel
   // TODO: move organization to env variable

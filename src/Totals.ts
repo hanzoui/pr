@@ -12,13 +12,14 @@ export const Totals = db.collection<{
   totals?: Task<Totals>;
 }>("Totals");
 if (import.meta.main) {
-  sf(
-    $pipeline(Totals)
-      .match({ "totals.data": { $exists: true } })
-      .set({ "totals.data.date": "$totals.mtime" })
-      .replaceRoot({ newRoot: "$totals.data" })
-      .aggregate(),
-  )
+  await sf
+    .sflow(
+      $pipeline(Totals)
+        .match({ "totals.data": { $exists: true } })
+        .set({ "totals.data.date": "$totals.mtime" })
+        .replaceRoot({ newRoot: "$totals.data" })
+        .aggregate(),
+    )
     .map((e) => flatten(e) as { date: string } & Record<string, number>)
     .toLog();
 }

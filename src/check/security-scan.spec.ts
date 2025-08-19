@@ -25,41 +25,42 @@ it.skip("works", async () => {
   console.log("all:", all.length);
   const ai = new OpenAI();
 
-  await sf(
-    await ai.chat.completions
-      .create({
-        model: "gpt-4o",
-        tools: [
-          {
-            function: {
-              name: "scan-file",
-              description: "scan file",
-              parameters: {
-                type: "object",
-                properties: {
-                  file: {
-                    type: "string",
-                    description: "The file to scan",
+  await sf
+    .sflow(
+      await ai.chat.completions
+        .create({
+          model: "gpt-4o",
+          tools: [
+            {
+              function: {
+                name: "scan-file",
+                description: "scan file",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    file: {
+                      type: "string",
+                      description: "The file to scan",
+                    },
+                    // unit: { type: "string", enum: ["celsius", "fahrenheit"] },
                   },
-                  // unit: { type: "string", enum: ["celsius", "fahrenheit"] },
+                  required: ["file"],
                 },
-                required: ["file"],
               },
+              type: "function",
             },
-            type: "function",
-          },
-        ],
-        messages: [
-          {
-            role: "system",
-            content:
-              "Act as a code-security-scanner, tell me problems in the codes below: \n\n" + all.slice(0, 1024 * 80),
-          },
-        ],
-        stream: true,
-      })
-      .then((e) => e.toReadableStream()),
-  )
+          ],
+          messages: [
+            {
+              role: "system",
+              content:
+                "Act as a code-security-scanner, tell me problems in the codes below: \n\n" + all.slice(0, 1024 * 80),
+            },
+          ],
+          stream: true,
+        })
+        .then((e) => e.toReadableStream()),
+    )
     .through(new PolyfillTextDecoderStream())
     .map((e) => JSON.parse(e).choices[0].delta.content ?? "")
     .tees(fromWritable(createWriteStream(resultmd)))

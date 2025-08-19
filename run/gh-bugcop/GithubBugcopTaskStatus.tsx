@@ -5,7 +5,7 @@ import prettyMilliseconds from "pretty-ms";
 import { useEffect, useState } from "react";
 import sflow from "sflow";
 import useAsyncEffect from "use-async-effect";
-import { ANSWERED_LABEL, ASKING_LABEL, GithubBugcopTask } from "./gh-bugcop";
+import { BUGCOP_ANSWERED, BUGCOP_ASKING_FOR_INFO, BUGCOP_RESPONSE_RECEIVED, GithubBugcopTask } from "./gh-bugcop";
 
 if (import.meta.main) render(<GithubBugcopTaskStatus />);
 
@@ -13,6 +13,34 @@ export default function GithubBugcopTaskStatus({}) {
   // NOTE: THIS IS A CLI COMPONENT, AND RUNNING IN GITHUB ACTION, NOT A WEBPAGE
   const [data, setData] = useState<WithId<GithubBugcopTask>[]>([]);
   const [logs, setLogs] = useState<string[]>([]);
+
+  // Color mappers
+  const getStatusColor = (labels?: string[]) => {
+    if (labels?.includes(BUGCOP_ASKING_FOR_INFO)) return "yellow";
+    if (labels?.includes(BUGCOP_ANSWERED)) return "blue";
+    if (labels?.includes(BUGCOP_RESPONSE_RECEIVED)) return "green";
+    return "red";
+  };
+
+  const taskStatusColorMap: Record<string, string> = {
+    responseReceived: "green",
+    askForInfo: "yellow",
+  };
+
+  const taskActionColorMap: Record<string, string> = {
+    ok: "green",
+    processing: "yellow",
+    error: "red",
+  };
+
+  const getUpdatedAtColor = (updatedAt?: Date) => {
+    if (!updatedAt) return "gray";
+    const daysSince = (Date.now() - updatedAt.getTime()) / (1000 * 60 * 60 * 24);
+    if (daysSince < 3) return "green";
+    if (daysSince < 7) return "yellow";
+    if (daysSince < 15) return "red";
+    return "gray";
+  };
 
   useAsyncEffect(async () => {
     const ac = new AbortController();
@@ -79,23 +107,9 @@ export default function GithubBugcopTaskStatus({}) {
 
       <Text color="blue">Status:</Text>
       {data.map((task) => {
-        const statusColor = task.labels?.includes(ASKING_LABEL)
-          ? "yellow"
-          : task.labels?.includes(ANSWERED_LABEL)
-            ? "green"
-            : "red";
-
-        // Status colors
-        const taskStatusColor =
-          task.status === "answered" ? "green" : task.status === "ask-for-info" ? "yellow" : "red";
-        const taskActionColor =
-          task.taskStatus === "ok"
-            ? "green"
-            : task.taskStatus === "processing"
-              ? "yellow"
-              : task.taskStatus === "error"
-                ? "red"
-                : "gray";
+        const statusColor = getStatusColor(task.labels);
+        const taskStatusColor = taskStatusColorMap[task.status ?? ""] ?? "red";
+        const taskActionColor = taskActionColorMap[task.taskStatus ?? ""] ?? "gray";
 
         return (
           <Box key={task.url} flexDirection="column">
@@ -113,16 +127,7 @@ export default function GithubBugcopTaskStatus({}) {
               </Box>
               <Box flexDirection="row">
                 <Text> ├─ Updated at: </Text>
-                <Text
-                  color={(() => {
-                    if (!task.updatedAt) return "gray";
-                    const daysSince = (Date.now() - new Date(task.updatedAt).getTime()) / (1000 * 60 * 60 * 24);
-                    if (daysSince < 3) return "green";
-                    if (daysSince < 7) return "yellow";
-                    if (daysSince < 15) return "red";
-                    return "gray";
-                  })()}
-                >
+                <Text color={getUpdatedAtColor(task.updatedAt)}>
                   {task.updatedAt
                     ? prettyMilliseconds(Date.now() - new Date(task.updatedAt).getTime()) + " ago"
                     : "never"}
