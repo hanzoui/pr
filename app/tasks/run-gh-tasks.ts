@@ -3,10 +3,10 @@ import { db } from "@/src/db";
 import isCI from "is-ci";
 
 // Import all the 5-minute tasks
+import runGithubBugcopTask from "../../run/gh-bugcop/gh-bugcop";
 import runGithubBountyTask from "./gh-bounty/gh-bounty";
 import { runGithubDesignTask } from "./gh-design/gh-design";
 import runGithubDesktopReleaseNotificationTask from "./gh-desktop-release-notification/index";
-import runGithubBugcopTask from "./gh-bugcop/gh-bugcop";
 
 const TASKS = [
   {
@@ -14,7 +14,7 @@ const TASKS = [
     run: runGithubBountyTask,
   },
   {
-    name: "GitHub Design Task", 
+    name: "GitHub Design Task",
     run: runGithubDesignTask,
   },
   {
@@ -29,13 +29,13 @@ const TASKS = [
 
 async function runAllTasks() {
   console.log("=� Starting all GitHub tasks...");
-  
+
   // Run all tasks concurrently using Promise.allSettled
   const results = await Promise.allSettled(
     TASKS.map(async (task) => {
       console.log(`� Starting: ${task.name}`);
       const startTime = Date.now();
-      
+
       try {
         await task.run();
         const duration = Date.now() - startTime;
@@ -46,12 +46,12 @@ async function runAllTasks() {
         console.error(`L Failed: ${task.name} (${duration}ms)`, error);
         throw { name: task.name, status: "error", duration, error };
       }
-    })
+    }),
   );
 
   // Process results
-  const successful = results.filter(result => result.status === "fulfilled");
-  const failed = results.filter(result => result.status === "rejected");
+  const successful = results.filter((result) => result.status === "fulfilled");
+  const failed = results.filter((result) => result.status === "rejected");
 
   console.log(`\n=� Summary:`);
   console.log(`   Successful: ${successful.length}`);
@@ -59,14 +59,14 @@ async function runAllTasks() {
   console.log(`  =� Total: ${results.length}`);
 
   // Log details for successful tasks
-  successful.forEach(result => {
+  successful.forEach((result) => {
     if (result.status === "fulfilled") {
       console.log(`   ${result.value.name}: ${result.value.duration}ms`);
     }
   });
 
   // Log details for failed tasks
-  failed.forEach(result => {
+  failed.forEach((result) => {
     if (result.status === "rejected") {
       const error = result.reason;
       console.error(`  L ${error.name}: ${error.duration}ms - ${error.error?.message || error.error}`);
@@ -83,7 +83,7 @@ async function runAllTasks() {
   }
 
   console.log("\n<� All tasks completed successfully!");
-  
+
   if (isCI) {
     await db.close();
     process.exit(0);

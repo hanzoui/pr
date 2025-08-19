@@ -43,8 +43,7 @@ jobs:
           FORK_PREFIX: "PR-"
           
           # Common environment variables for all tasks
-          GH_TOKEN: ${{ secrets.GH_TOKEN_COMFY_PR_BOT }}
-          GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR }}
+          GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR_BOT }}
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SLACK_BOT_CHANNEL: ${{ secrets.SLACK_BOT_CHANNEL }}

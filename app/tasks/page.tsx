@@ -1,8 +1,8 @@
 import { GithubActionUpdateTask } from "@/src/GithubActionUpdateTask/GithubActionUpdateTask";
 import Link from "next/link";
 import { Suspense } from "react";
+import { GithubBugcopTask } from "../../run/gh-bugcop/gh-bugcop";
 import { GithubBountyTask } from "./gh-bounty/gh-bounty";
-import { GithubBugcopTask } from "./gh-bugcop/gh-bugcop";
 import { GithubDesignTask } from "./gh-design/gh-design";
 import {
   GithubContributorAnalyzeTask,

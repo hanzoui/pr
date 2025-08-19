@@ -18,13 +18,14 @@ await Bun.plugin({
   },
 });
 
-Bun.plugin({
-  name: "preload-plugin",
-  setup(builder) {
-    builder.onLoad({ filter: /\.ts$/ }, async (args) => {
-      const text = await Bun.file(args.path).text();
-      // console.log("text", text);
-      return { contents: text, loader: args.loader };
-    });
-  },
-});
+// 2025-08-15 seems unnecessary
+// Bun.plugin({
+//   name: "preload-plugin",
+//   setup(builder) {
+//     builder.onLoad({ filter: /\.ts$/ }, async (args) => {
+//       const text = await Bun.file(args.path).text();
+//       // console.log("text", text);
+//       return { contents: text, loader: args.loader };
+//     });
+//   },
+// });
