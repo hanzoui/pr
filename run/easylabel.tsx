@@ -31,7 +31,7 @@ const cfg = {
     "https://github.com/Comfy-Org/desktop",
   ],
   // allow all users to edit bugcop:*, area:*, Core-*, labels
-  allow: [/^(?:Core|Core-.*)$/, /^(?:bug-cop|area):.*$/, /^(?:hello|world)$/],
+  allow: [/^(?:Core|Core-.*)$/, /^(?:bug-cop|area):.*$/],
 };
 type GithubIssueLabelOps = {
   target_url: string; // can be comment or issue
