@@ -39,7 +39,7 @@ type GithubDesignTask = {
 
   // TODO: (sno) find a way to record approved state
   user: string; // user who created the issue/PR, github username
-  state: "open" | 'approved' | "closed" | "merged"; // for issues, only open/closed state is avaliable
+  state: "open" | "approved" | "closed" | "merged"; // for issues, only open/closed state is avaliable
   stateAt: Date; // state change time, for PRs this is the merge/close/open time, for issues this is the closed/open time
   type: "issue" | "pull_request";
   title: string; // title of the issue/PR
@@ -67,21 +67,20 @@ type GithubDesignTask = {
 const COLLECTION_NAME = "GithubDesignTask";
 export const GithubDesignTaskMeta = TaskMetaCollection(COLLECTION_NAME, githubDesignTaskMetaSchema);
 export const GithubDesignTask = db.collection<GithubDesignTask>(COLLECTION_NAME);
-await GithubDesignTask.createIndex({ url: 1 }, { unique: true });// ensure url is unique
+await GithubDesignTask.createIndex({ url: 1 }, { unique: true }); // ensure url is unique
 
 // Helper function to save/update GithubDesignTask
 async function saveGithubDesignTask(url: string, $set: Partial<GithubDesignTask>) {
-  return (await GithubDesignTask.findOneAndUpdate(
-    { url },
-    { $set },
-    { upsert: true, returnDocument: "after" }
-  )) || DIE('NEVER');
+  return (
+    (await GithubDesignTask.findOneAndUpdate({ url }, { $set }, { upsert: true, returnDocument: "after" })) ||
+    DIE("NEVER")
+  );
 }
 
 if (import.meta.main) {
-  await runGithubDesignTask()
+  await runGithubDesignTask();
   if (isCI) {
-    await db.close()
+    await db.close();
     process.exit(0); // exit if running in CI
   }
 }
@@ -102,69 +101,79 @@ export async function runGithubDesignTask() {
   const dryRun = process.argv.includes("--dry");
 
   tlog("Running gh design task...");
-  let meta = await GithubDesignTaskMeta.$set({
+  let meta = await GithubDesignTaskMeta.$upsert({
     name: "Github Design Issues Tracking Task",
-    description: "Task to scan for [Design] labeled issues and PRs in specified repositories and notify product channel",
+    description:
+      "Task to scan for [Design] labeled issues and PRs in specified repositories and notify product channel",
     // Set defaults if not already set
-    slackChannelId: '',
-    // 
+    slackChannelId: "",
+    //
     lastRunAt: new Date(),
     lastStatus: "running",
-    lastError: '',
-  })
+    lastError: "",
+  });
 
   // save default values if not set
-  if (!meta.slackMessageTemplate) meta = await GithubDesignTaskMeta.$set({ slackMessageTemplate: ghDesignDefaultConfig.SLACK_MESSAGE_TEMPLATE, })
-  if (!meta.requestReviewers) meta = await GithubDesignTaskMeta.$set({ requestReviewers: ghDesignDefaultConfig.REQUEST_REVIEWERS, })
-  if (!meta.repoUrls) meta = await GithubDesignTaskMeta.$set({ repoUrls: ghDesignDefaultConfig.REPOS_TO_SCAN_URLS, })
-  if (!meta.matchLabels) meta = await GithubDesignTaskMeta.$set({ matchLabels: ghDesignDefaultConfig.MATCH_LABEL, })
-  if (!meta.slackChannelName) meta = await GithubDesignTaskMeta.$set({ slackChannelName: ghDesignDefaultConfig.SLACK_CHANNEL_NAME, })
+  if (!meta.slackMessageTemplate)
+    meta = await GithubDesignTaskMeta.$upsert({ slackMessageTemplate: ghDesignDefaultConfig.SLACK_MESSAGE_TEMPLATE });
+  if (!meta.requestReviewers)
+    meta = await GithubDesignTaskMeta.$upsert({ requestReviewers: ghDesignDefaultConfig.REQUEST_REVIEWERS });
+  if (!meta.repoUrls) meta = await GithubDesignTaskMeta.$upsert({ repoUrls: ghDesignDefaultConfig.REPOS_TO_SCAN_URLS });
+  if (!meta.matchLabels) meta = await GithubDesignTaskMeta.$upsert({ matchLabels: ghDesignDefaultConfig.MATCH_LABEL });
+  if (!meta.slackChannelName)
+    meta = await GithubDesignTaskMeta.$upsert({ slackChannelName: ghDesignDefaultConfig.SLACK_CHANNEL_NAME });
   if (!meta.slackChannelId) {
     tlog("Fetching Slack product channel...");
-    meta = await GithubDesignTaskMeta.$set({
+    meta = await GithubDesignTaskMeta.$upsert({
       slackChannelId: (await getSlackChannel(meta.slackChannelName!)).id,
     });
   }
 
-  tlog('TaskMeta: ' + JSON.stringify(meta));
+  tlog("TaskMeta: " + JSON.stringify(meta));
 
-  const channel = meta.slackChannelId || DIE('Missing Slack channel ID');
+  const channel = meta.slackChannelId || DIE("Missing Slack channel ID");
   tlog(`Slack channel: ${meta.slackChannelName} (${channel})`);
 
   // Get configuration from meta or use defaults
-  const slackMessageTemplate = meta.slackMessageTemplate || DIE('Missing Slack message template');
-  const designItemsFlow = await sflow(meta.repoUrls || DIE('Missing repo URLs'))
-    .map(e => parseUrlRepoOwner(e))
-    .pMap(async ({ owner, repo }) => pageFlow(1, async (page) => {
-      const per_page = 100;
-      // will list both issues and PRs
-      const { data: issues } = await gh.issues.listForRepo({
-        owner,
-        repo,
-        page,
-        per_page,
-        labels: meta.matchLabels || DIE('missing match label'), // comma-separated list of labels
-        state: "open", // scan only opened issues/PRs
-      });
-      tlog(`Found ${issues.length} Design labeled items in ${owner}/${repo}`);
-      return { data: issues, next: issues.length >= per_page ? page + 1 : undefined };
-    })
-      .filter((e) => e.length)
-      .flat()
-      .map((item) => ({
-        url: item.html_url,
-        title: item.title,
-        body: item.body,
-        user: item.user?.login,
-        type: item.pull_request ? "pull_request" as const : "issue" as const,
-        state: item.pull_request?.merged_at ? 'merged' as const : (item.state as 'open' | 'closed'),
-        stateAt: item.pull_request?.merged_at || item.closed_at || item.created_at,
-        labels: item.labels.flatMap(e => typeof e === 'string' ? [] : [e]).map(l => l.name),
-        comments: item.comments,
-      })), { concurrency: 3 }) // concurrency 3 repos
+  const slackMessageTemplate = meta.slackMessageTemplate || DIE("Missing Slack message template");
+  const designItemsFlow = await sflow(meta.repoUrls || DIE("Missing repo URLs"))
+    .map((e) => parseUrlRepoOwner(e))
+    .pMap(
+      async ({ owner, repo }) =>
+        pageFlow(1, async (page) => {
+          const per_page = 100;
+          // will list both issues and PRs
+          const { data: issues } = await gh.issues.listForRepo({
+            owner,
+            repo,
+            page,
+            per_page,
+            labels: meta.matchLabels || DIE("missing match label"), // comma-separated list of labels
+            state: "open", // scan only opened issues/PRs
+          });
+          tlog(`Found ${issues.length} Design labeled items in ${owner}/${repo}`);
+          return { data: issues, next: issues.length >= per_page ? page + 1 : undefined };
+        })
+          .filter((e) => e.length)
+          .flat()
+          .map((item) => ({
+            url: item.html_url,
+            title: item.title,
+            body: item.body,
+            user: item.user?.login,
+            type: item.pull_request ? ("pull_request" as const) : ("issue" as const),
+            state: item.pull_request?.merged_at ? ("merged" as const) : (item.state as "open" | "closed"),
+            stateAt: item.pull_request?.merged_at || item.closed_at || item.created_at,
+            labels: item.labels.flatMap((e) => (typeof e === "string" ? [] : [e])).map((l) => l.name),
+            comments: item.comments,
+          })),
+      { concurrency: 3 },
+    ) // concurrency 3 repos
     .confluenceByConcat() // merge page flows
     .map(async function process(item) {
-      tlog(`PROCESSING ${item.url}#${(item.title).replace(/\s+/g, "+")}_${item.body?.slice(0, 20).replaceAll(/\s+/g, "+")}`);
+      tlog(
+        `PROCESSING ${item.url}#${item.title.replace(/\s+/g, "+")}_${item.body?.slice(0, 20).replaceAll(/\s+/g, "+")}`,
+      );
       const url = item.url;
       const { owner, repo, issue_number } = parseIssueUrl(url);
       // create task
@@ -173,7 +182,7 @@ export async function runGithubDesignTask() {
         state: item.state,
         stateAt: new Date(item.stateAt),
         title: item.title,
-        user: item.user || '?',
+        user: item.user || "?",
         comments: item.comments || 0,
         bodyHash: item.body ? sha256(item.body) : undefined,
         lastRunAt: new Date(),
@@ -181,14 +190,15 @@ export async function runGithubDesignTask() {
         lastDoneAt: null, // reset lastDoneAt
       });
 
-      if (task.state === 'open') {
-        if (task.type === 'pull_request' && meta.requestReviewers?.some(e => !task.reviewers?.includes(e))) {
-          const requestReviewers = meta.requestReviewers ?? DIE('Missing request reviewers');
-          const newReviewers = requestReviewers.filter(e => !task.reviewers?.includes(e));
+      if (task.state === "open") {
+        if (task.type === "pull_request" && meta.requestReviewers?.some((e) => !task.reviewers?.includes(e))) {
+          const requestReviewers = meta.requestReviewers ?? DIE("Missing request reviewers");
+          const newReviewers = requestReviewers.filter((e) => !task.reviewers?.includes(e));
           tlog(`Requesting reviewers: ${newReviewers.join(", ")}`);
           if (!dryRun) {
             await gh.pulls.requestReviewers({
-              owner, repo,
+              owner,
+              repo,
               pull_number: issue_number,
               reviewers: newReviewers,
             });
@@ -196,15 +206,15 @@ export async function runGithubDesignTask() {
           }
         }
 
-        const text = (meta.slackMessageTemplate || DIE('Missing Slack message template'))
-          .replace("{{COMMENTS}}", task.comments?.toString().replace(/^(.*)$/, '[r$1]') ?? '')
+        const text = (meta.slackMessageTemplate || DIE("Missing Slack message template"))
+          .replace("{{COMMENTS}}", task.comments?.toString().replace(/^(.*)$/, "[r$1]") ?? "")
           .replace("{{STATE}}", task.state.toUpperCase())
-          .replace("{{USERNAME}}", task.user ?? '=??=')
+          .replace("{{USERNAME}}", task.user ?? "=??=")
           .replace("{{GITHUBUSER}}", `<https://github.com/${task.user}|@${task.user}>`)
           .replace("{{ITEM_TYPE}}", task.type)
           .replace("{{TITLE}}", task.title)
           .replace("{{URL}}", task.url)
-          .replace(/ +/, ' ')
+          .replace(/ +/, " ");
         const slackMsgHash = sha256(text);
 
         if (!task.slackUrl) {
@@ -224,7 +234,7 @@ export async function runGithubDesignTask() {
             task = await saveGithubDesignTask(url, {
               slackUrl: slackMessageUrlStringify({ channel, ts: msg.ts! }),
               slackSentAt: new Date(),
-              slackMsgHash
+              slackMsgHash,
             });
             tlog(`Slack message sent: ${task.slackUrl}`);
           }
@@ -235,7 +245,7 @@ export async function runGithubDesignTask() {
             if (!dryRun) {
               await slack.chat.update({
                 ...slackMessageUrlParse(task.slackUrl),
-                text
+                text,
               });
               task = await saveGithubDesignTask(url, { slackMsgHash });
               tlog(`Slack message updated: ${task.slackUrl}`);
@@ -256,17 +266,17 @@ export async function runGithubDesignTask() {
     .run();
 
   tlog("Github Design Task completed successfully.");
-  await GithubDesignTaskMeta.$set({
+  await GithubDesignTaskMeta.$upsert({
     lastRunAt: new Date(),
     lastStatus: "success",
-    lastError: '',
+    lastError: "",
   });
-
-  isCI && (await db.close());
-  isCI && process.exit(0);
 }
 
-export function slackMessageUrlStringify({ channel, ts }: { channel: string; ts: string; }) {
+/**
+ * @deprecated use slack.chat.getPermalink instead
+ */
+export function slackMessageUrlStringify({ channel, ts }: { channel: string; ts: string }) {
   // slack use microsecond as message id, uniq by channel
   // TODO: move organization to env variable
   return `https://comfy-organization.slack.com/archives/{{CHANNEL_ID}}/p{{TSNODOT}}`
