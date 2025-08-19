@@ -43,7 +43,7 @@ type GithubIssueLabelOps = {
 };
 
 const GithubIssueLabelOps = db.collection<GithubIssueLabelOps>("GithubIssueLabelOps");
-GithubIssueLabelOps.createIndex({ target_url: 1 }, { unique: true });
+await GithubIssueLabelOps.createIndex({ target_url: 1 }, { unique: true });
 
 const saveTask = async (task: Partial<GithubIssueLabelOps> & { target_url: string }) =>
   (await GithubIssueLabelOps.findOneAndUpdate(
