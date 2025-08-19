@@ -30,8 +30,8 @@ const cfg = {
     "https://github.com/Comfy-Org/ComfyUI_frontend",
     "https://github.com/Comfy-Org/desktop",
   ],
-  allowAdd: [/^(Core|Core-.*)$/, /^bug-cop:.*$/, /^(hello|world)$/],
-  allowRemove: [/^(Core|Core-.*)$/, /^bug-cop:.*$/, /^(hello|world)$/],
+  // allow all users to edit bugcop:*, area:*, Core-*, labels
+  allow: [/^(?:Core|Core-.*)$/, /^(?:bug-cop|area):.*$/, /^(?:hello|world)$/],
 };
 type GithubIssueLabelOps = {
   target_url: string; // can be comment or issue
@@ -114,8 +114,8 @@ export async function processIssueCommentForLableops({
       if (op === "+" && issueLabels.includes(name)) return false;
       if (op === "-" && !issueLabels.includes(name)) return false;
       // skip not allowed labels
-      if (op === "+" && !cfg.allowAdd.some((pattern) => name.match(pattern))) return false;
-      if (op === "-" && !cfg.allowRemove.some((pattern) => name.match(pattern))) return false;
+      if (op === "+" && !cfg.allow.some((pattern) => name.match(pattern))) return false;
+      if (op === "-" && !cfg.allow.some((pattern) => name.match(pattern))) return false;
       return true;
     });
 
