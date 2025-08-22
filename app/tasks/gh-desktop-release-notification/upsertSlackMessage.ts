@@ -48,9 +48,8 @@ export async function upsertSlackMessage({
   }
   if (!channel) DIE(`No slack channel specified`);
 
-  if (process.env.DRY_RUN) throw new Error("sending slack message: " + JSON.stringify({ text, channel, url }));
-
   if (!url) {
+    if (process.env.DRY_RUN) throw new Error("sending slack message: " + JSON.stringify({ text, channel }));
     const thread_ts = !replyUrl ? undefined : slackMessageUrlParse(replyUrl).ts;
     const msg = !thread_ts
       ? await slack.chat.postMessage({ text, channel })
@@ -59,6 +58,7 @@ export async function upsertSlackMessage({
     const url = slackMessageUrlStringify({ channel, ts: msg.ts! });
     return { ...msg, url, text, channel };
   }
+  if (process.env.DRY_RUN) throw new Error("updating slack message: " + JSON.stringify({ text, channel, url }));
   const ts = slackMessageUrlParse(url).ts;
   const msg = await slack.chat.update({ text, channel, ts });
   return { ...msg, url, text, channel };
