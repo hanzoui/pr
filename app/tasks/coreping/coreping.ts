@@ -111,6 +111,9 @@ if (import.meta.main) {
   // Designed to be mon to sat, TIME CHECKING
   // Pacific Daylight Time
 
+  // drop everytime since outdated data is useless, we kept lastSlackmessage in Meta collection which is enough
+  await ComfyCorePRs.drop();
+
   console.log("start", import.meta.file);
   let freshCount = 0;
 
@@ -240,7 +243,7 @@ if (import.meta.main) {
   const freshMsg = !freshCorePRs.length
     ? ""
     : `and there are ${freshCorePRs.length} more fresh Core/Core-Important PRs.\n`;
-  const notifyMessage = `Hey <@comfy>, Here's x${staleCorePRs.length} Core/Important PRs waiting your feedback!\n\n${staleCorePRsMessage}\n${freshMsg}\nSent from <CorePing> by <@snomiao> cc <@Yoland>`;
+  const notifyMessage = `Hey <@comfy>, Here's x${staleCorePRs.length} Core/Important PRs waiting your feedback!\n\n${staleCorePRsMessage}\n${freshMsg}\nSent from CorePing.ts by <@snomiao> cc <@yoland>`;
   console.log(chalk.bgBlue(notifyMessage));
 
   // TODO: update message with delete line when it's reviewed

@@ -25,7 +25,7 @@ jobs:
       - run: bun i
 
       # Run CorePing task
-      - run: bun app/tasks/coreping/index.tsx
+      - run: bun app/tasks/coreping/coreping.ts
         timeout-minutes: 8
         env:
           GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR_BOT }}
