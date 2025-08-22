@@ -142,7 +142,6 @@ if (import.meta.main) {
 
           if (!corePrLabel) return saveTask({ url: html_url, status: "unrelated" });
           if (pr.state === "closed") return saveTask({ url: html_url, status: "closed" });
-          if (pr.state !== "open") return saveTask({ url: html_url, status: "closed" });
           if (pr.draft) return saveTask({ url: html_url, status: "unrelated", statusMsg: "Draft PR, skipping" });
 
           // check timeline events
