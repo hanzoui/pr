@@ -10,7 +10,7 @@ import { db } from "@/src/db";
 import { TaskMetaCollection } from "@/src/db/TaskMeta";
 import { gh, type GH } from "@/src/gh";
 import { parseIssueUrl } from "@/src/parseIssueUrl";
-import { parseUrlRepoOwner } from "@/src/parseOwnerRepo";
+import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
 import KeyvSqlite from "@keyv/sqlite";
 import DIE from "@snomiao/die";
 import chalk from "chalk";
@@ -102,7 +102,7 @@ export default async function runGithubBugcopTask() {
         pageFlow(1, async (page) => {
           const { data: issues } = await hotMemo(gh.issues.listForRepo, [
             {
-              ...parseUrlRepoOwner(repoUrl),
+              ...parseGithubRepoUrl(repoUrl),
               state: "open" as const,
               page,
               per_page: 100,
