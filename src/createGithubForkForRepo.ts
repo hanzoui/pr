@@ -6,7 +6,7 @@ import { FORK_OWNER } from "./FORK_OWNER";
 import { FORK_PREFIX } from "./FORK_PREFIX";
 import { createGithubFork } from "./gh/createGithubFork";
 import { ghUser } from "./ghUser";
-import { parseUrlRepoOwner } from "./parseOwnerRepo";
+import { parseGithubRepoUrl } from "./parseOwnerRepo";
 
 /** for cache */
 const ForkedRepo = db.collection<{ repo: string; forkedRepo: string; updatedAt: Date }>("ForkedRepo");
@@ -61,7 +61,7 @@ Forking ${upstreamRepoUrl}
 }
 export async function createGithubForkUrlForRepo(upstreamRepoUrl: string) {
   // console.log(`* Change env.SALT=${salt} will fork into a different repo`);
-  const upstream = parseUrlRepoOwner(upstreamRepoUrl);
+  const upstream = parseGithubRepoUrl(upstreamRepoUrl);
   const argv = minimist(process.argv.slice(2));
   const salt = argv.salt || process.env.SALT || "m3KMgZ2AeZGWYh7W";
   const repo_hash = md5(`${salt}-${(await ghUser()).name}-${upstream.owner}/${upstream.repo}`).slice(0, 8);

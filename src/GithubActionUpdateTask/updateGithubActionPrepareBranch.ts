@@ -3,21 +3,21 @@ import { readFile, writeFile } from "fs/promises";
 import { globby } from "globby";
 import pProps from "p-props";
 import { $ } from "../cli/echoBunShell";
-import { parseUrlRepoOwner, stringifyGithubOrigin } from "../parseOwnerRepo";
+import { parseGithubRepoUrl, stringifyGithubOrigin } from "../parseOwnerRepo";
 import { parseTitleBodyOfMarkdown } from "../parseTitleBodyOfMarkdown";
 import { yaml } from "../utils/yaml";
 import { forkCheckoutRepoOnBranch } from "./forkCheckoutRepoOnBranch";
 import { gptWriter } from "./gptWriter";
 import {
-    referenceActionContent,
-    referenceActionContentHash,
-    referencePullRequestMessage,
+  referenceActionContent,
+  referenceActionContentHash,
+  referencePullRequestMessage,
 } from "./updateGithubActionTask";
 export const updateGithubActionPrepareBranchBanPatterns = [
   /if: \${{ github.repository_owner == 'NODE_AUTHOR_OWNER' }}/,
   /- master/,
   /submodules: true/,
-  /\+          personal_access_token: \${{ secrets.REGISTRY_ACCESS_TOKEN }}/
+  /\+          personal_access_token: \${{ secrets.REGISTRY_ACCESS_TOKEN }}/,
 ];
 export async function updateGithubActionPrepareBranch(repo: string) {
   console.log(`$ updateGithubActionPrepareBranch("${repo}")`);
@@ -48,7 +48,7 @@ export async function updateGithubActionPrepareBranch(repo: string) {
         { role: "developer", content: "$ read Pull Request message template" },
         { role: "function", name: "read", content: referencePullRequestMessage },
         { role: "developer", content: "$ read NODE_AUTHOR_OWNER" },
-        { role: "function", name: "read", content: parseUrlRepoOwner(repo).owner },
+        { role: "function", name: "read", content: parseGithubRepoUrl(repo).owner },
         {
           role: "user",
           content:
@@ -117,7 +117,7 @@ export async function updateGithubActionPrepareBranch(repo: string) {
       },
     ]),
   });
-  const origin = await stringifyGithubOrigin(parseUrlRepoOwner(html_url));
+  const origin = await stringifyGithubOrigin(parseGithubRepoUrl(html_url));
   await $`cd ${cwd} && git add . && git commit -am ${commitMessage} && git push -f ${origin} ${branch}`;
   // ensure pr message is parsable
   const { title, body } = parseTitleBodyOfMarkdown(pullRequestMessage);
