@@ -3,21 +3,20 @@ import { basename, dirname } from "path";
 /**
  * Parse owner and repo obj
  * @param gitUrl git@github.ocm:owner/repo or https://github.ocm/owner/repo
- * @deprecated TODO: rename this to parseGithubRepoUrl
  */
-export function parseUrlRepoOwner(gitUrl: string) {
+export function parseGithubRepoUrl(gitUrl: string) {
   return {
     owner: basename(dirname(gitUrl.replace(/:/, "/"))),
     repo: basename(gitUrl.replace(/:/, "/")).replace(/\.git$/, ""),
   };
 }
-export function stringifyOwnerRepo({ owner, repo }: ReturnType<typeof parseUrlRepoOwner>) {
+export function stringifyOwnerRepo({ owner, repo }: ReturnType<typeof parseGithubRepoUrl>) {
   return owner + "/" + repo;
 }
-export function stringifyGithubRepoUrl({ owner, repo }: ReturnType<typeof parseUrlRepoOwner>) {
+export function stringifyGithubRepoUrl({ owner, repo }: ReturnType<typeof parseGithubRepoUrl>) {
   return "https://github.com/" + owner + "/" + repo;
 }
-export async function stringifyGithubOrigin({ owner, repo }: ReturnType<typeof parseUrlRepoOwner>) {
+export async function stringifyGithubOrigin({ owner, repo }: ReturnType<typeof parseGithubRepoUrl>) {
   const PR_TOKEN = process.env.GH_TOKEN_COMFY_PR;
   if (PR_TOKEN) {
     // fails: maybe permission issue

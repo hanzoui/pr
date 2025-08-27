@@ -3,7 +3,7 @@ import { db } from "@/src/db";
 import { gh, type GH } from "@/src/gh";
 import { ghc } from "@/src/ghc";
 import { parseIssueUrl } from "@/src/parseIssueUrl";
-import { parseUrlRepoOwner } from "@/src/parseOwnerRepo";
+import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
 import DIE from "@snomiao/die";
 import chalk from "chalk";
 import sflow, { pageFlow } from "sflow";
@@ -67,7 +67,7 @@ async function runLabelOpInitializeScan() {
   await sflow(cfg.REPOLIST)
     .flatMap((repoUrl) => [
       pageFlow(1, async (page, per_page = 100) => {
-        const { data } = await ghc.issues.list({ ...parseUrlRepoOwner(repoUrl), page, per_page, state: "open" });
+        const { data } = await ghc.issues.list({ ...parseGithubRepoUrl(repoUrl), page, per_page, state: "open" });
         return { data, next: data.length >= per_page ? page + 1 : null };
       })
         .flat()

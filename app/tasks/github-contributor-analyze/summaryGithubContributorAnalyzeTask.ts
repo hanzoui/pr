@@ -9,8 +9,8 @@ import { GithubContributorAnalyzeTask, GithubContributorAnalyzeTaskFilter } from
 if (import.meta.main) {
   // analyze
   await summaryGithubContributorAnalyzeTask();
-  
-  if(isCI) process.exit(0);
+
+  if (isCI) process.exit(0);
 }
 
 export async function summaryGithubContributorAnalyzeTask() {
@@ -28,7 +28,7 @@ export async function summaryGithubContributorAnalyzeTask() {
       email,
       commitCount: sum(e!.map((e) => e!.count)),
       //   repos: e!
-      //     .map((e) => stringifyGithubRepoUrl(parseUrlRepoOwner(e!.repoUrl)).slice("https://github.com".length))
+      //     .map((e) => stringifyGithubRepoUrl(parseGithubRepoUrl(e!.repoUrl)).slice("https://github.com".length))
       //     .join(" "),
       repoCount: uniq(e!.map((e) => e!.repoUrl)).length,
       usernameCount: uniq(e!.map((e) => e!.name)).length,
@@ -48,10 +48,10 @@ export async function summaryGithubContributorAnalyzeTask() {
     allRepoCount: uniq(data.map((e) => e.repoUrl)).length,
     usernameCount: sum(json.map((e) => e.usernameCount)),
 
-    cloneableRepoCount: data.length - remains
+    cloneableRepoCount: data.length - remains,
   };
   console.log(total);
-  const date = new Date().toISOString().slice(0, 10)  ;
+  const date = new Date().toISOString().slice(0, 10);
   await globalThis.Bun?.write(`./report/uniq-contributor-emails.csv`, d3.csvFormat(json));
   await globalThis.Bun?.write(`./report/uniq-contributor-emails-total.yaml`, yaml.stringify(total));
   await globalThis.Bun?.write(`./report/${date}-uniq-contributor-emails.csv`, d3.csvFormat(json));
