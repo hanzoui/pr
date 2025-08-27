@@ -1,6 +1,6 @@
 import { gh } from ".";
 import { ghUser } from "../ghUser";
-import { parseUrlRepoOwner, stringifyGithubRepoUrl } from "../parseOwnerRepo";
+import { parseGithubRepoUrl, stringifyGithubRepoUrl } from "../parseOwnerRepo";
 
 if (import.meta.main) {
   const randomId = Math.random().toString(36).slice(2);
@@ -12,8 +12,8 @@ if (import.meta.main) {
   );
 }
 export async function createGithubFork(from: string, to: string) {
-  const _to = parseUrlRepoOwner(to);
-  const _from = parseUrlRepoOwner(from);
+  const _to = parseGithubRepoUrl(to);
+  const _from = parseGithubRepoUrl(from);
   const forkResult = await gh.repos
     .createFork({
       // from owner repo

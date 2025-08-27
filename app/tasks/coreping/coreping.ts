@@ -6,7 +6,7 @@ import { TaskMetaCollection } from "@/src/db/TaskMeta";
 import type { GH } from "@/src/gh";
 import { ghc } from "@/src/ghc";
 import { parseIssueUrl } from "@/src/parseIssueUrl";
-import { parseUrlRepoOwner } from "@/src/parseOwnerRepo";
+import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
 import DIE from "@snomiao/die";
 import chalk from "chalk";
 import sflow, { pageFlow } from "sflow";
@@ -121,7 +121,7 @@ if (import.meta.main) {
     .flatMap((repoUrl) => [
       // handle opening pr and it's comments
       pageFlow(1, async (page, per_page = 100) => {
-        const { data } = await ghc.pulls.list({ ...parseUrlRepoOwner(repoUrl), page, per_page, state: "open" });
+        const { data } = await ghc.pulls.list({ ...parseGithubRepoUrl(repoUrl), page, per_page, state: "open" });
         return { data, next: data.length >= per_page ? page + 1 : null };
       })
         .flat()
@@ -214,13 +214,13 @@ if (import.meta.main) {
 
       // // handle issue comments, (also including pr comments)
       // pageFlow(1, async (page, per_page = 100) => {
-      //   const { data } = await ghc.issues.listCommentsForRepo({ ...parseUrlRepoOwner(repoUrl), page, per_page });
+      //   const { data } = await ghc.issues.listCommentsForRepo({ ...parseGithubRepoUrl(repoUrl), page, per_page });
       //   return { data, next: data.length >= per_page ? page + 1 : null };
       // }).flat(),
 
       // // handle pr review comments
       // pageFlow(1, async (page, per_page = 100) => {
-      //   const { data } = await ghc.pulls.listReviewCommentsForRepo({ ...parseUrlRepoOwner(repoUrl), page, per_page });
+      //   const { data } = await ghc.pulls.listReviewCommentsForRepo({ ...parseGithubRepoUrl(repoUrl), page, per_page });
       //   return { data, next: data.length >= per_page ? page + 1 : null };
       // }).flat(),
     ])

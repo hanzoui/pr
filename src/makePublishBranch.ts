@@ -4,7 +4,7 @@ import { $ } from "./cli/echoBunShell";
 import { getBranchWorkingDir } from "./getBranchWorkingDir";
 import { gh } from "./gh";
 import { GIT_USEREMAIL, GIT_USERNAME } from "./ghUser";
-import { parseUrlRepoOwner, stringifyGithubOrigin, stringifyGithubRepoUrl } from "./parseOwnerRepo";
+import { parseGithubRepoUrl, stringifyGithubOrigin, stringifyGithubRepoUrl } from "./parseOwnerRepo";
 import { parseTitleBodyOfMarkdown } from "./parseTitleBodyOfMarkdown";
 
 /**
@@ -18,11 +18,11 @@ import { parseTitleBodyOfMarkdown } from "./parseTitleBodyOfMarkdown";
 export async function makePublishcrBranch(upstreamUrl: string, forkUrl: Readonly<string>) {
   const type = "publishcr" as const;
 
-  const origin = await stringifyGithubOrigin(parseUrlRepoOwner(forkUrl));
+  const origin = await stringifyGithubOrigin(parseGithubRepoUrl(forkUrl));
   const branch = "publish";
   const tmpl = await readFile("./templates/add-action.md", "utf8");
   const { title, body } = parseTitleBodyOfMarkdown(tmpl);
-  const repo = parseUrlRepoOwner(origin);
+  const repo = parseGithubRepoUrl(origin);
 
   if (await gh.repos.getBranch({ ...repo, branch }).catch(() => null)) {
     // prevent unrelated history
@@ -31,7 +31,7 @@ export async function makePublishcrBranch(upstreamUrl: string, forkUrl: Readonly
   }
 
   const cwd = await getBranchWorkingDir(upstreamUrl, forkUrl, branch);
-  const upsreamOwner = parseUrlRepoOwner(upstreamUrl).owner;
+  const upsreamOwner = parseGithubRepoUrl(upstreamUrl).owner;
   const file = `.github/workflows/publish.yml`;
   const publishYmlPath = "./templates/publish.yaml";
   const publishYmlTemplate = await readFile(publishYmlPath, "utf8");
