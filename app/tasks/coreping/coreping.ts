@@ -130,7 +130,6 @@ async function runCorePingTask() {
       pageFlow(1, async (page, per_page = 100) => {
         const { data } = await ghc.pulls.list({ ...parseGithubRepoUrl(repoUrl), page, per_page, state: "open" });
         return { data, next: data.length >= per_page ? page + 1 : null };
-<<<<<<< HEAD
       }).flat(),
     )
     .confluenceByConcat()
@@ -264,6 +263,7 @@ async function runCorePingTask() {
     meta.lastSlackMessage.sendAt &&
     new Date().getTime() - new Date(meta.lastSlackMessage.sendAt).getTime() <= 23.9 * 60 * 60 * 1000;
 
+<<<<<<< HEAD
   // if <24 h since last sent (not edit), update that msg
   const msgUpdateUrl = canUpdateExistingMessage && !canPostNewMessage ? meta.lastSlackMessage?.url : undefined;
 
@@ -274,7 +274,7 @@ async function runCorePingTask() {
     url: msgUpdateUrl,
   });
 
-  console.log("message posted: " + msg.url);
+  logger.info("message posted: " + msg.url);
   meta = await Meta.$upsert({ lastSlackMessage: { text: msg.text, url: msg.url, sendAt: new Date() } });
 
   logger.info("done", import.meta.file);
