@@ -1,6 +1,7 @@
 import { $fresh, $stale } from "@/packages/mongodb-pipeline-ts";
 import { $flatten } from "@/packages/mongodb-pipeline-ts/$flatten";
 import pMap from "p-map";
+import { logger } from "./logger";
 import { postSlackMessage } from "./postSlackMessage";
 import { SlackMsgs } from "./slack/SlackMsgs";
 
@@ -34,7 +35,7 @@ export async function updateSlackMessages() {
           return;
         }
       }
-      console.log("SLACK POST MSG: " + JSON.stringify(text));
+      logger.info("SLACK POST MSG: " + JSON.stringify(text));
       if (silent) return await SlackMsgs.updateOne({ _id }, { $set: { status: "sent", mtime: new Date() } });
       const sent = await postSlackMessage(text)
         .then((e) => ({ ...e, error: undefined, status: "sent" as const }))

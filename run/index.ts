@@ -7,6 +7,7 @@ import { match, P } from "ts-pattern";
 import { type UnionToIntersection } from "type-fest";
 import { gh, type GH } from "../src/gh/index.js";
 import { ghc } from "../src/ghc.js";
+import { logger } from "../src/logger";
 import { parseGithubRepoUrl } from "../src/parseOwnerRepo.js";
 import { processIssueCommentForLableops } from "./easylabel";
 import type { WEBHOOK_EVENT } from "./github-webhook-event-type";
@@ -90,7 +91,7 @@ class RepoEventMonitor {
           this.monitorState.set(key, cachedState);
         }
       } catch (error) {
-        console.error(`[${this.formatTimestamp()}] Error loading cached state for ${key}:`, error);
+        logger.error(`[${this.formatTimestamp()}] Error loading cached state for ${key}:`, error);
       }
     }
   }
@@ -99,7 +100,7 @@ class RepoEventMonitor {
     try {
       await this.stateCache.set(key, state);
     } catch (error) {
-      console.error(`[${this.formatTimestamp()}] Error saving state to cache for ${key}:`, error);
+      logger.error(`[${this.formatTimestamp()}] Error saving state to cache for ${key}:`, error);
     }
   }
 
@@ -141,7 +142,7 @@ class RepoEventMonitor {
       .with({ payload: { issue: { html_url: P.string }, comment: { body: P.string } } }, async ({ type, payload }) => {
         const { issue, comment, action } = payload;
         const fullEvent = `${type}:${action}` as const;
-        console.log(type, comment.body);
+        logger.info(type, comment.body);
         return { issueUrl: issue.html_url, body: comment.body };
       })
       .otherwise(() => null);
@@ -245,7 +246,7 @@ class RepoEventMonitor {
   async setupWebhooks(): Promise<void> {
     if (this.webhookSetupComplete) return;
 
-    console.log(`[${this.formatTimestamp()}] Setting up webhooks for repositories...`);
+    logger.info(`[${this.formatTimestamp()}] Setting up webhooks for repositories...`);
 
     for (const repoUrl of REPOLIST) {
       try {
@@ -258,12 +259,12 @@ class RepoEventMonitor {
           existingHook = hooks.find((hook) => hook.config?.url === WEBHOOK_URL);
 
           if (existingHook) {
-            console.log(`[${this.formatTimestamp()}] ✅ Webhook already exists for ${owner}/${repo}`);
+            logger.info(`[${this.formatTimestamp()}] ✅ Webhook already exists for ${owner}/${repo}`);
             continue;
           }
         } catch (listError: any) {
           if (listError.status === 403 || listError.status === 404) {
-            console.warn(
+            logger.warn(
               `[${this.formatTimestamp()}] ⚠️  No permission to list webhooks for ${owner}/${repo}. Falling back to polling.`,
             );
             this.pollingRepos.add(repoUrl);
@@ -291,15 +292,15 @@ class RepoEventMonitor {
           ],
         });
 
-        console.log(`[${this.formatTimestamp()}] ✅ Webhook created for ${owner}/${repo}`);
+        logger.info(`[${this.formatTimestamp()}] ✅ Webhook created for ${owner}/${repo}`);
       } catch (error: any) {
         if (error.status === 403) {
-          console.warn(
+          logger.warn(
             `[${this.formatTimestamp()}] ⚠️  No permission to create webhook for ${repoUrl}. Falling back to polling.`,
           );
           this.pollingRepos.add(repoUrl);
         } else {
-          console.error(`[${this.formatTimestamp()}] ❌ Error creating webhook for ${repoUrl}:`, error.message);
+          logger.error(`[${this.formatTimestamp()}] ❌ Error creating webhook for ${repoUrl}:`, error.message);
         }
       }
     }
@@ -308,23 +309,23 @@ class RepoEventMonitor {
   }
 
   async start() {
-    console.log(`[${this.formatTimestamp()}] Starting repository event monitor...`);
-    console.log(`[${this.formatTimestamp()}] Loading cached state from SQLite...`);
+    logger.info(`[${this.formatTimestamp()}] Starting repository event monitor...`);
+    logger.info(`[${this.formatTimestamp()}] Loading cached state from SQLite...`);
 
     // Load cached state
     await this.loadStateFromCache();
 
-    console.log(`[${this.formatTimestamp()}] Monitoring repos: ${REPOLIST.join(", ")}`);
+    logger.info(`[${this.formatTimestamp()}] Monitoring repos: ${REPOLIST.join(", ")}`);
 
     if (WEBHOOK_URL) {
-      console.log(`[${this.formatTimestamp()}] Using webhooks for real-time notifications`);
+      logger.info(`[${this.formatTimestamp()}] Using webhooks for real-time notifications`);
       await this.setupWebhooks();
 
       // TODO: polling way
 
       // // Start polling for repos that couldn't set up webhooks
       if (this.pollingRepos.size > 0) {
-        console.log(
+        logger.info(
           `[${this.formatTimestamp()}] Starting polling for ${this.pollingRepos.size} repos without webhook access`,
         );
         setInterval(() => {
@@ -335,7 +336,7 @@ class RepoEventMonitor {
         await this.checkPollingRepos();
       }
     } else {
-      console.log(`[${this.formatTimestamp()}] Using polling mode (30s interval)`);
+      logger.info(`[${this.formatTimestamp()}] Using polling mode (30s interval)`);
       // Add all repos to polling when no webhooks available
       REPOLIST.forEach((repoUrl) => this.pollingRepos.add(repoUrl));
       setInterval(() => {
@@ -533,13 +534,13 @@ if (import.meta.main) {
       "/health": () => new Response("gh-service OK"),
     },
   });
-  console.log(`Server listening on ${server.url}`);
-  console.log(`Webhook endpoint: ${WEBHOOK_URL}`);
+  logger.info(`Server listening on ${server.url}`);
+  logger.info(`Webhook endpoint: ${WEBHOOK_URL}`);
   await gh.users
     .getAuthenticated()
     .then((e) => e.data)
     .then((user) => {
-      console.log(`[Github Service] Authenticated as ${user.login}`);
+      logger.info(`[Github Service] Authenticated as ${user.login}`);
     });
   monitor.start();
 }

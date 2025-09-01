@@ -1,6 +1,7 @@
 import { updateCMNodes } from "./CMNodes";
 import { getWorkerInstance } from "./WorkerInstances";
 import { createComfyRegistryPRsFromCandidates } from "./createComfyRegistryPRsFromCandidates";
+import { logger } from "./logger";
 import { notifySlack } from "./slack/notifySlack";
 import { updateCMRepos } from "./updateCMRepos";
 import { updateCNReposCRPullsComments } from "./updateCNReposCRPullsComments";
@@ -54,5 +55,5 @@ export async function updateCNRepos() {
     await tLog("Update Comfy Totals", updateComfyTotals),
   ]);
 
-  console.log("All repo updated");
+  logger.info("All repo updated");
 }

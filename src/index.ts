@@ -2,14 +2,13 @@ import "dotenv/config";
 import { checkComfyActivated } from "./checkComfyActivated";
 import { updateEmailTasks } from "./EmailTasks";
 import { initializeFollowRules } from "./initializeFollowRules";
-import { createLogger } from "./logger";
+import { logger } from "./logger";
 import { updateAuthors } from "./updateAuthors";
 import { updateCNRepos } from "./updateCNRepos";
 import { runFollowRuleSet } from "./updateFollowRuleSet";
 import { updateSlackMessages } from "./updateSlackMessages";
 import { tLog } from "./utils/tLog";
 
-const logger = createLogger("main");
 
 if (import.meta.main) {
   await Promise.all([
