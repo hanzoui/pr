@@ -1,46 +1,68 @@
+import path from "path";
+import { fileURLToPath } from "url";
 import winston from "winston";
 
-const { combine, timestamp, printf, colorize, errors } = winston.format;
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// Custom format for console output
-const consoleFormat = printf(({ level, message, timestamp, ...metadata }) => {
-  let msg = `${timestamp} [${level}]: ${message}`;
+const logLevel = process.env.LOG_LEVEL || "info";
+const isProduction = process.env.NODE_ENV === "production";
+const isTest = process.env.NODE_ENV === "test";
 
-  // Add metadata if present
-  if (Object.keys(metadata).length > 0) {
-    // Remove error stack from metadata display if it exists
-    const { stack, ...cleanMetadata } = metadata;
-    if (Object.keys(cleanMetadata).length > 0) {
-      msg += ` ${JSON.stringify(cleanMetadata)}`;
+const formats = [];
+
+if (!isProduction) {
+  formats.push(winston.format.colorize());
+}
+
+formats.push(
+  winston.format.timestamp({ format: "YYYY-MM-DD HH:mm:ss" }),
+  winston.format.errors({ stack: true }),
+  winston.format.splat(),
+  winston.format.printf(({ timestamp, level, message, ...metadata }) => {
+    let msg = `${timestamp} [${level}]: ${message}`;
+    if (Object.keys(metadata).length > 0) {
+      msg += ` ${JSON.stringify(metadata)}`;
     }
-    // Add stack trace on new line if present
-    if (stack) {
-      msg += `\n${stack}`;
-    }
-  }
+    return msg;
+  }),
+);
 
-  return msg;
-});
+const transports: winston.transport[] = [];
 
-// Create the logger instance
-export const logger = winston.createLogger({
-  level: process.env.LOG_LEVEL || "info",
-  format: combine(errors({ stack: true }), timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSS" })),
-  transports: [
-    // Console transport for development
+if (!isTest) {
+  transports.push(
     new winston.transports.Console({
-      format: combine(colorize({ all: true }), consoleFormat),
+      format: winston.format.combine(...formats),
     }),
-  ],
+  );
+}
+
+if (isProduction) {
+  transports.push(
+    new winston.transports.File({
+      filename: path.join(__dirname, "../logs/error.log"),
+      level: "error",
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.errors({ stack: true }),
+        winston.format.json(),
+      ),
+    }),
+    new winston.transports.File({
+      filename: path.join(__dirname, "../logs/combined.log"),
+      format: winston.format.combine(
+        winston.format.timestamp(),
+        winston.format.errors({ stack: true }),
+        winston.format.json(),
+      ),
+    }),
+  );
+}
+
+export const logger = winston.createLogger({
+  level: logLevel,
+  transports,
+  silent: isTest && !process.env.DEBUG_TESTS,
 });
 
-// Create child loggers for different modules
-export const createLogger = (module: string) => {
-  return logger.child({ module });
-};
-
-// Convenience exports for common log levels
-export const logInfo = logger.info.bind(logger);
-export const logError = logger.error.bind(logger);
-export const logWarn = logger.warn.bind(logger);
-export const logDebug = logger.debug.bind(logger);
+export default logger;

@@ -2,6 +2,7 @@ import { tsmatch } from "@/packages/mongodb-pipeline-ts/Task";
 import { db } from "@/src/db";
 import { gh, type GH } from "@/src/gh";
 import { ghc } from "@/src/ghc";
+import { logger } from "@/src/logger";
 import { parseIssueUrl } from "@/src/parseIssueUrl";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
 import DIE from "@snomiao/die";
@@ -102,7 +103,7 @@ export async function processIssueCommentForLableops({
     issue_url: issue.html_url,
     type: comment ? "issue-comment" : "issue",
   });
-  console.log(issue.html_url, target.body?.length);
+  logger.info(issue.html_url, target.body?.length);
   if (task?.processed_at && +new Date(target.updated_at) <= +task.processed_at) return null; // skip if processed
   if (!target.body) return task;
 
@@ -121,7 +122,7 @@ export async function processIssueCommentForLableops({
 
   if (!labelOps.length) return saveTask({ target_url: target.html_url, processed_at: new Date() });
 
-  console.log("Adding reaction");
+  logger.info("Adding reaction");
   if (comment === target) {
     await gh.reactions.createForIssueComment({
       ...parseIssueUrl(issue.html_url),
@@ -132,16 +133,16 @@ export async function processIssueCommentForLableops({
     await gh.reactions.createForIssue({ ...parseIssueUrl(issue.html_url), content: "eyes" });
   }
   //
-  console.log("+- Labels");
+  logger.info("+- Labels");
   await sflow(labelOps)
     .forEach(async ({ op, name }) => {
-      console.log(chalk.bgBlue(`${op} label: ${name}`));
+      logger.info(chalk.bgBlue(`${op} label: ${name}`));
       return await tsmatch(op)
         .with("+", async () => await gh.issues.addLabels({ ...parseIssueUrl(issue.html_url), labels: [name] })) // todo: merge multiple addLabels for performance
         .with("-", async () => await gh.issues.removeLabel({ ...parseIssueUrl(issue.html_url), name }))
         .otherwise(() => DIE(`Unknown label op ${op}, should never happen`));
     })
     .run();
-  console.log("Done");
+  logger.info("Done");
   return saveTask({ target_url: target.html_url, processed_at: new Date() });
 }

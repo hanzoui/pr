@@ -5,12 +5,13 @@ import { $OK, TaskError, TaskOK } from "../packages/mongodb-pipeline-ts/Task";
 import { CNRepos } from "./CNRepos";
 import { createComfyRegistryPullRequests } from "./createComfyRegistryPullRequests";
 import { $flatten, $stale } from "./db";
+import { logger } from "./logger";
 import { parseGithubRepoUrl, stringifyOwnerRepo } from "./parseOwnerRepo";
 import { notifySlackLinks } from "./slack/notifySlackLinks";
 import { tLog } from "./utils/tLog";
 if (import.meta.main) {
   await tLog("createComfyRegistryPRsFromCandidates", createComfyRegistryPRsFromCandidates);
-  console.log("all done");
+  logger.info("all done");
 }
 export async function createComfyRegistryPRsFromCandidates() {
   await CNRepos.createIndex($flatten({ candidate: { data: 1 } }));
@@ -31,7 +32,7 @@ export async function createComfyRegistryPRsFromCandidates() {
       .aggregate(),
     async (repo) => {
       const { repository } = repo;
-      console.log("Making PRs for " + repository);
+      logger.info("Making PRs for " + repository);
       const createdPulls = await createComfyRegistryPullRequests(repository).then(TaskOK).catch(TaskError);
       match(createdPulls).with($OK, async ({ data }) => {
         const links = data.map((e) => ({

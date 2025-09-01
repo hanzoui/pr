@@ -1,10 +1,11 @@
 import pMap from "p-map";
 import { CMNodes } from "./CMNodes";
 import { CNRepos } from "./CNRepos";
+import { logger } from "./logger";
 import { tLog } from "./utils/tLog";
 if (import.meta.main) {
   await tLog("Update Repos from ComfyUI Manager", updateCMRepos);
-  console.log(await CMNodes.estimatedDocumentCount());
+  logger.info(await CMNodes.estimatedDocumentCount());
 }
 export async function updateCMRepos() {
   await CMNodes.createIndex({ repo_id: 1 });

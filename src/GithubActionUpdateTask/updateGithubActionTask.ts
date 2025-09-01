@@ -2,19 +2,19 @@ import DIE from "@snomiao/die";
 import fastDiff from "fast-diff";
 import { readFile } from "fs/promises";
 import sha256 from "sha256";
+import yaml from "yaml";
 import { createPR } from "../createGithubPullRequest";
 import { gh } from "../gh";
-import { createLogger } from "../logger";
+import { logger } from "../logger";
 import { parsePullUrl } from "../parsePullUrl";
 import { GithubActionUpdateTask } from "./GithubActionUpdateTask";
 import { updateGithubActionPrepareBranch } from "./updateGithubActionPrepareBranch";
 
-const logger = createLogger("updateGithubActionTask");
 
 export const referenceActionContent = await readFile("./templates/publish.yaml", "utf8");
 export const referencePullRequestMessage = await readFile("./templates/tasks/GithubActionUpdatePR.md", "utf8");
 export const referenceActionContentHash = sha256(referenceActionContent); // check if target publish.yaml already latest
-logger.debug("referenceActionContentHash", { referenceActionContentHash });
+logger.debug("referenceActionContentHash", referenceActionContentHash);
 
 // for debug only
 export const testUpdatedPublishYaml = await readFile(import.meta.dir + "/test-updated-publish.yml", "utf8");
@@ -23,8 +23,8 @@ if (import.meta.main) {
   // const repo = "https://github.com/aigc-apps/VideoX-Fun";
   const repo = "https://github.com/FuouM/ComfyUI-MatAnyone";
   await resetErrorForGithubActionUpdateTask(repo);
-  logger.info("Task result", { result: await updateGithubActionTask(repo) });
-  logger.info("Task status", { task: await GithubActionUpdateTask.findOne({ repo }) });
+  logger.info(await updateGithubActionTask(repo));
+  logger.info(await GithubActionUpdateTask.findOne({ repo }));
   logger.info("done");
 }
 
@@ -44,7 +44,7 @@ export async function updateGithubActionTask(repoUrl: string) {
 
   // check if already up to date
   if (referenceActionContentHash !== task.branchVersionHash) {
-    logger.info("AI Suggesting PR", { repoUrl });
+    logger.info("[updateGithubActionTask] AI Suggesting PR for", repoUrl);
     // make branch
     const {
       hash,
@@ -72,21 +72,16 @@ export async function updateGithubActionTask(repoUrl: string) {
       { upsert: true, returnDocument: "after" },
     )!;
     Object.assign(task, updatedTask);
-    logger.debug("Branch update details", {
-      repo: repoUrl,
-      hash,
-      forkedBranchUrl,
-      commitMessage,
-      pullRequestMessage,
-      branchDiffResult,
-    });
+    logger.debug(
+      yaml.stringify({ repo: repoUrl, hash, forkedBranchUrl, commitMessage, pullRequestMessage, branchDiffResult }),
+    );
   }
 
   if (
     referenceActionContentHash !== task.pullRequestVersionHash &&
     referenceActionContentHash === task.approvedBranchVersionHash
   ) {
-    logger.info("Creating PR", { repoUrl });
+    logger.info("[updateGithubActionTask] Creating PR for", repoUrl);
     const [src, branch] = task.forkedBranchUrl!.split("/tree/");
     const pullRequestUrl = await createPR({
       branch: branch || DIE("missing branch in forkedBranchUrl: " + task.forkedBranchUrl),
@@ -118,9 +113,9 @@ export async function updateGithubActionTask(repoUrl: string) {
     const { owner, repo, pull_number } = parsePullUrl(task.pullRequestUrl);
     const { data: pr } = await gh.pulls.get({ owner, repo, pull_number });
     const pullRequestStatus = pr.merged_at ? "MERGED" : pr.closed_at ? "CLOSED" : "OPEN";
-    logger.info("PR status retrieved", { pullRequestStatus, url: task.pullRequestUrl });
+    logger.info(`[updateGithubActionTask] got ${pullRequestStatus} status in ${task.pullRequestUrl}`);
     const pullRequestCommentsCount = pr.comments;
-    logger.info("PR comments count", { pullRequestCommentsCount, url: task.pullRequestUrl });
+    logger.info(`[updateGithubActionTask] got ${pullRequestCommentsCount} comments in ${task.pullRequestUrl}`);
 
     const rawComments =
       pullRequestCommentsCount === 0
@@ -152,9 +147,7 @@ export async function updateGithubActionTask(repoUrl: string) {
       })
       .join("\n");
     // filter out new pr comments, maybe send to slack
-    if (newCommentsMessage) {
-      logger.debug("New PR comments", { newCommentsMessage });
-    }
+    logger.info(newCommentsMessage);
 
     const updatedTask = await GithubActionUpdateTask.findOneAndUpdate(
       { repo: repoUrl },
@@ -182,7 +175,7 @@ export async function updateGithubActionTask(repoUrl: string) {
   //     { upsert: true, returnDocument: "after" },
   //   );
   // }
-  logger.info("Task updated", { repoUrl });
+  logger.info("[updateGithubActionTask] Updated: " + repoUrl);
 }
 export async function resetErrorForGithubActionUpdateTask(repo: string) {
   await GithubActionUpdateTask.findOneAndDelete({ repo });

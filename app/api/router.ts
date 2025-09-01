@@ -2,6 +2,7 @@ import pkg from "@/package.json";
 import { CNRepos } from "@/src/CNRepos";
 import { getWorkerInstance } from "@/src/WorkerInstances";
 import { analyzePullsStatus } from "@/src/analyzePullsStatus";
+import { logger } from "@/src/logger";
 import DIE from "@snomiao/die";
 import { initTRPC } from "@trpc/server";
 import sflow from "sflow";
@@ -151,7 +152,7 @@ export const router = t.router({
         const meta = await GithubDesignTaskMeta.findOne({ coll: "GithubDesignTask" });
         return { meta };
       } catch (error) {
-        console.error("Failed to fetch metadata:", error);
+        logger.error("Failed to fetch metadata:", error);
         throw new Error("Failed to fetch metadata");
       }
     }),
@@ -221,7 +222,7 @@ export const router = t.router({
         const meta = await GithubDesignTaskMeta.$upsert(updateData);
         return { success: true, meta };
       } catch (error) {
-        console.error("Failed to update metadata:", error);
+        logger.error("Failed to update metadata:", error);
         throw new Error("Failed to update metadata");
       }
     }),

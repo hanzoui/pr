@@ -5,6 +5,7 @@ import { db } from "@/src/db";
 import { TaskMetaCollection } from "@/src/db/TaskMeta";
 import type { GH } from "@/src/gh";
 import { ghc } from "@/src/ghc";
+import { logger } from "@/src/logger";
 import { parseIssueUrl } from "@/src/parseIssueUrl";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
 import DIE from "@snomiao/die";
@@ -121,7 +122,7 @@ async function runCorePingTask() {
   // drop everytime since outdated data is useless, we kept lastSlackmessage in Meta collection which is enough
   await ComfyCorePRs.drop();
 
-  console.log("start", import.meta.file);
+  logger.info("start", import.meta.file);
   let freshCount = 0;
 
   const processedTasks = await sflow(coreReviewTrackerConfig.REPOLIST)
@@ -129,6 +130,7 @@ async function runCorePingTask() {
       pageFlow(1, async (page, per_page = 100) => {
         const { data } = await ghc.pulls.list({ ...parseGithubRepoUrl(repoUrl), page, per_page, state: "open" });
         return { data, next: data.length >= per_page ? page + 1 : null };
+<<<<<<< HEAD
       }).flat(),
     )
     .confluenceByConcat()
@@ -198,7 +200,7 @@ async function runCorePingTask() {
         task = await saveTask({ url: pr.html_url, last_reviewed_at: new Date(lastCommentEvent.created_at) });
 
       //
-      lastReviewEvent && console.log({ lastLabelEvent, lastReviewEvent });
+      lastReviewEvent && logger.debug({ lastLabelEvent, lastReviewEvent });
       const isReviewed = task?.last_reviewed_at && +task.last_reviewed_at > +task.last_labeled_at!;
       const isCommented = task?.last_commented_at && +task.last_commented_at > +task.last_labeled_at!;
 
@@ -212,8 +214,8 @@ async function runCorePingTask() {
       const hours = Math.floor(diff / (60 * 60 * 1000));
       const sanitizedTitle = pr.title.replace(/\W+/g, " ").trim();
       const statusMsg = `@${pr.user?.login}'s ${corePrLabel.name} PR <${pr.html_url}|${sanitizedTitle}> is waiting for your feedback for more than ${hours} hours.`;
-      console.log(statusMsg);
-      console.log(pr.html_url + " " + pr.labels.map((e) => e.name));
+      logger.info(statusMsg);
+      logger.info(pr.html_url + " " + pr.labels.map((e) => e.name));
 
       return await saveTask({ url: html_url, status, statusMsg });
     })
@@ -226,13 +228,18 @@ async function runCorePingTask() {
     .sort({ last_labeled_at: 1 })
     .toArray();
 
-  console.log("ready to send slack message to notify @comfy");
+  logger.info("ready to send slack message to notify @comfy");
+  const staleCorePRs = corePRs.filter((pr) => pr.status === "stale");
+  const staleCorePRsMessage = staleCorePRs
+    .map((pr) => pr.statusMsg || `- <${pr.url}|${pr.title}> ${pr.labels}`)
+    .join("\n");
+  const freshCorePRs = corePRs.filter((pr) => pr.status === "fresh");
 
-  const notifyMessage = !corePRs.length
-    ? `Congratulations! All Core/Important PRs are reviewed! 🎉🎉🎉 \nSent from CorePing.ts by <@snomiao> cc <@Yoland>`
-    : `Hey <@comfy>, Here's x${corePRs.length} Core/Important PRs waiting your feedback!\n\n${corePRs.map((pr) => pr.statusMsg || `- <${pr.url}|${pr.title}> ${pr.labels}`).join("\n")}\nSent from CorePing.ts by <@snomiao> cc <@Yoland>`;
-
-  console.log(chalk.bgBlue(notifyMessage));
+  const freshMsg = !freshCorePRs.length
+    ? ""
+    : `and there are ${freshCorePRs.length} more fresh Core/Core-Important PRs.\n`;
+  const notifyMessage = `Hey <@comfy>, Here's x${staleCorePRs.length} Core/Important PRs waiting your feedback!\n\n${staleCorePRsMessage}\n${freshMsg}\nSent from CorePing.ts by <@snomiao> cc <@yoland>`;
+  logger.info(chalk.bgBlue(notifyMessage));
   // TODO: update message with delete line when it's reviewed
   // send or update slack message
   let meta = await Meta.$upsert({});
@@ -270,7 +277,7 @@ async function runCorePingTask() {
   console.log("message posted: " + msg.url);
   meta = await Meta.$upsert({ lastSlackMessage: { text: msg.text, url: msg.url, sendAt: new Date() } });
 
-  console.log("done", import.meta.file);
+  logger.info("done", import.meta.file);
 }
 /**
  * get full timeline

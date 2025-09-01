@@ -1,9 +1,10 @@
+import { logger } from "../logger";
 import { updateSlackMessages } from "../updateSlackMessages";
 import { SlackMsgs, type SlackNotifyOptions } from "./SlackMsgs";
 
 if (import.meta.main) {
   const text = "# Hello world\n\ntest rich message at " + new Date().toISOString();
-  console.log(await notifySlack(text));
+  logger.info(await notifySlack(text));
 }
 
 export async function notifySlack(text: string, { unique = true, last, silent }: SlackNotifyOptions = {}) {
@@ -31,8 +32,8 @@ export async function notifySlack(text: string, { unique = true, last, silent }:
     ...(silent && { silent }),
     ...(last && { last_id: last }),
   });
-  console.info(text);
+  logger.info(text);
 
-  updateSlackMessages().then(() => console.info("slack notify task done"));
+  updateSlackMessages().then(() => logger.info("slack notify task done"));
   return { _id };
 }
