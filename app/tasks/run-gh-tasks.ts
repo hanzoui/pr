@@ -7,6 +7,7 @@ import runGithubBugcopTask from "../../run/gh-bugcop/gh-bugcop";
 import runGithubBountyTask from "./gh-bounty/gh-bounty";
 import { runGithubDesignTask } from "./gh-design/gh-design";
 import runGithubDesktopReleaseNotificationTask from "./gh-desktop-release-notification/index";
+import runGithubFrontendReleaseNotificationTask from "./gh-frontend-release-notification/index";
 
 const TASKS = [
   {
@@ -20,6 +21,10 @@ const TASKS = [
   {
     name: "GitHub Desktop Release Notification Task",
     run: runGithubDesktopReleaseNotificationTask,
+  },
+  {
+    name: "GitHub Frontend Release Notification Task",
+    run: runGithubFrontendReleaseNotificationTask,
   },
   {
     name: "GitHub Bugcop Task",
