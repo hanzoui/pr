@@ -21,7 +21,7 @@
 
 ### Common Patterns
 
-- **Caching**: Use Keyv with SQLite for persistent caching in `node_modules/.cache/Comfy-PR/`
+- **Caching**: Use bun-sqlite-key-value for persistent caching in `node_modules/.cache/Comfy-PR/`
 - **Configuration**: Store config in environment variables with sensible defaults
 - **Logging**: Use console.log sparingly, prefer structured logging for debugging
 - **File Organization**: Keep related functionality together, use clear module exports
@@ -43,8 +43,8 @@ Created a cached wrapper around the GitHub API client that transparently caches 
 ### Implementation
 
 - **File**: `src/ghc.ts`
-- **Cache Storage**: SQLite via Keyv in `node_modules/.cache/Comfy-PR/gh-cache.sqlite`
-- **Default TTL**: 5 minutes
+- **Cache Storage**: SQLite via bun-sqlite-key-value in `node_modules/.cache/Comfy-PR/gh-cache.sqlite`
+- **Default TTL**: 5 minutes (local dev: 30 minutes)
 - **Cache Key Format**: `gh.{apiPath}({truncatedArgs})#{hash}`
 
 ### Key Features
@@ -92,9 +92,9 @@ const stats = await getGhCacheStats();
 
 ### Development Flow
 
-1. Install dependencies: `bun add keyv @keyv/sqlite`
+1. Install dependencies: `bun add bun-sqlite-key-value`
 2. Create cached wrapper with Proxy pattern
-3. Implement cache key generation with argument truncation
+3. Implement cache key generation with argument truncation and TTL tracking
 4. Add comprehensive test suite
 5. Test with real API calls: `bun src/ghc.ts`
 
