@@ -114,4 +114,4 @@ SFlow is a powerful functional stream processing library used throughout the cod
 - **Package**: `sflow@1.24.0` 
 - **Author**: snomiao
 - **License**: MIT
-- **Core Conce
+- **Core Concepts**: SFlow is built around composable stream operators, lazy evaluation, and support for both synchronous and asynchronous data flows.
