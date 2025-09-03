@@ -1,11 +1,10 @@
-import KeyvSqlite from "@keyv/sqlite";
 import type { components as ghComponents } from "@octokit/openapi-types";
-import crypto from "crypto";
-import fs from "fs/promises";
+import { BunSqliteKeyValue } from "bun-sqlite-key-value";
+import * as crypto from "crypto";
+import * as fs from "fs/promises";
 import stableStringify from "json-stable-stringify";
-import Keyv from "keyv";
 import { Octokit } from "octokit";
-import path from "path";
+import * as path from "path";
 
 const GH_TOKEN =
   process.env.GH_TOKEN_COMFY_PR ||
@@ -26,17 +25,14 @@ async function ensureCacheDir() {
   await fs.mkdir(CACHE_DIR, { recursive: true });
 }
 
-let keyv: Keyv | null = null;
+let store: BunSqliteKeyValue | null = null;
 
-async function getKeyv() {
-  if (!keyv) {
+async function getStore() {
+  if (!store) {
     await ensureCacheDir();
-    keyv = new Keyv({
-      store: new KeyvSqlite(CACHE_FILE),
-      ttl: DEFAULT_TTL,
-    });
+    store = new BunSqliteKeyValue(CACHE_FILE);
   }
-  return keyv;
+  return store;
 }
 
 function createCacheKey(basePath: string[], prop: string | symbol, args: any[]): string {
@@ -68,20 +64,30 @@ function createCachedProxy(target: any, basePath: string[] = []): any {
       if (typeof value === "function") {
         return async function (...args: any[]) {
           const cacheKey = createCacheKey(basePath, prop, args);
-          const keyvInstance = await getKeyv();
+          const storeInstance = await getStore();
 
           // Try to get from cache first
-          const cached = await keyvInstance.get(cacheKey);
+          const cached = storeInstance.get(cacheKey);
           if (cached !== undefined) {
-            // console.log(`HIT|${cacheKey}`); // cache hit info for debug
-            return cached;
+            // Check TTL
+            const ttlKey = `${cacheKey}:ttl`;
+            const expiresAt = storeInstance.get(ttlKey) as number | undefined;
+            if (expiresAt && Date.now() < expiresAt) {
+              // console.log(`HIT|${cacheKey}`); // cache hit info for debug
+              return cached;
+            } else if (expiresAt) {
+              // Expired, delete it
+              storeInstance.delete(cacheKey);
+              storeInstance.delete(ttlKey);
+            }
           }
 
           // Call the original function
           const result = await value.apply(obj, args);
 
-          // Cache the result
-          await keyvInstance.set(cacheKey, result);
+          // Cache the result with TTL
+          storeInstance.set(cacheKey, result);
+          storeInstance.set(`${cacheKey}:ttl`, Date.now() + DEFAULT_TTL);
 
           return result;
         };
@@ -106,14 +112,14 @@ type DeepAsyncWrapper<T> = {
 };
 
 export async function clearGhCache(): Promise<void> {
-  const keyvInstance = await getKeyv();
-  await keyvInstance.clear();
+  const storeInstance = await getStore();
+  storeInstance.clear();
 }
 
 export async function getGhCacheStats(): Promise<{ size: number; keys: string[] }> {
-  // Note: Keyv doesn't provide built-in stats, but we can query the SQLite directly if needed
-  // For now, return basic info
-  return { size: 0, keys: [] };
+  const storeInstance = await getStore();
+  const keys = storeInstance.keys().filter((k) => !k.endsWith(":ttl"));
+  return { size: keys.length, keys };
 }
 
 export const ghc = createCachedProxy(gh) as DeepAsyncWrapper<typeof gh>;
