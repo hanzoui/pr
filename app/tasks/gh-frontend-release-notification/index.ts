@@ -10,7 +10,7 @@ import { upsertSlackMessage } from "../gh-desktop-release-notification/upsertSla
 
 /**
  * GitHub Frontend Release Notification Task
- * 
+ *
  * Workflow:
  * 1. Fetch ComfyUI_frontend repo latest releases
  * 2. Save the release info to the database
@@ -22,7 +22,7 @@ const config = {
   repos: ["https://github.com/Comfy-Org/ComfyUI_frontend"],
   slackChannel: "frontend",
   slackMessage: "🎨 {repo} <{url}|Release {version}> is {status}!",
-  sendSince: new Date("2025-08-02T00:00:00Z").toISOString(),
+  sendSince: new Date("2025-09-03T00:00:00Z").toISOString(),
 };
 
 export type GithubFrontendReleaseNotificationTask = {
@@ -32,13 +32,13 @@ export type GithubFrontendReleaseNotificationTask = {
   releasedAt?: Date;
   isStable?: boolean;
   status: "draft" | "prerelease" | "stable";
-  
+
   slackMessageDrafting?: {
     text: string;
     channel: string;
     url?: string;
   };
-  
+
   slackMessage?: {
     text: string;
     channel: string;
@@ -107,25 +107,33 @@ async function runGithubFrontendReleaseNotificationTask() {
           .replace("{status}", task.status),
       };
 
-      const shouldSendDraftingMessage = !task.isStable && !task.slackMessageDrafting?.url;
-      if (shouldSendDraftingMessage && task.slackMessageDrafting?.text?.trim() !== newSlackMessage.text.trim()) {
+      const shouldSendDraftingMessage = !task.isStable;
+      const draftingTextChanged =
+        !task.slackMessageDrafting?.text || task.slackMessageDrafting.text.trim() !== newSlackMessage.text.trim();
+      if (shouldSendDraftingMessage && draftingTextChanged) {
         task = await save({
           url,
-          slackMessageDrafting: await upsertSlackMessage(newSlackMessage),
+          slackMessageDrafting: await upsertSlackMessage({
+            ...newSlackMessage,
+            url: task.slackMessageDrafting?.url,
+          }),
         });
       }
 
-      const shouldSendMessage = task.isStable && !task.slackMessage?.url;
-      if (shouldSendMessage && task.slackMessage?.text?.trim() !== newSlackMessage.text.trim()) {
+      const shouldSendMessage = task.isStable;
+      const messageTextChanged =
+        !task.slackMessage?.text || task.slackMessage.text.trim() !== newSlackMessage.text.trim();
+      if (shouldSendMessage && messageTextChanged) {
         task = await save({
           url,
           slackMessage: await upsertSlackMessage({
             ...newSlackMessage,
+            url: task.slackMessage?.url,
             replyUrl: task.slackMessageDrafting?.url,
           }),
         });
       }
-      
+
       return task;
     })
     .log()
