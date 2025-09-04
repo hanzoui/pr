@@ -1,7 +1,6 @@
 import { db } from "@/src/db";
 import { gh } from "@/src/gh";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
-import { getSlackChannel } from "@/src/slack/channels";
 import DIE from "@snomiao/die";
 import isCI from "is-ci";
 import parseGithubUrl from "parse-github-url";
@@ -20,7 +19,7 @@ import { upsertSlackMessage } from "../gh-desktop-release-notification/upsertSla
 
 const config = {
   repos: ["https://github.com/Comfy-Org/ComfyUI_frontend"],
-  slackChannel: "frontend",
+  slackChannelName: "frontend",
   slackMessage: "🎨 {repo} <{url}|Release {version}> is {status}!",
   sendSince: new Date("2025-09-03T00:00:00Z").toISOString(),
 };
@@ -50,8 +49,6 @@ export const GithubFrontendReleaseNotificationTask = db.collection<GithubFronten
   "GithubFrontendReleaseNotificationTask",
 );
 
-await GithubFrontendReleaseNotificationTask.createIndex({ url: 1 }, { unique: true });
-
 const save = async (task: { url: string } & Partial<GithubFrontendReleaseNotificationTask>) =>
   (await GithubFrontendReleaseNotificationTask.findOneAndUpdate(
     { url: task.url },
@@ -68,10 +65,7 @@ if (import.meta.main) {
 }
 
 async function runGithubFrontendReleaseNotificationTask() {
-  const pSlackChannelId = getSlackChannel(config.slackChannel).then(
-    (e) => e.id || DIE(`unable to get slack channel ${config.slackChannel}`),
-  );
-
+  await GithubFrontendReleaseNotificationTask.createIndex({ url: 1 }, { unique: true });
   await sflow(config.repos)
     .map(parseGithubRepoUrl)
     .flatMap(({ owner, repo }) =>
@@ -98,23 +92,21 @@ async function runGithubFrontendReleaseNotificationTask() {
 
       if (+task.createdAt! < +new Date(config.sendSince)) return task;
 
-      const newSlackMessage = {
-        channel: await pSlackChannelId,
-        text: config.slackMessage
-          .replace("{url}", task.url)
-          .replace("{repo}", parseGithubUrl(task.url)?.repo || DIE(`unable parse REPO from URL ${task.url}`))
-          .replace("{version}", task.version || DIE(`unable to parse version from task ${JSON.stringify(task)}`))
-          .replace("{status}", task.status),
-      };
+      const newSlackMessageText = config.slackMessage
+        .replace("{url}", task.url)
+        .replace("{repo}", parseGithubUrl(task.url)?.repo || DIE(`unable parse REPO from URL ${task.url}`))
+        .replace("{version}", task.version || DIE(`unable to parse version from task ${JSON.stringify(task)}`))
+        .replace("{status}", task.status);
 
       const shouldSendDraftingMessage = !task.isStable;
       const draftingTextChanged =
-        !task.slackMessageDrafting?.text || task.slackMessageDrafting.text.trim() !== newSlackMessage.text.trim();
+        !task.slackMessageDrafting?.text || task.slackMessageDrafting.text.trim() !== newSlackMessageText.trim();
       if (shouldSendDraftingMessage && draftingTextChanged) {
         task = await save({
           url,
           slackMessageDrafting: await upsertSlackMessage({
-            ...newSlackMessage,
+            channelName: config.slackChannelName,
+            text: newSlackMessageText,
             url: task.slackMessageDrafting?.url,
           }),
         });
@@ -122,12 +114,13 @@ async function runGithubFrontendReleaseNotificationTask() {
 
       const shouldSendMessage = task.isStable;
       const messageTextChanged =
-        !task.slackMessage?.text || task.slackMessage.text.trim() !== newSlackMessage.text.trim();
+        !task.slackMessage?.text || task.slackMessage.text.trim() !== newSlackMessageText.trim();
       if (shouldSendMessage && messageTextChanged) {
         task = await save({
           url,
           slackMessage: await upsertSlackMessage({
-            ...newSlackMessage,
+            channelName: config.slackChannelName,
+            text: newSlackMessageText,
             url: task.slackMessage?.url,
             replyUrl: task.slackMessageDrafting?.url,
           }),
