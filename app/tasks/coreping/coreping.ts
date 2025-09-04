@@ -9,6 +9,7 @@ import { parseIssueUrl } from "@/src/parseIssueUrl";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
 import DIE from "@snomiao/die";
 import chalk from "chalk";
+import isCI from "is-ci";
 import sflow, { pageFlow } from "sflow";
 import { P } from "ts-pattern";
 import z from "zod";
