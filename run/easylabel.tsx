@@ -25,10 +25,10 @@ import sflow, { pageFlow } from "sflow";
 
 const cfg = {
   REPOLIST: [
-    "https://github.com/Comfy-Org/Comfy-PR",
     "https://github.com/comfyanonymous/ComfyUI",
-    "https://github.com/Comfy-Org/ComfyUI_frontend",
-    "https://github.com/Comfy-Org/desktop",
+    // "https://github.com/Comfy-Org/Comfy-PR", // handled by webhook
+    // "https://github.com/Comfy-Org/ComfyUI_frontend", // handled by webhook
+    // "https://github.com/Comfy-Org/desktop", // handled by webhook
   ],
   // allow all users to edit bugcop:*, area:*, Core-*, labels
   allow: [/^(?:Core|Core-.*)$/, /^(?:bug-cop|area):.*$/],
@@ -64,25 +64,27 @@ if (import.meta.main) {
  *
  */
 async function runLabelOpInitializeScan() {
+  console.log(chalk.bgBlue("Start Label Ops Initialization Scan..."));
   await sflow(cfg.REPOLIST)
-    .flatMap((repoUrl) => [
-      pageFlow(1, async (page, per_page = 100) => {
+    .map((repoUrl) =>
+      pageFlow(1, async (page, per_page = 10) => {
+        console.log(`Listing issues for ${repoUrl} page ${page}`);
         const { data } = await ghc.issues.list({ ...parseGithubRepoUrl(repoUrl), page, per_page, state: "open" });
+        return { data, next: data.length >= per_page ? page + 1 : null };
+      }).flat(),
+    )
+    .confluenceByParallel()
+    .map(async (issue) => {
+      console.log(`Processing issue ${issue.html_url} with ${issue.comments} comments`);
+      if (!issue.comments) return;
+      await pageFlow(1, async (page, per_page = 100) => {
+        const { data } = await ghc.issues.listComments({ ...parseIssueUrl(issue.html_url), page, per_page });
         return { data, next: data.length >= per_page ? page + 1 : null };
       })
         .flat()
-        .map(async (issue) => {
-          // processIssueComment({issue});
-          if (!issue.comments) return;
-          await pageFlow(1, async (page, per_page = 100) => {
-            const { data } = await ghc.issues.listComments({ ...parseIssueUrl(issue.html_url), page, per_page });
-            return { data, next: data.length >= per_page ? page + 1 : null };
-          })
-            .flat()
-            .forEach((comment) => processIssueCommentForLableops({ issue, comment }))
-            .run();
-        }),
-    ])
+        .forEach((comment) => processIssueCommentForLableops({ issue, comment }))
+        .run();
+    })
     .run();
 }
 
@@ -97,6 +99,7 @@ export async function processIssueCommentForLableops({
   comment: GH["issue-comment"] | null;
 }) {
   const target = comment || issue;
+  console.log("processing " + target.html_url);
   let task = await saveTask({
     target_url: target.html_url,
     issue_url: issue.html_url,
@@ -121,11 +124,13 @@ export async function processIssueCommentForLableops({
 
   if (!labelOps.length) return saveTask({ target_url: target.html_url, processed_at: new Date() });
 
+  console.log("Found a matched Target URL:", target.html_url, labelOps.map((e) => e.op + e.name).join(", "));
+  DIE("check");
   console.log("Adding reaction");
   if (comment === target) {
     await gh.reactions.createForIssueComment({
       ...parseIssueUrl(issue.html_url),
-      comment_id: comment.id,
+      comment_id: comment!.id,
       content: "eyes",
     });
   } else {
