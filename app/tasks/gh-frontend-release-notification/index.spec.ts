@@ -77,6 +77,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         version: mockRelease.tag_name,
         status: "stable",
         isStable: true,
+        releaseNotes: mockRelease.body,
         createdAt: new Date(mockRelease.created_at),
         releasedAt: new Date(mockRelease.published_at),
       });
@@ -87,10 +88,11 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         version: mockRelease.tag_name,
         status: "stable",
         isStable: true,
+        releaseNotes: mockRelease.body,
         createdAt: new Date(mockRelease.created_at),
         releasedAt: new Date(mockRelease.published_at),
         slackMessage: {
-          text: "🎨 ComfyUI_frontend <https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0|Release v1.0.0> is stable!",
+          text: "🎨 ComfyUI_frontend <https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0|Release v1.0.0> is stable!\n\n*Release Notes:*\nRelease notes",
           channel: "test-channel-id",
           url: "https://slack.com/message/123",
         },
@@ -135,10 +137,11 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         version: mockRelease.tag_name,
         status: "stable",
         isStable: true,
+        releaseNotes: mockRelease.body,
         createdAt: new Date(mockRelease.created_at),
         releasedAt: new Date(mockRelease.published_at),
         slackMessage: {
-          text: "🎨 ComfyUI_frontend <https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0|Release v1.0.0> is stable!",
+          text: "🎨 ComfyUI_frontend <https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0|Release v1.0.0> is stable!\n\n*Release Notes:*\nRelease notes",
           channel: "test-channel-id",
           url: "https://slack.com/message/123",
         },
@@ -173,6 +176,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         version: mockPrerelease.tag_name,
         status: "prerelease",
         isStable: false,
+        releaseNotes: mockPrerelease.body,
         createdAt: new Date(mockPrerelease.created_at),
         releasedAt: new Date(mockPrerelease.published_at),
       });
@@ -183,10 +187,11 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         version: mockPrerelease.tag_name,
         status: "prerelease",
         isStable: false,
+        releaseNotes: mockPrerelease.body,
         createdAt: new Date(mockPrerelease.created_at),
         releasedAt: new Date(mockPrerelease.published_at),
         slackMessageDrafting: {
-          text: "🎨 ComfyUI_frontend <https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0-beta.1|Release v1.0.0-beta.1> is prerelease!",
+          text: "🎨 ComfyUI_frontend <https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0-beta.1|Release v1.0.0-beta.1> is prerelease!\n\n*Release Notes:*\nBeta release notes",
           channel: "test-channel-id",
           url: "https://slack.com/message/456",
         },
@@ -224,6 +229,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         version: mockDraft.tag_name,
         status: "draft",
         isStable: false,
+        releaseNotes: mockDraft.body,
         createdAt: new Date(mockDraft.created_at),
         releasedAt: undefined,
       });
@@ -265,6 +271,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         version: oldRelease.tag_name,
         status: "stable",
         isStable: true,
+        releaseNotes: oldRelease.body,
         createdAt: new Date(oldRelease.created_at),
         releasedAt: new Date(oldRelease.published_at),
       });
@@ -299,6 +306,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         version: mockRelease.tag_name,
         status: "stable",
         isStable: true,
+        releaseNotes: mockRelease.body,
         createdAt: new Date(mockRelease.created_at),
         releasedAt: new Date(mockRelease.published_at),
         slackMessage: {
@@ -314,8 +322,9 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         version: mockRelease.tag_name,
         status: "stable",
         isStable: true,
+        releaseNotes: mockRelease.body,
         slackMessage: {
-          text: "🎨 ComfyUI_frontend <https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0|Release v1.0.1> is stable!",
+          text: "🎨 ComfyUI_frontend <https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0|Release v1.0.1> is stable!\n\n*Release Notes:*\nUpdated release notes",
           channel: "test-channel-id",
           url: "https://slack.com/message/123",
         },
@@ -328,6 +337,59 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         expect.objectContaining({
           url: "https://slack.com/message/123",
           text: expect.stringContaining("v1.0.1"),
+        }),
+      );
+    });
+
+    it("should truncate long release notes in Slack message", async () => {
+      const longReleaseNotes = "x".repeat(600); // Create a 600 character string
+      const mockRelease = {
+        html_url: "https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0",
+        tag_name: "v1.0.0",
+        draft: false,
+        prerelease: false,
+        created_at: new Date().toISOString(),
+        published_at: new Date().toISOString(),
+        body: longReleaseNotes,
+      };
+
+      mockGh.repos = {
+        listReleases: jest.fn().mockResolvedValue({
+          data: [mockRelease],
+        }),
+      } as any;
+
+      // First call - save initial data
+      collection.findOneAndUpdate.mockResolvedValueOnce({
+        url: mockRelease.html_url,
+        version: mockRelease.tag_name,
+        status: "stable",
+        isStable: true,
+        releaseNotes: longReleaseNotes,
+        createdAt: new Date(mockRelease.created_at),
+        releasedAt: new Date(mockRelease.published_at),
+      });
+
+      // Second call - save with truncated message
+      collection.findOneAndUpdate.mockResolvedValueOnce({
+        url: mockRelease.html_url,
+        version: mockRelease.tag_name,
+        status: "stable",
+        isStable: true,
+        releaseNotes: longReleaseNotes,
+        slackMessage: {
+          text: expect.stringContaining("... <"),
+          channel: "test-channel-id",
+          url: "https://slack.com/message/123",
+        },
+      });
+
+      await runGithubFrontendReleaseNotificationTask();
+
+      // Check that the message was truncated and includes a "Read more" link
+      expect(upsertSlackMessage).toHaveBeenCalledWith(
+        expect.objectContaining({
+          text: expect.stringMatching(/\.\.\. <.*\|Read more>/),
         }),
       );
     });

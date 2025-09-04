@@ -31,6 +31,7 @@ export type GithubFrontendReleaseNotificationTask = {
   releasedAt?: Date;
   isStable?: boolean;
   status: "draft" | "prerelease" | "stable";
+  releaseNotes?: string;
 
   slackMessageDrafting?: {
     text: string;
@@ -81,22 +82,35 @@ async function runGithubFrontendReleaseNotificationTask() {
       const url = release.html_url;
       const status = release.draft ? "draft" : release.prerelease ? "prerelease" : "stable";
 
+      // Extract release notes from body
+      const releaseNotes = release.body || "";
+
       let task = await save({
         url,
         status: status,
         isStable: status == "stable",
         version: release.tag_name,
+        releaseNotes: releaseNotes,
         createdAt: new Date(release.created_at || DIE("no created_at in release, " + JSON.stringify(release))),
         releasedAt: !release.published_at ? undefined : new Date(release.published_at),
       });
 
       if (+task.createdAt! < +new Date(config.sendSince)) return task;
 
-      const newSlackMessageText = config.slackMessage
-        .replace("{url}", task.url)
-        .replace("{repo}", parseGithubUrl(task.url)?.repo || DIE(`unable parse REPO from URL ${task.url}`))
-        .replace("{version}", task.version || DIE(`unable to parse version from task ${JSON.stringify(task)}`))
-        .replace("{status}", task.status);
+      // Format release notes for Slack (truncate if too long)
+      const formattedReleaseNotes = releaseNotes
+        ? "\n\n*Release Notes:*\n" +
+          (releaseNotes.length > 500
+            ? releaseNotes.substring(0, 500) + "... <" + task.url + "|Read more>"
+            : releaseNotes)
+        : "";
+
+      const newSlackMessageText =
+        config.slackMessage
+          .replace("{url}", task.url)
+          .replace("{repo}", parseGithubUrl(task.url)?.repo || DIE(`unable parse REPO from URL ${task.url}`))
+          .replace("{version}", task.version || DIE(`unable to parse version from task ${JSON.stringify(task)}`))
+          .replace("{status}", task.status) + formattedReleaseNotes;
 
       const shouldSendDraftingMessage = !task.isStable;
       const draftingTextChanged =
