@@ -9,6 +9,7 @@ import { parseIssueUrl } from "@/src/parseIssueUrl";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
 import DIE from "@snomiao/die";
 import chalk from "chalk";
+import isCI from "is-ci";
 import sflow, { pageFlow } from "sflow";
 import { P } from "ts-pattern";
 import z from "zod";
@@ -110,169 +111,167 @@ const saveTask = async (pr: Partial<ComfyCorePRs> & { url: string }) => {
 if (import.meta.main) {
   // Designed to be mon to sat, TIME CHECKING
   // Pacific Daylight Time
-
+  await runCorePingTask();
+  if (isCI) {
+    await db.close();
+    process.exit(0);
+  }
+}
+async function runCorePingTask() {
   // drop everytime since outdated data is useless, we kept lastSlackmessage in Meta collection which is enough
   await ComfyCorePRs.drop();
 
   console.log("start", import.meta.file);
   let freshCount = 0;
 
-  await sflow(coreReviewTrackerConfig.REPOLIST)
-    .flatMap((repoUrl) => [
-      // handle opening pr and it's comments
+  const processedTasks = await sflow(coreReviewTrackerConfig.REPOLIST)
+    .map((repoUrl) =>
       pageFlow(1, async (page, per_page = 100) => {
         const { data } = await ghc.pulls.list({ ...parseGithubRepoUrl(repoUrl), page, per_page, state: "open" });
         return { data, next: data.length >= per_page ? page + 1 : null };
-      })
-        .flat()
-
-        .map(async (pr) => {
-          const html_url = pr.html_url;
-          const corePrLabel = pr.labels.find((e) =>
-            tsmatch(e)
-              .with({ name: P.union("Core", "Core-Important") }, (l) => l)
-              .otherwise(() => null),
-          );
-          let task = await saveTask({
-            url: pr.html_url,
-            title: pr.title,
-            created_at: new Date(pr.created_at),
-            labels: pr.labels.map((e) => e.name),
-          });
-
-          if (!corePrLabel) return saveTask({ url: html_url, status: "unrelated" });
-          if (pr.state === "closed") return saveTask({ url: html_url, status: "closed" });
-          if (pr.draft) return saveTask({ url: html_url, status: "unrelated", statusMsg: "Draft PR, skipping" });
-
-          // check timeline events
-          const timeline = await fetchFullTimeline(html_url);
-
-          // Check recent events
-          const lastLabelEvent =
-            timeline
-              .map((e) =>
-                tsmatch(e)
-                  .with({ label: { name: corePrLabel.name } }, (e) => e)
-                  .otherwise(() => null),
-              )
-              .findLast(Boolean) || DIE(`No ${corePrLabel.name} label event found`);
-
-          task = await saveTask({ url: pr.html_url, last_labeled_at: new Date(lastLabelEvent.created_at) });
-          const lastReviewEvent =
-            timeline
-              .map((e) =>
-                tsmatch(e)
-                  .with(
-                    {
-                      event: "reviewed",
-                      author_association: P.union("COLLABORATOR", "MEMBER", "OWNER"),
-                      submitted_at: P.string,
-                    },
-                    (e) => e as GH["timeline-reviewed-event"],
-                  )
-                  .otherwise(() => null),
-              )
-              .filter((e) => e?.submitted_at) // ignore pending reviews
-              .findLast(Boolean) || null;
-          if (lastReviewEvent)
-            task = await saveTask({ url: pr.html_url, last_reviewed_at: new Date(lastReviewEvent.submitted_at!) });
-
-          const lastCommentEvent =
-            timeline
-              .map((e) =>
-                tsmatch(e)
-                  .with(
-                    { event: "commented", author_association: P.union("COLLABORATOR", "MEMBER", "OWNER") },
-                    (e) => e as GH["timeline-comment-event"],
-                  )
-                  .otherwise(() => null),
-              )
-              .findLast(Boolean) || null;
-          if (lastCommentEvent)
-            task = await saveTask({ url: pr.html_url, last_reviewed_at: new Date(lastCommentEvent.created_at) });
-
-          //
-          lastReviewEvent && console.log({ lastLabelEvent, lastReviewEvent });
-          const isReviewed = task?.last_reviewed_at && +task.last_reviewed_at > +task.last_labeled_at!;
-          const isCommented = task?.last_commented_at && +task.last_commented_at > +task.last_labeled_at!;
-
-          const createdAt = new Date(lastLabelEvent.created_at);
-          const now = new Date();
-          const diff = now.getTime() - createdAt.getTime();
-          const isFresh = diff <= 24 * 60 * 60 * 1000;
-
-          const status = isReviewed ? "reviewed" : isCommented ? "reviewed" : isFresh ? "fresh" : "stale";
-
-          const hours = Math.floor(diff / (60 * 60 * 1000));
-          const sanitizedTitle = pr.title.replace(/\W+/g, " ").trim();
-          const statusMsg = `@${pr.user?.login}'s ${corePrLabel.name} PR <${pr.html_url}|${sanitizedTitle}> is waiting for your feedback for more than ${hours} hours.`;
-          console.log(statusMsg);
-          console.log(pr.html_url + " " + pr.labels.map((e) => e.name));
-
-          return await saveTask({ url: html_url, status, statusMsg });
-        }),
-
-      // // handle issue comments, (also including pr comments)
-      // pageFlow(1, async (page, per_page = 100) => {
-      //   const { data } = await ghc.issues.listCommentsForRepo({ ...parseGithubRepoUrl(repoUrl), page, per_page });
-      //   return { data, next: data.length >= per_page ? page + 1 : null };
-      // }).flat(),
-
-      // // handle pr review comments
-      // pageFlow(1, async (page, per_page = 100) => {
-      //   const { data } = await ghc.pulls.listReviewCommentsForRepo({ ...parseGithubRepoUrl(repoUrl), page, per_page });
-      //   return { data, next: data.length >= per_page ? page + 1 : null };
-      // }).flat(),
-    ])
+      }).flat(),
+    )
     .confluenceByConcat()
-    .map((pr) => {
-      // console.log(e);
-      // e.body;
-    })
-    .run();
+    .map(async (pr) => {
+      const html_url = pr.html_url;
+      const corePrLabel = pr.labels.find((e) =>
+        tsmatch(e)
+          .with({ name: P.union("Core", "Core-Important") }, (l) => l)
+          .otherwise(() => null),
+      );
+      let task = await saveTask({
+        url: pr.html_url,
+        title: pr.title,
+        created_at: new Date(pr.created_at),
+        labels: pr.labels.map((e) => e.name),
+      });
 
-  const corePRs = await ComfyCorePRs.find({}).sort({ last_labeled_at: 1 }).toArray();
+      if (!corePrLabel) return saveTask({ url: html_url, status: "unrelated" });
+      if (pr.state === "closed") return saveTask({ url: html_url, status: "closed" });
+      if (pr.draft) return saveTask({ url: html_url, status: "unrelated", statusMsg: "Draft PR, skipping" });
+
+      // check timeline events
+      const timeline = await fetchFullTimeline(html_url);
+
+      // Check recent events
+      const lastLabelEvent =
+        timeline
+          .map((e) =>
+            tsmatch(e)
+              .with({ label: { name: corePrLabel.name } }, (e) => e)
+              .otherwise(() => null),
+          )
+          .findLast(Boolean) || DIE(`No ${corePrLabel.name} label event found`);
+
+      task = await saveTask({ url: pr.html_url, last_labeled_at: new Date(lastLabelEvent.created_at) });
+      const lastReviewEvent =
+        timeline
+          .map((e) =>
+            tsmatch(e)
+              .with(
+                {
+                  event: "reviewed",
+                  author_association: P.union("COLLABORATOR", "MEMBER", "OWNER"),
+                  submitted_at: P.string,
+                },
+                (e) => e as GH["timeline-reviewed-event"],
+              )
+              .otherwise(() => null),
+          )
+          .filter((e) => e?.submitted_at) // ignore pending reviews
+          .findLast(Boolean) || null;
+      if (lastReviewEvent)
+        task = await saveTask({ url: pr.html_url, last_reviewed_at: new Date(lastReviewEvent.submitted_at!) });
+
+      const lastCommentEvent =
+        timeline
+          .map((e) =>
+            tsmatch(e)
+              .with(
+                { event: "commented", author_association: P.union("COLLABORATOR", "MEMBER", "OWNER") },
+                (e) => e as GH["timeline-comment-event"],
+              )
+              .otherwise(() => null),
+          )
+          .findLast(Boolean) || null;
+      if (lastCommentEvent)
+        task = await saveTask({ url: pr.html_url, last_reviewed_at: new Date(lastCommentEvent.created_at) });
+
+      //
+      lastReviewEvent && console.log({ lastLabelEvent, lastReviewEvent });
+      const isReviewed = task?.last_reviewed_at && +task.last_reviewed_at > +task.last_labeled_at!;
+      const isCommented = task?.last_commented_at && +task.last_commented_at > +task.last_labeled_at!;
+
+      const createdAt = new Date(lastLabelEvent.created_at);
+      const now = new Date();
+      const diff = now.getTime() - createdAt.getTime();
+      const isFresh = diff <= 24 * 60 * 60 * 1000;
+
+      const status = isReviewed ? "reviewed" : isCommented ? "reviewed" : isFresh ? "fresh" : "stale";
+
+      const hours = Math.floor(diff / (60 * 60 * 1000));
+      const sanitizedTitle = pr.title.replace(/\W+/g, " ").trim();
+      const statusMsg = `@${pr.user?.login}'s ${corePrLabel.name} PR <${pr.html_url}|${sanitizedTitle}> is waiting for your feedback for more than ${hours} hours.`;
+      console.log(statusMsg);
+      console.log(pr.html_url + " " + pr.labels.map((e) => e.name));
+
+      return await saveTask({ url: html_url, status, statusMsg });
+    })
+    .toArray();
+
+  // processedTasks
+  const corePRs = await ComfyCorePRs.find({
+    status: { $in: ["fresh", "stale"] },
+  })
+    .sort({ last_labeled_at: 1 })
+    .toArray();
 
   console.log("ready to send slack message to notify @comfy");
-  const staleCorePRs = corePRs.filter((pr) => pr.status === "stale");
-  const staleCorePRsMessage = staleCorePRs
-    .map((pr) => pr.statusMsg || `- <${pr.url}|${pr.title}> ${pr.labels}`)
-    .join("\n");
-  const freshCorePRs = corePRs.filter((pr) => pr.status === "fresh");
 
-  const freshMsg = !freshCorePRs.length
-    ? ""
-    : `and there are ${freshCorePRs.length} more fresh Core/Core-Important PRs.\n`;
-  const notifyMessage = `Hey <@comfy>, Here's x${staleCorePRs.length} Core/Important PRs waiting your feedback!\n\n${staleCorePRsMessage}\n${freshMsg}\nSent from CorePing.ts by <@snomiao> cc <@yoland>`;
+  const notifyMessage = !corePRs.length
+    ? `Congratulations! All Core/Important PRs are reviewed! 🎉🎉🎉 \nSent from CorePing.ts by <@snomiao> cc <@Yoland>`
+    : `Hey <@comfy>, Here's x${corePRs.length} Core/Important PRs waiting your feedback!\n\n${corePRs.map((pr) => pr.statusMsg || `- <${pr.url}|${pr.title}> ${pr.labels}`).join("\n")}\nSent from CorePing.ts by <@snomiao> cc <@Yoland>`;
+
   console.log(chalk.bgBlue(notifyMessage));
-
   // TODO: update message with delete line when it's reviewed
   // send or update slack message
   let meta = await Meta.$upsert({});
-  // if <24 h since last sent (not edit), update that msg
-  if (
+
+  // can only post new message: tz: PST,  day: working day + sat, time: 10-12am
+  const canPostNewMessage = (() => {
+    const now = new Date();
+    const pstTime = new Date(now.toLocaleString("en-US", { timeZone: "America/Los_Angeles" }));
+    const day = pstTime.getDay(); // 0=Sunday, 1=Monday, ..., 6=Saturday
+    const hour = pstTime.getHours();
+
+    // Working days (Mon-Fri) + Saturday, but not Sunday
+    const isValidDay = day >= 1 && day <= 6;
+    // 10am-12pm PST (10-11:59)
+    const isValidTime = hour >= 10 && hour < 12;
+
+    return isValidDay && isValidTime;
+  })();
+
+  const canUpdateExistingMessage =
     meta.lastSlackMessage &&
     meta.lastSlackMessage.sendAt &&
-    new Date().getTime() - new Date(meta.lastSlackMessage.sendAt).getTime() < 23.9 * 60 * 60 * 1000
-  ) {
-    const msg = await upsertSlackMessage({
-      text: notifyMessage,
-      channelName: cfg.slackChannelName,
-      url: meta.lastSlackMessage.url,
-    });
-    meta = await Meta.$upsert({ lastSlackMessage: { text: msg.text, url: msg.url, sendAt: new Date() } });
-  } else {
-    // if >24h or not exist, post a new msg
-    const msg = await upsertSlackMessage({
-      text: notifyMessage,
-      channelName: cfg.slackChannelName,
-    });
-    meta = await Meta.$upsert({ lastSlackMessage: { text: msg.text, url: msg.url, sendAt: new Date() } });
-  }
+    new Date().getTime() - new Date(meta.lastSlackMessage.sendAt).getTime() <= 23.9 * 60 * 60 * 1000;
+
+  // if <24 h since last sent (not edit), update that msg
+  const msgUpdateUrl = canUpdateExistingMessage && !canPostNewMessage ? meta.lastSlackMessage?.url : undefined;
+
+  // DIE("check " + JSON.stringify(msgUpdateUrl));
+  const msg = await upsertSlackMessage({
+    text: notifyMessage,
+    channelName: cfg.slackChannelName,
+    url: msgUpdateUrl,
+  });
+
+  console.log("message posted: " + msg.url);
+  meta = await Meta.$upsert({ lastSlackMessage: { text: msg.text, url: msg.url, sendAt: new Date() } });
 
   console.log("done", import.meta.file);
 }
-
 /**
  * get full timeline
  * - [Issue event types - GitHub Docs]( https://docs.github.com/en/rest/using-the-rest-api/issue-event-types?apiVersion=2022-11-28 )

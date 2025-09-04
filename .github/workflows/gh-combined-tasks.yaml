@@ -22,17 +22,17 @@ on:
 jobs:
   run_combined_github_tasks:
     runs-on: ubuntu-latest
-    timeout-minutes: 15  # Allow some extra time for all tasks
+    timeout-minutes: 15 # Allow some extra time for all tasks
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v1
-      
+      - uses: oven-sh/setup-bun@v2
+
       # Install dependencies
       - run: bun i
-      
+
       # Run all combined GitHub tasks
       - run: bun app/tasks/run-gh-tasks.ts
-        timeout-minutes: 10  # Individual timeout for the script
+        timeout-minutes: 10 # Individual timeout for the script
         env:
           # Bounty task environment variables
           AUTH_GCLOUD_URL: https://comfy-pr.vercel.app
@@ -41,7 +41,7 @@ jobs:
           COMFY_PR_REPO: ${{ secrets.COMFY_PR_REPO }}
           FORK_OWNER: "ComfyNodePRs"
           FORK_PREFIX: "PR-"
-          
+
           # Common environment variables for all tasks
           GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR_BOT }}
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
