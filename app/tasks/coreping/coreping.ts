@@ -235,13 +235,6 @@ async function runCorePingTask() {
   // TODO: update message with delete line when it's reviewed
   // send or update slack message
   let meta = await Meta.$upsert({});
-  const canUpdateExistingMessage =
-    meta.lastSlackMessage &&
-    meta.lastSlackMessage.sendAt &&
-    new Date().getTime() - new Date(meta.lastSlackMessage.sendAt).getTime() <= 23.9 * 60 * 60 * 1000;
-
-  // if <24 h since last sent (not edit), update that msg
-  const msgUpdateUrl = canUpdateExistingMessage && !canPostNewMessage ? meta.lastSlackMessage?.url : undefined;
 
   // can only post new message: tz: PST,  day: working day + sat, time: 10-12am
   const canPostNewMessage = (() => {
@@ -257,6 +250,14 @@ async function runCorePingTask() {
 
     return isValidDay && isValidTime;
   })();
+
+  const canUpdateExistingMessage =
+    meta.lastSlackMessage &&
+    meta.lastSlackMessage.sendAt &&
+    new Date().getTime() - new Date(meta.lastSlackMessage.sendAt).getTime() <= 23.9 * 60 * 60 * 1000;
+
+  // if <24 h since last sent (not edit), update that msg
+  const msgUpdateUrl = canUpdateExistingMessage && !canPostNewMessage ? meta.lastSlackMessage?.url : undefined;
 
   // DIE("check " + JSON.stringify(msgUpdateUrl));
   const msg = await upsertSlackMessage({
