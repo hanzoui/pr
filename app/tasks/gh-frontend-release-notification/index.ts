@@ -83,7 +83,7 @@ async function runGithubFrontendReleaseNotificationTask() {
       const status = release.draft ? "draft" : release.prerelease ? "prerelease" : "stable";
 
       // Extract release notes from body
-      const releaseNotes = release.body || "";
+      const releaseNotes = release.body ?? "";
 
       let task = await save({
         url,
