@@ -30,7 +30,7 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       # Setup Bun
       - run: pip install setuptools
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
       # Run Comfy-PR Worker
       - run: bun i
       - run: bun src/index.ts
