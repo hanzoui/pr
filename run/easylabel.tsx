@@ -1,3 +1,4 @@
+#!/usr/bin/env bun
 import { tsmatch } from "@/packages/mongodb-pipeline-ts/Task";
 import { db } from "@/src/db";
 import { gh, type GH } from "@/src/gh";
@@ -20,7 +21,6 @@ import sflow, { pageFlow } from "sflow";
  * Add a label: Send a comment with "+label:[name]" (must have no space)
  * Remove a label: Send a comment with "-label:[name]" (must have no space)
  *
- * Bugcop:
  */
 
 const cfg = {
@@ -54,6 +54,35 @@ const saveTask = async (task: Partial<GithubIssueLabelOps> & { target_url: strin
 
 if (import.meta.main) {
   await runLabelOpInitializeScan();
+  await runLabelOpPolling();
+}
+async function runLabelOpPolling() {
+  console.log(chalk.bgBlue("Start Label Ops Polling..."));
+  // every 5s, check recent new comments for repo for 1min
+  while (true) {
+    await sflow(cfg.REPOLIST)
+      .map((repoUrl) =>
+        pageFlow(1, async (page, per_page = 100) => {
+          console.log(`Listing issue comments for recent 5min`);
+          const { data } = await gh.issues.listCommentsForRepo({
+            ...parseGithubRepoUrl(repoUrl),
+            page,
+            per_page,
+            since: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
+          });
+          return { data, next: data.length >= per_page ? page + 1 : null };
+        }).flat(),
+      )
+      .confluenceByParallel()
+      .forEach(async (comment) => {
+        console.log(comment.html_url);
+        const issue = await ghc.issues.get({ ...parseIssueUrl(comment.html_url) });
+        await processIssueCommentForLableops({ issue: issue.data, comment });
+      })
+      .run();
+    console.log(chalk.blue("Sleep 5s"));
+    await new Promise((r) => setTimeout(r, 5000));
+  }
 }
 /**
  * Scan all issues/prs and it's comments, and process them for label operations.
@@ -67,15 +96,21 @@ async function runLabelOpInitializeScan() {
   console.log(chalk.bgBlue("Start Label Ops Initialization Scan..."));
   await sflow(cfg.REPOLIST)
     .map((repoUrl) =>
-      pageFlow(1, async (page, per_page = 10) => {
+      pageFlow(1, async (page, per_page = 100) => {
         console.log(`Listing issues for ${repoUrl} page ${page}`);
-        const { data } = await ghc.issues.list({ ...parseGithubRepoUrl(repoUrl), page, per_page, state: "open" });
+        const { data } = await ghc.issues.listForRepo({
+          ...parseGithubRepoUrl(repoUrl),
+          page,
+          per_page,
+          state: "open",
+        });
+        console.log(`Fetched ${data.length} issues from ${repoUrl} page ${page}`);
         return { data, next: data.length >= per_page ? page + 1 : null };
       }).flat(),
     )
     .confluenceByParallel()
     .map(async (issue) => {
-      console.log(`Processing issue ${issue.html_url} with ${issue.comments} comments`);
+      console.log(`+issue ${issue.html_url} with ${issue.comments} comments`);
       if (!issue.comments) return;
       await pageFlow(1, async (page, per_page = 100) => {
         const { data } = await ghc.issues.listComments({ ...parseIssueUrl(issue.html_url), page, per_page });
@@ -86,6 +121,7 @@ async function runLabelOpInitializeScan() {
         .run();
     })
     .run();
+  console.log(chalk.bgBlue("Label Ops Polling Done."));
 }
 
 /**
@@ -96,16 +132,15 @@ export async function processIssueCommentForLableops({
   comment,
 }: {
   issue: GH["issue"];
-  comment: GH["issue-comment"] | null;
+  comment?: GH["issue-comment"] | null;
 }) {
   const target = comment || issue;
-  console.log("processing " + target.html_url);
+  console.log("  +COMMENT " + target.html_url + " len:" + target.body?.length);
   let task = await saveTask({
     target_url: target.html_url,
     issue_url: issue.html_url,
     type: comment ? "issue-comment" : "issue",
   });
-  console.log(issue.html_url, target.body?.length);
   if (task?.processed_at && +new Date(target.updated_at) <= +task.processed_at) return null; // skip if processed
   if (!target.body) return task;
 
@@ -125,8 +160,10 @@ export async function processIssueCommentForLableops({
   if (!labelOps.length) return saveTask({ target_url: target.html_url, processed_at: new Date() });
 
   console.log("Found a matched Target URL:", target.html_url, labelOps.map((e) => e.op + e.name).join(", "));
-  DIE("check");
-  console.log("Adding reaction");
+
+  // return task;
+  // DIE("check");
+  console.log(chalk.blue("Adding reaction"));
   if (comment === target) {
     await gh.reactions.createForIssueComment({
       ...parseIssueUrl(issue.html_url),
