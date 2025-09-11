@@ -1,3 +1,4 @@
+#!/usr/bin/env bun --hot
 import { db } from "@/src/db";
 import { gh } from "@/src/gh";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
@@ -31,6 +32,7 @@ export type GithubFrontendReleaseNotificationTask = {
   releasedAt?: Date;
   isStable?: boolean;
   status: "draft" | "prerelease" | "stable";
+  releaseNotes?: string;
 
   slackMessageDrafting?: {
     text: string;
@@ -81,23 +83,35 @@ async function runGithubFrontendReleaseNotificationTask() {
       const url = release.html_url;
       const status = release.draft ? "draft" : release.prerelease ? "prerelease" : "stable";
 
+      // Extract release notes from body
+      const releaseNotes = release.body ?? "";
+
       let task = await save({
         url,
         status: status,
         isStable: status == "stable",
         version: release.tag_name,
+        releaseNotes: releaseNotes,
         createdAt: new Date(release.created_at || DIE("no created_at in release, " + JSON.stringify(release))),
         releasedAt: !release.published_at ? undefined : new Date(release.published_at),
       });
 
       if (+task.createdAt! < +new Date(config.sendSince)) return task;
 
+      // Format release notes for Slack (not truncate, slack will fold automatically)
+      const formattedReleaseNotes = task.isStable ? releaseNotes || "" : "";
+
       const newSlackMessageText = config.slackMessage
         .replace("{url}", task.url)
-        .replace("{repo}", parseGithubUrl(task.url)?.repo || DIE(`unable parse REPO from URL ${task.url}`))
-        .replace("{version}", task.version || DIE(`unable to parse version from task ${JSON.stringify(task)}`))
-        .replace("{status}", task.status);
+        .replace("{repo}", parseGithubUrl(task.url)?.repo || DIE(`Unable to parse REPO from URL ${task.url}`))
+        .replace("{version}", task.version || DIE(`Unable to parse version from task ${JSON.stringify(task)}`))
+        .replace("{status}", task.status)
+        .replace(/$/, "\n" + formattedReleaseNotes)
+        .replace(/(.*) in (https:\/\/\S*)$/gm, "<$2|$1>") // linkify URLs at the end of lines;
+        .replace(/^([\s\S]{1800}.*)\r?\n[\s\S]*?(.*[\s\S]{1800})$/, "$1\n...TRUNCATED...\n$2") // truncate to 4000 characters, slack limit is 40000 but be safe
+        .replace('**Full Changelog**', 'Full Changelog'); 
 
+      console.log(newSlackMessageText);
       const shouldSendDraftingMessage = !task.isStable;
       const draftingTextChanged =
         !task.slackMessageDrafting?.text || task.slackMessageDrafting.text.trim() !== newSlackMessageText.trim();
@@ -108,6 +122,9 @@ async function runGithubFrontendReleaseNotificationTask() {
             channelName: config.slackChannelName,
             text: newSlackMessageText,
             url: task.slackMessageDrafting?.url,
+          }).catch((e) => {
+            console.error("Failed to send draft slack message for release", task.url, e);
+            throw e;
           }),
         });
       }
@@ -123,10 +140,12 @@ async function runGithubFrontendReleaseNotificationTask() {
             text: newSlackMessageText,
             url: task.slackMessage?.url,
             replyUrl: task.slackMessageDrafting?.url,
+          }).catch((e) => {
+            console.error("Failed to send slack message for release", task.url, JSON.stringify(e));
+            throw e;
           }),
         });
       }
-
       return task;
     })
     .log()
