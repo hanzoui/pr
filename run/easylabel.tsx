@@ -167,7 +167,7 @@ export async function processIssueCommentForLableops({
   if (comment === target) {
     await gh.reactions.createForIssueComment({
       ...parseIssueUrl(issue.html_url),
-      comment_id: comment!.id,
+      comment_id: comment.id,
       content: "eyes",
     });
   } else {
