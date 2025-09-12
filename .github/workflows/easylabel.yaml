@@ -20,7 +20,7 @@ jobs:
       # Install dependencies
       - run: bun i
 
-      # Run CorePing task
+      # Run EasyLabel task
       - run: bun run/easylabel.tsx
         timeout-minutes: 10
         env:
