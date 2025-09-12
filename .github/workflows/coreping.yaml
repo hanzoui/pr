@@ -19,13 +19,13 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
 
       # Install dependencies
       - run: bun i
 
       # Run CorePing task
-      - run: bun app/tasks/coreping/index.tsx
+      - run: bun app/tasks/coreping/coreping.ts
         timeout-minutes: 8
         env:
           GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR_BOT }}

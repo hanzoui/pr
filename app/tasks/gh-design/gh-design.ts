@@ -2,7 +2,7 @@ import { db } from "@/src/db";
 import { TaskMetaCollection } from "@/src/db/TaskMeta";
 import { gh } from "@/src/gh";
 import { parseIssueUrl } from "@/src/parseIssueUrl";
-import { parseUrlRepoOwner } from "@/src/parseOwnerRepo";
+import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
 import { slack } from "@/src/slack";
 import { getSlackChannel } from "@/src/slack/channels";
 import DIE from "@snomiao/die";
@@ -137,7 +137,7 @@ export async function runGithubDesignTask() {
   // Get configuration from meta or use defaults
   const slackMessageTemplate = meta.slackMessageTemplate || DIE("Missing Slack message template");
   const designItemsFlow = await sflow(meta.repoUrls || DIE("Missing repo URLs"))
-    .map((e) => parseUrlRepoOwner(e))
+    .map((e) => parseGithubRepoUrl(e))
     .pMap(
       async ({ owner, repo }) =>
         pageFlow(1, async (page) => {
