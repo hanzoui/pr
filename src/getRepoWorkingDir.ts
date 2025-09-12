@@ -1,6 +1,5 @@
-import { parseUrlRepoOwner } from "./parseOwnerRepo";
+import { parseGithubRepoUrl } from "./parseOwnerRepo";
 
 export function getRepoWorkingDir(forkUrl: string) {
-  return `prs/${parseUrlRepoOwner(forkUrl).repo}`;
+  return `prs/${parseGithubRepoUrl(forkUrl).repo}`;
 }
-  

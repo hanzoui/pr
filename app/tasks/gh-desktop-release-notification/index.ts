@@ -1,6 +1,6 @@
 import { db } from "@/src/db";
 import { gh } from "@/src/gh";
-import { parseUrlRepoOwner } from "@/src/parseOwnerRepo";
+import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
 import { getSlackChannel } from "@/src/slack/channels";
 import DIE from "@snomiao/die";
 import isCI from "is-ci";
@@ -71,7 +71,7 @@ async function runGithubDesktopReleaseNotificationTask() {
   );
 
   await sflow(config.repos)
-    .map(parseUrlRepoOwner)
+    .map(parseGithubRepoUrl)
     .flatMap(({ owner, repo }) =>
       gh.repos
         .listReleases({
