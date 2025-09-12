@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       repo_url:
-        description: 'Comfy CustomNode Repo to setup ./pyproject.toml + .github/workflow/publish.yaml'
+        description: "Comfy CustomNode Repo to setup ./pyproject.toml + .github/workflow/publish.yaml"
         required: true
         type: string
         default: "https://github.com/snomiao/ComfyNode-Registry-test"
@@ -27,7 +27,7 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       # Setup Bun
       - run: pip install setuptools
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
       # Run Comfy-PR Worker
       - run: bun i
       - run: bun src/createComfyRegistryPullRequests.ts ${{ inputs.repo_url }}
