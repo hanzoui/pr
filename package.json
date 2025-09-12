@@ -147,6 +147,7 @@
     "use-async-effect": "^2.2.7",
     "use-swr-component": "^0.0.7",
     "vercel": "^34.4.0",
+    "winston": "^3.17.0",
     "yaml": "^2.5.0",
     "zod": "^4.0.5",
     "zod-deep-partial": "^1.0.0",
