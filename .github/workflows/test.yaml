@@ -23,7 +23,7 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
       # Setup Bun
       - run: pip install setuptools
-      - uses: oven-sh/setup-bun@v1
+      - uses: oven-sh/setup-bun@v2
       # setup test db
       - run: docker compose -f docker-compose.test.yml up comfy-pr-db -d
       # setup comfy-pr
