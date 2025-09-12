@@ -162,7 +162,6 @@ export async function processIssueCommentForLableops({
   console.log("Found a matched Target URL:", target.html_url, labelOps.map((e) => e.op + e.name).join(", "));
 
   // return task;
-  // DIE("check");
   console.log(chalk.blue("Adding reaction"));
   if (comment === target) {
     await gh.reactions.createForIssueComment({
