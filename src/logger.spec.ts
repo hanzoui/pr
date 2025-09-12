@@ -150,7 +150,3 @@ describe("Logger Configuration", () => {
     });
   });
 });
-
-    });
-  });
-});
