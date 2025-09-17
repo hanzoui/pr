@@ -1,64 +1,52 @@
 import { upsertSlackMessage } from "@/app/tasks/gh-desktop-release-notification/upsertSlackMessage";
-import DIE from "@snomiao/die";
-import { pageFlow } from "sflow";
 import { slack } from ".";
 import { slackCached } from "./slackCached";
 
-// export type SlackWeeklyDM = {
-//     member
-// }
-// export const SlackWeeklyDM =db.collection
+export async function sendDMToUser(username: string, message: string) {
+  // Find user by username
+  const users = await slackCached.users.list();
+  const user = users.members?.find((u: any) => u.name === username);
+  if (!user) {
+    throw new Error(`User ${username} not found`);
+  }
 
-if (import.meta.main) {
-  // await pageFlow(undefined as undefined | string, async (cursor, limit = 100) => {
-  //     const res = await slackCached.conversations.list({  })
-  //     return { data: res.channels, next: res.response_metadata?.next_cursor || null }
-  // }).flat()
-  //     .filter(e => JSON.stringify(e).match('snomiao'))
-  //     .forEach(member => {
-  //         // member.name
-  //         // slack.conversations.list()
-  //     }).log()
-  //     .run()
-  await pageFlow(undefined as undefined | string, async (cursor, limit = 100) => {
-    const res = await slackCached.users.list({ limit: 100, cursor });
-    return { data: res.members, next: res.response_metadata?.next_cursor || null };
-  })
-    .flat()
-    .filter((e) => e.name === "snomiao")
-    // open DM
-    // .by(mapMixins(async member => ({
-    //     a: (await slackCached.conversations.open({
-    //         users: [member.id].join(',') || DIE('fail to get id from member ' + JSON.stringify({ member }))
-    //     }))?.channel || DIE('fail to open conversation to member ' + member.name)
-    // })))
+  // Open DM conversation
+  const conversation = await slackCached.conversations.open({ users: user.id });
+  if (!conversation.channel) {
+    throw new Error(`Failed to open conversation with ${username}`);
+  }
 
-    // attach channel info to member
-    .mapMixin(async (member) => ({
-      channel:
-        (await slackCached.conversations
-          .open({
-            users: [member.id].join(",") || DIE("fail to get id from member " + JSON.stringify({ member })),
-          })
-          .then((res) => res?.channel)) || DIE("fail to open conversation to member " + member.name),
-    }))
-    // send message
-    .map(async (member) => {
-      const chanId = member.channel.id || DIE("no channel id for " + JSON.stringify({ member }));
-      const lastMessageUrl = await slack.conversations.history({ channel: chanId, limit: 1 }).then(async (res) => {
-        const lastMessage = res.messages?.[0];
-        if (!lastMessage) return;
-        return await slack.chat
-          .getPermalink({
-            channel: chanId,
-            message_ts:
-              lastMessage?.ts || DIE("Got last message without chanId: " + JSON.stringify({ chanId, lastMessage })),
-          })
-          .then((res) => res.permalink || DIE("got empty permalink " + JSON.stringify({ res, chanId, lastMessage })));
+  // Get last message permalink if exists
+  let lastMessageUrl: string | undefined;
+  try {
+    const history = await slack.conversations.history({
+      channel: conversation.channel.id,
+      limit: 1,
+    });
+    const lastMessage = history.messages?.[0];
+    if (lastMessage) {
+      const permalink = await slack.chat.getPermalink({
+        channel: conversation.channel.id,
+        message_ts: lastMessage.ts!,
       });
-      await upsertSlackMessage({ channel: member.channel.id, text: "hello", url: lastMessageUrl });
-    })
-    // log result
-    .log()
-    .run();
+      lastMessageUrl = permalink.permalink;
+    }
+  } catch (error) {
+    // Ignore errors getting last message
+  }
+
+  // Send message
+  await upsertSlackMessage({
+    channel: conversation.channel.id,
+    text: message,
+    url: lastMessageUrl,
+  });
+
+  return { userId: user.id, channelId: conversation.channel.id };
+}
+
+// Test functionality
+if (import.meta.main) {
+  await sendDMToUser("snomiao", "Hello from the simplified DM function!");
+  console.log("DM sent successfully");
 }
