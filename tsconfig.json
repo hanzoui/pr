@@ -53,6 +53,7 @@
     "node_modules",
     "prs/*",
     ".cache",
-    "dist"
+    "dist",
+    "scripts"
   ]
 }
