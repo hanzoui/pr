@@ -1,16 +1,15 @@
-name: "CorePing - Core PR Review Reminder"
+name: "EasyLabel - Automated PR Labeling"
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: "0 * * * *" # Run every hour at minute 0
   push:
     branches:
       - easylabel-debug
-  #   paths:
-  #     - ".github/workflows/coreping.yaml"
-  #     - "app/tasks/coreping/**"
 
 jobs:
-  run_coreping:
+  run_easylabel:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -20,9 +19,8 @@ jobs:
       # Install dependencies
       - run: bun i
 
-      # Run EasyLabel task
+      # Run EasyLabel task with timeout
       - run: bun run/easylabel.tsx
-        timeout-minutes: 10
         env:
           GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR_BOT }}
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
