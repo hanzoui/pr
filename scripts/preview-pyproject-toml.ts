@@ -1,9 +1,9 @@
 #!/usr/bin/env bun
-import { readFile, writeFile, mkdir, rm } from "fs/promises";
-import { $ } from "../src/cli/echoBunShell";
 import { existsSync } from "fs";
-import * as path from "path";
+import { mkdir, readFile, rm, writeFile } from "fs/promises";
 import * as os from "os";
+import * as path from "path";
+import { $ } from "../src/cli/echoBunShell";
 
 /**
  * Preview what pyproject.toml will be generated for a repository
@@ -16,13 +16,10 @@ async function previewPyprojectToml() {
   const repoIndex = args.indexOf("--repo");
   const outputIndex = args.indexOf("--output");
 
-  const repoUrl = repoIndex >= 0 && args[repoIndex + 1]
-    ? args[repoIndex + 1]
-    : "https://github.com/snomiao/ComfyNode-Registry-test"; // default test repo
+  const repoUrl =
+    repoIndex >= 0 && args[repoIndex + 1] ? args[repoIndex + 1] : "https://github.com/snomiao/ComfyNode-Registry-test"; // default test repo
 
-  const outputFile = outputIndex >= 0 && args[outputIndex + 1]
-    ? args[outputIndex + 1]
-    : null;
+  const outputFile = outputIndex >= 0 && args[outputIndex + 1] ? args[outputIndex + 1] : null;
 
   console.log(`\n🔍 Previewing pyproject.toml for: ${repoUrl}\n`);
 
@@ -37,7 +34,7 @@ async function previewPyprojectToml() {
 
     // Change to repo directory
     const repoDir = `${tempDir}/repo`;
-    
+
     // Check if pyproject.toml already exists
     const existingToml = `${repoDir}/pyproject.toml`;
     if (existsSync(existingToml)) {
@@ -51,7 +48,7 @@ async function previewPyprojectToml() {
 
     // Read the generated pyproject.toml
     const pyprojectContent = await readFile(`${repoDir}/pyproject.toml`, "utf8");
-    
+
     console.log("\n📄 Generated pyproject.toml:\n");
     console.log("=" + "=".repeat(59));
     console.log(pyprojectContent);
@@ -82,9 +79,10 @@ async function previewPyprojectToml() {
     // Show what modifications would be made
     console.log("\n📝 Additional modifications in actual PR:");
     console.log("   1. Description field would be filled from ComfyUI-Manager database");
-    console.log("   2. File would be committed with message: 'chore(pyproject): Add pyproject.toml for Custom Node Registry'");
+    console.log(
+      "   2. File would be committed with message: 'chore(pyproject): Add pyproject.toml for Custom Node Registry'",
+    );
     console.log("   3. Pushed to branch: 'pyproject'\n");
-
   } catch (error) {
     console.error("❌ Error:", error);
     process.exit(1);
