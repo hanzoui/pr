@@ -53,6 +53,10 @@
     "node_modules",
     "prs/*",
     ".cache",
-    "dist"
+    "dist",
+    "**/*.spec.ts",
+    "**/*.spec.tsx",
+    "**/*.test.ts",
+    "**/*.test.tsx"
   ]
 }

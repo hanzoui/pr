@@ -12,6 +12,7 @@ import { CNRepos } from "./CNRepos";
 import { createGithubForkForRepoEx } from "./createGithubForkForRepo";
 import { createGithubPullRequest } from "./createGithubPullRequest";
 import { $flatten, $stale, db } from "./db";
+import { createCollection } from "@/src/db/collection";
 import { getBranchWorkingDir } from "./getBranchWorkingDir";
 import { gh } from "./gh";
 import type { GithubPull } from "./gh/GithubPull";
@@ -26,7 +27,7 @@ type LicenseUpdateTask = {
   updatedAt?: Date;
 };
 
-const LicenseTasks = db.collection<LicenseUpdateTask>("LicenseTasks");
+const LicenseTasks = createCollection<LicenseUpdateTask>("LicenseTasks");
 await LicenseTasks.createIndex({ repository: 1 }, { unique: true });
 
 if (import.meta.main) {

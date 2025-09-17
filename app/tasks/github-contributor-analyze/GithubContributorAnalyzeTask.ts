@@ -1,4 +1,5 @@
 import { db } from "@/src/db";
+import { createCollection } from "@/src/db/collection";
 
 export type Contributor = {
   count: number;
@@ -14,7 +15,7 @@ export type GithubContributorAnalyzeTask = {
   errorAt?: Date;
 };
 
-export const GithubContributorAnalyzeTask = db.collection<GithubContributorAnalyzeTask>("GithubContributorAnalzyeTask"); // git shortlog --summary --numbered --email
+export const GithubContributorAnalyzeTask = createCollection<GithubContributorAnalyzeTask>("GithubContributorAnalzyeTask"); // git shortlog --summary --numbered --email
 export const GithubContributorAnalyzeTaskFilter = {
   updatedAt: { $not: { $gt: new Date(Date.now() - 1000 * 60 * 60 * 24) } },
 };

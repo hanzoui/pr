@@ -4,9 +4,10 @@ import { sf } from "sflow";
 import { type Task } from "../packages/mongodb-pipeline-ts/Task";
 import { analyzeTotals } from "./analyzeTotals";
 import { db } from "./db";
+import { createCollection } from "@/src/db/collection";
 import { type AwaitedReturnType } from "./types/AwaitedReturnType";
 export type Totals = AwaitedReturnType<typeof analyzeTotals>;
-export const Totals = db.collection<{
+export const Totals = createCollection<{
   /** @deprecated use totals.mtime */
   today?: string;
   totals?: Task<Totals>;

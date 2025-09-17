@@ -1,4 +1,5 @@
 import { db } from "@/src/db";
+import { createCollection } from "@/src/db/collection";
 import { gh } from "@/src/gh";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
 import { getSlackChannel } from "@/src/slack/channels";
@@ -46,7 +47,7 @@ export type GithubReleaseNotificationTask = {
   };
 };
 
-export const GithubReleaseNotificationTask = db.collection<GithubReleaseNotificationTask>(
+export const GithubReleaseNotificationTask = createCollection<GithubReleaseNotificationTask>(
   "GithubReleaseNotificationTask",
 );
 await GithubReleaseNotificationTask.createIndex({ url: 1 }, { unique: true });

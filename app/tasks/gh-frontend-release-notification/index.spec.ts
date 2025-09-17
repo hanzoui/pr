@@ -2,7 +2,7 @@ import { db } from "@/src/db";
 import { gh } from "@/src/gh";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
 import { getSlackChannel } from "@/src/slack/channels";
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, it, jest } from "bun:test";
 import runGithubFrontendReleaseNotificationTask from "./index";
 
 jest.mock("@/src/gh");

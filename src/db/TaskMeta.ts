@@ -3,12 +3,13 @@ import type { ObjectId } from "mongodb";
 import { omit } from "rambda";
 import { z } from "zod";
 import { db } from ".";
+import { createCollection } from "@/src/db/collection";
 
 export const TaskMetaCollection = <S extends z.ZodObject<any>, const COLLECTION_NAME extends string = string>(
   coll: COLLECTION_NAME,
   schema: S,
 ) => {
-  const c = db.collection<{ coll: COLLECTION_NAME } & z.infer<S>>("TaskMeta");
+  const c = createCollection<{ coll: COLLECTION_NAME } & z.infer<S>>("TaskMeta");
   return Object.assign(c, {
     $upsert: async (data: Partial<z.infer<S>>) => {
       // Validate data with schema

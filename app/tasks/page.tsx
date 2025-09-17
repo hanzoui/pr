@@ -1,13 +1,15 @@
 import { GithubActionUpdateTask } from "@/src/GithubActionUpdateTask/GithubActionUpdateTask";
 import Link from "next/link";
 import { Suspense } from "react";
-import { GithubBugcopTask } from "../../run/gh-bugcop/gh-bugcop";
+// import { GithubBugcopTask } from "../../run/gh-bugcop/gh-bugcop";
 import { GithubBountyTask } from "./gh-bounty/gh-bounty";
 import { GithubDesignTask } from "./gh-design/gh-design";
 import {
   GithubContributorAnalyzeTask,
   GithubContributorAnalyzeTaskFilter,
 } from "./github-contributor-analyze/GithubContributorAnalyzeTask";
+
+export const dynamic = "force-dynamic";
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const Counts = {
@@ -44,7 +46,7 @@ export default async function TasksIndexPage() {
       </li>
       <li>
         <Link href="/tasks/gh-bugcop">
-          GitHub BugCop Task x <Suspense>{GithubBugcopTask.estimatedDocumentCount()}</Suspense>
+          GitHub BugCop Task x <Suspense>0{/* {GithubBugcopTask.estimatedDocumentCount()} */}</Suspense>
         </Link>
       </li>
     </ol>

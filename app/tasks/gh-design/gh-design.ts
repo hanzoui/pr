@@ -1,4 +1,5 @@
 import { db } from "@/src/db";
+import { createCollection } from "@/src/db/collection";
 import { TaskMetaCollection } from "@/src/db/TaskMeta";
 import { gh } from "@/src/gh";
 import { parseIssueUrl } from "@/src/parseIssueUrl";
@@ -66,7 +67,7 @@ type GithubDesignTask = {
 // task states
 const COLLECTION_NAME = "GithubDesignTask";
 export const GithubDesignTaskMeta = TaskMetaCollection(COLLECTION_NAME, githubDesignTaskMetaSchema);
-export const GithubDesignTask = db.collection<GithubDesignTask>(COLLECTION_NAME);
+export const GithubDesignTask = createCollection<GithubDesignTask>(COLLECTION_NAME);
 await GithubDesignTask.createIndex({ url: 1 }, { unique: true }); // ensure url is unique
 
 // Helper function to save/update GithubDesignTask

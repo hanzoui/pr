@@ -1,4 +1,5 @@
 import { db } from "./db";
+import { createCollection } from "@/src/db/collection";
 import type { GHUser } from "./ghUser";
 import { updateAuthors } from "./updateAuthors";
 export type Author = {
@@ -30,8 +31,8 @@ export type Author = {
   hireable?: boolean; // github
 };
 
-export const Authors = db.collection<Author>("Authors");
-export const GithubUsers = db.collection<{ username: string } & GHUser>("GithubUsers");
+export const Authors = createCollection<Author>("Authors");
+export const GithubUsers = createCollection<{ username: string } & GHUser>("GithubUsers");
 
 if (import.meta.main) {
   await Authors.createIndex("githubId");

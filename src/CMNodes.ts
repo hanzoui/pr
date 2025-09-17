@@ -2,6 +2,7 @@ import jsonStableStringify from "json-stable-stringify";
 import md5 from "md5";
 import type { ObjectId } from "mongodb";
 import { db } from "./db";
+import { createCollection } from "@/src/db/collection";
 import { fetchCMNodes } from "./fetchCMNodes";
 import { type SlackMsg } from "./slack/SlackMsgs";
 import { updateCMNodesDuplicationWarnings } from "./updateCMNodesDuplicationWarnings";
@@ -14,7 +15,7 @@ export type CMNode = CMNodeRaw & {
     [k: string]: { hashes: string[]; slackNotification: SlackMsg };
   };
 };
-export const CMNodes = db.collection<CMNode>("CMNodes");
+export const CMNodes = createCollection<CMNode>("CMNodes");
 CMNodes.createIndex({ mtime: -1 }).catch(() => {});
 CMNodes.createIndex({ hash: 1 }, { unique: true }).catch(() => {});
 
