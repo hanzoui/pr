@@ -18,7 +18,7 @@ import { useState } from "react";
 import yaml from "yaml";
 
 interface CNReposTableClientProps {
-  repos: CNRepo[];
+  repos: Array<CNRepo & { _id?: any }>;
 }
 
 export function CNReposTableClient({ repos }: CNReposTableClientProps) {
@@ -44,7 +44,7 @@ export function CNReposTableClient({ repos }: CNReposTableClientProps) {
   );
 }
 
-function CNRepoRow({ repo }: { repo: CNRepo }) {
+function CNRepoRow({ repo }: { repo: CNRepo & { _id?: any } }) {
   const [isOpen, setIsOpen] = useState(false);
 
   const getStatusIcon = () => {
@@ -169,18 +169,14 @@ function CNRepoRow({ repo }: { repo: CNRepo }) {
                         archived: TaskDataOrNull(repo.info)?.archived,
                         private: TaskDataOrNull(repo.info)?.private,
                         default_branch: TaskDataOrNull(repo.info)?.default_branch,
-                        stargazers_count: TaskDataOrNull(repo.info)?.stargazers_count,
-                        forks_count: TaskDataOrNull(repo.info)?.forks_count,
-                        created_at: TaskDataOrNull(repo.info)?.created_at,
-                        updated_at: TaskDataOrNull(repo.info)?.updated_at,
+                        html_url: TaskDataOrNull(repo.info)?.html_url,
                       }
                     : null,
                   pulls_count: TaskDataOrNull(repo.pulls)?.length || 0,
                   crPulls: TaskDataOrNull(repo.crPulls)?.map((pull) => ({
                     type: pull.type,
                     url: pull.pull?.html_url,
-                    state: pull.pull?.state,
-                    merged: pull.pull?.merged,
+                    state: pull.pull?.prState,
                   })),
                   crPulls_state: repo.crPulls?.state,
                   error: TaskErrorOrNull(repo.crPulls),
