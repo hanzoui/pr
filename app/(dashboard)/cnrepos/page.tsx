@@ -1,4 +1,3 @@
-import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import {
   Pagination,
@@ -8,11 +7,9 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { TaskDataOrNull, TaskErrorOrNull } from "@/packages/mongodb-pipeline-ts/Task";
-import { CNRepos, type CNRepo } from "@/src/CNRepos";
+import { CNRepos } from "@/src/CNRepos";
 import { Suspense } from "react";
-import yaml from "yaml";
+import { CNReposTableClient } from "./CNReposTableClient";
 
 interface CNReposPageProps {
   searchParams?: Promise<{
@@ -83,7 +80,7 @@ export default async function CNReposPage({ searchParams }: CNReposPageProps) {
 }
 
 async function CNReposTable({ page }: { page: number }) {
-  const pageSize = 20;
+  const pageSize = 60;
   const skip = (page - 1) * pageSize;
 
   const [repos, totalCount] = await Promise.all([
@@ -99,152 +96,10 @@ async function CNReposTable({ page }: { page: number }) {
 
   return (
     <div className="space-y-4">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-16">Status</TableHead>
-            <TableHead>Repository</TableHead>
-            <TableHead className="w-24 text-center">Registry</TableHead>
-            <TableHead className="w-32 text-center">ComfyUI-Manager</TableHead>
-            <TableHead className="w-24 text-center">Candidate</TableHead>
-            <TableHead>Pull Requests</TableHead>
-            <TableHead className="w-24">Info</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {repos.map((repo) => (
-            <CNRepoRow key={repo._id?.toString()} repo={repo} />
-          ))}
-        </TableBody>
-      </Table>
-
+      <CNReposTableClient repos={repos} />
       {totalPages > 1 && <CNReposPagination currentPage={page} totalPages={totalPages} />}
     </div>
   );
-}
-
-function CNRepoRow({ repo }: { repo: CNRepo }) {
-  const getStatusIcon = () => {
-    if (!repo.cr && !repo.cm) return "🫗";
-    if (!!repo.cr && !!repo.cm && repo.crPulls?.state === "ok") return "✅";
-    if (!!repo.cr && !!repo.cm) return "☑️";
-    if (!!repo.cr && !repo.cm) return "✔️";
-    if (!repo.crPulls) return "🧪";
-    if (repo.crPulls.state === "ok") return "👀";
-    if (TaskErrorOrNull(repo.crPulls)) return "❗";
-    return "❓";
-  };
-
-  const getRepoName = (url: string) => {
-    return url.replace(/^https:\/\/github\.com\//, "");
-  };
-
-  return (
-    <TableRow>
-      <TableCell className="text-center text-lg" title={getStatusDescription()}>
-        {getStatusIcon()}
-      </TableCell>
-      <TableCell>
-        <a
-          href={repo.repository}
-          target="_blank"
-          rel="noreferrer"
-          className="text-primary hover:underline font-mono text-sm transition-colors"
-        >
-          {getRepoName(repo.repository)}
-        </a>
-      </TableCell>
-      <TableCell className="text-center">
-        {repo.cr_ids?.length || repo.cr ? (
-          <Badge variant="secondary" className="text-xs px-2">
-            ✓
-          </Badge>
-        ) : (
-          <span className="text-muted-foreground">-</span>
-        )}
-      </TableCell>
-      <TableCell className="text-center">
-        {repo.cm_ids?.length || repo.cm ? (
-          <Badge variant="secondary" className="text-xs px-2">
-            ✓
-          </Badge>
-        ) : (
-          <span className="text-muted-foreground">-</span>
-        )}
-      </TableCell>
-      <TableCell className="text-center">
-        {TaskDataOrNull(repo.candidate) ? (
-          <Badge variant="outline" className="text-xs px-2">
-            ✓
-          </Badge>
-        ) : (
-          <span className="text-muted-foreground">-</span>
-        )}
-      </TableCell>
-      <TableCell>
-        <div className="space-y-1">
-          {TaskDataOrNull(repo.crPulls)?.map((pull, idx) => (
-            <div key={idx} className="text-xs">
-              {pull.pull?.html_url ? (
-                <a
-                  href={pull.pull.html_url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-primary hover:underline transition-colors"
-                >
-                  #{pull.pull.html_url.split("/").pop()} ({pull.type})
-                </a>
-              ) : (
-                <span className="text-muted-foreground">Pending</span>
-              )}
-            </div>
-          ))}
-          {TaskErrorOrNull(repo.crPulls) && (
-            <Badge variant="destructive" className="text-xs" title={TaskErrorOrNull(repo.crPulls) || ""}>
-              Error
-            </Badge>
-          )}
-        </div>
-      </TableCell>
-      <TableCell>
-        <details className="text-xs">
-          <summary className="cursor-pointer text-primary hover:text-primary/80 transition-colors">Details</summary>
-          <pre className="mt-2 p-3 bg-muted rounded-md text-xs overflow-auto max-h-32 font-mono">
-            {yaml.stringify({
-              repository: repo.repository,
-              cr_ids: repo.cr_ids?.length,
-              cm_ids: repo.cm_ids?.length,
-              candidate: TaskDataOrNull(repo.candidate),
-              info: TaskDataOrNull(repo.info)
-                ? {
-                    archived: TaskDataOrNull(repo.info)?.archived,
-                    private: TaskDataOrNull(repo.info)?.private,
-                    default_branch: TaskDataOrNull(repo.info)?.default_branch,
-                  }
-                : null,
-              pulls_count: TaskDataOrNull(repo.pulls)?.length,
-              crPulls_state: repo.crPulls?.state,
-            })}
-          </pre>
-        </details>
-      </TableCell>
-    </TableRow>
-  );
-
-  function getStatusDescription() {
-    const icon = getStatusIcon();
-    const descriptions = {
-      "🫗": "Repository not listed in ComfyUI-Manager or Registry",
-      "✅": "Listed in both Registry and ComfyUI-Manager (PR successful)",
-      "☑️": "Listed in both Registry and ComfyUI-Manager",
-      "✔️": "Listed in Registry only",
-      "🧪": "Ready to create PR",
-      "👀": "Pull request pending review",
-      "❗": "Error occurred during processing",
-      "❓": "Unknown status",
-    };
-    return descriptions[icon as keyof typeof descriptions] || "Unknown status";
-  }
 }
 
 function CNReposPagination({ currentPage, totalPages }: { currentPage: number; totalPages: number }) {
