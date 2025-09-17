@@ -2,6 +2,7 @@
 
 import { tsmatch } from "@/packages/mongodb-pipeline-ts/Task";
 import { db } from "@/src/db";
+import { createCollection } from "@/src/db/collection";
 import { TaskMetaCollection } from "@/src/db/TaskMeta";
 import type { GH } from "@/src/gh";
 import { ghc } from "@/src/ghc";
@@ -78,7 +79,8 @@ type ComfyCorePRs = {
   last_commented_at?: Date;
   task_updated_at: Date;
 };
-export const ComfyCorePRs = db.collection<ComfyCorePRs>("ComfyCorePRs");
+
+export const ComfyCorePRs = createCollection<ComfyCorePRs>("ComfyCorePRs");
 
 /* only one */
 // type ComfyCorePRsLastMessage = {
@@ -263,7 +265,6 @@ async function runCorePingTask() {
     meta.lastSlackMessage.sendAt &&
     new Date().getTime() - new Date(meta.lastSlackMessage.sendAt).getTime() <= 23.9 * 60 * 60 * 1000;
 
-<<<<<<< HEAD
   // if <24 h since last sent (not edit), update that msg
   const msgUpdateUrl = canUpdateExistingMessage && !canPostNewMessage ? meta.lastSlackMessage?.url : undefined;
 

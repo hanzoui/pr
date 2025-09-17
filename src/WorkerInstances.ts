@@ -4,6 +4,7 @@ import md5 from "md5";
 import type { WithId } from "mongodb";
 import sflow from "sflow";
 import { $fresh, db } from "./db";
+import { createCollection } from "@/src/db/collection";
 import { fetchCurrentGeoInfo } from "./fetchCurrentGeoInfo";
 import { createInstanceId } from "./utils/createInstanceId";
 import { yaml } from "./utils/yaml";
@@ -31,7 +32,7 @@ function getWorkerInstanceId() {
   const instanceId = ((global as any as g)[k] ??= createInstanceId());
   return instanceId;
 }
-export const WorkerInstances = db.collection<WorkerInstance>("WorkerInstances");
+export const WorkerInstances = createCollection<WorkerInstance>("WorkerInstances");
 export const _geoPromise = fetchCurrentGeoInfo(); // in background
 
 if (import.meta.main) {

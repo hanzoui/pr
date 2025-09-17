@@ -1,7 +1,8 @@
 import type { ObjectId } from "mongodb";
 import { db } from "../db";
+import { createCollection } from "@/src/db/collection";
 import { postSlackMessage } from "../postSlackMessage";
-export const SlackMsgs = db.collection<SlackMsg>("SlackMsgs");
+export const SlackMsgs = createCollection<SlackMsg>("SlackMsgs");
 await SlackMsgs.createIndex({ ts: -1 });
 await SlackMsgs.createIndex({ channel: 1, ts: -1 });
 await SlackMsgs.createIndex({ text: 1 });

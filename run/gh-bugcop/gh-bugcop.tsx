@@ -7,6 +7,7 @@
 
 // for repo
 import { db } from "@/src/db";
+import { createCollection } from "@/src/db/collection";
 import { TaskMetaCollection } from "@/src/db/TaskMeta";
 import { gh, type GH } from "@/src/gh";
 import { parseIssueUrl } from "@/src/parseIssueUrl";
@@ -79,7 +80,7 @@ export const zGithubBugcopTaskMeta = z.object({
   repoUrls: z.url().array(),
 });
 export const GithubBugcopTaskMeta = TaskMetaCollection("GithubBugcopTask", zGithubBugcopTaskMeta);
-export const GithubBugcopTask = db.collection<GithubBugcopTask>("GithubBugcopTask");
+export const GithubBugcopTask = createCollection<GithubBugcopTask>("GithubBugcopTask");
 
 const tlog = createTimeLogger();
 const isDryRun = process.env.DRY_RUN === "true" || process.argv.slice(2).includes("--dry");

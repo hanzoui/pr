@@ -2,6 +2,7 @@ import { z } from "zod";
 import { type Task } from "../packages/mongodb-pipeline-ts/Task";
 import type { PullsStatus } from "./analyzePullsStatus";
 import { db } from "./db";
+import { createCollection } from "@/src/db/collection";
 import type { zFollowUpRules } from "./followRuleSchema";
 
 // migrate data
@@ -21,5 +22,5 @@ export type FollowRuleSet = {
   enabled?: boolean;
   yamlWhenEnabled?: string;
 };
-export const FollowRuleSets = db.collection<FollowRuleSet>("FollowRuleSets");
+export const FollowRuleSets = createCollection<FollowRuleSet>("FollowRuleSets");
 FollowRuleSets.createIndex("name", { unique: true }).catch(() => null);

@@ -4,6 +4,7 @@ import { peekYaml } from "peek-log";
 import { sf } from "sflow";
 import { CNRepos } from "./CNRepos";
 import { db } from "./db";
+import { createCollection } from "@/src/db/collection";
 import { fetchCRNodes } from "./fetchComfyRegistryNodes";
 import { type SlackMsg } from "./slack/SlackMsgs";
 
@@ -11,7 +12,7 @@ export type CRNode = Awaited<ReturnType<typeof fetchCRNodes>>[number] & {
   sent?: { slack?: SlackMsg };
   repo_id?: ObjectId;
 };
-export const CRNodes = db.collection<CRNode>("CRNodes");
+export const CRNodes = createCollection<CRNode>("CRNodes");
 await CRNodes.createIndex({ id: 1 }, { unique: true });
 await CRNodes.createIndex({ repository: 1 }, { unique: false }); // WARN: duplicate is allowed
 

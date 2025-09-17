@@ -9,12 +9,13 @@ import { CNRepos, type CRPull } from "./CNRepos";
 import type { EmailTask } from "./EmailTasks";
 import type { GithubIssueComment } from "./GithubIssueComments";
 import { db } from "./db";
+import { createCollection } from "@/src/db/collection";
 import { yaml } from "./utils/yaml";
 import type { zPullStatus } from "./zod/zPullsStatus";
 // import { $pipeline } from "./db/$pipeline";
 // in case of dump production in local environment:
 // bun --env-file .env.production.local src/dump.ts > dump.csv
-export const DashboardDetails = db.collection<any>("DashboardDetails");
+export const DashboardDetails = createCollection<any>("DashboardDetails");
 if (import.meta.main) {
   // const r = peekYaml(await analyzePullsStatus());
 

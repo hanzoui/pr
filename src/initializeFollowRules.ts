@@ -1,9 +1,7 @@
 import DIE from "@snomiao/die";
 import { readFile } from "fs/promises";
 import { FollowRuleSets } from "./FollowRules";
-import { createLogger } from "./logger";
-
-const logger = createLogger("initializeFollowRules");
+import { logger } from "./logger";
 
 if (import.meta.main) {
   const followRules = await initializeFollowRules();

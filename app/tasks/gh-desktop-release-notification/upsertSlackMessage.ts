@@ -1,19 +1,31 @@
 #!/usr/bin/env bun --hot
 import { slack } from "@/src/slack";
 import { getSlackChannel } from "@/src/slack/channels";
-import KeyvSqlite from "@keyv/sqlite";
+// import KeyvSqlite from "@keyv/sqlite";
 import DIE from "@snomiao/die";
 import Keyv from "keyv";
 import { slackMessageUrlParse, slackMessageUrlStringify } from "../gh-design/gh-design";
 import { COMFY_PR_CACHE_DIR } from "./COMFY_PR_CACHE_DIR";
 import chalk from "chalk";
 
-const SlackChannelIdsCache = new Keyv<string>({
-  store: new KeyvSqlite("sqlite://" + COMFY_PR_CACHE_DIR + "/slackChannelIdCache.sqlite"),
-});
-const SlackUserIdsCache = new Keyv<string>({
-  store: new KeyvSqlite("sqlite://" + COMFY_PR_CACHE_DIR + "/slackUserIdCache.sqlite"),
-});
+const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+
+// Initialize caches - use in-memory during build
+const SlackChannelIdsCache = new Keyv<string>();
+const SlackUserIdsCache = new Keyv<string>();
+
+// Initialize SQLite stores after build
+if (!isBuildPhase && typeof window === "undefined") {
+  (async () => {
+    try {
+      const KeyvSqlite = (await import("@keyv/sqlite")).default;
+      SlackChannelIdsCache.opts.store = new KeyvSqlite("sqlite://" + COMFY_PR_CACHE_DIR + "/slackChannelIdCache.sqlite");
+      SlackUserIdsCache.opts.store = new KeyvSqlite("sqlite://" + COMFY_PR_CACHE_DIR + "/slackUserIdCache.sqlite");
+    } catch (error) {
+      console.warn("Failed to initialize SQLite cache, using in-memory cache", error);
+    }
+  })();
+}
 
 /**
  * Create or update existing slack message

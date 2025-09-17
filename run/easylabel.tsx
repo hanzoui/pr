@@ -1,5 +1,6 @@
 import { tsmatch } from "@/packages/mongodb-pipeline-ts/Task";
 import { db } from "@/src/db";
+import { createCollection } from "@/src/db/collection";
 import { gh, type GH } from "@/src/gh";
 import { ghc } from "@/src/ghc";
 import { logger } from "@/src/logger";
@@ -43,7 +44,7 @@ type GithubIssueLabelOps = {
   task_updated_at?: Date;
 };
 
-const GithubIssueLabelOps = db.collection<GithubIssueLabelOps>("GithubIssueLabelOps");
+const GithubIssueLabelOps = createCollection<GithubIssueLabelOps>("GithubIssueLabelOps");
 await GithubIssueLabelOps.createIndex({ target_url: 1 }, { unique: true });
 
 const saveTask = async (task: Partial<GithubIssueLabelOps> & { target_url: string }) =>

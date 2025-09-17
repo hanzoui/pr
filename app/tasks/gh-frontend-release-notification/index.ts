@@ -1,5 +1,6 @@
 #!/usr/bin/env bun --hot
 import { db } from "@/src/db";
+import { createCollection } from "@/src/db/collection";
 import { gh } from "@/src/gh";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
 import DIE from "@snomiao/die";
@@ -47,7 +48,7 @@ export type GithubFrontendReleaseNotificationTask = {
   };
 };
 
-export const GithubFrontendReleaseNotificationTask = db.collection<GithubFrontendReleaseNotificationTask>(
+export const GithubFrontendReleaseNotificationTask = createCollection<GithubFrontendReleaseNotificationTask>(
   "GithubFrontendReleaseNotificationTask",
 );
 

@@ -33,7 +33,7 @@ describe("Logger Configuration", () => {
   });
 
   it("should be silent in test environment by default", () => {
-    process.env.NODE_ENV = "test";
+    (process.env as any).NODE_ENV = "test";
     delete process.env.DEBUG_TESTS;
     delete require.cache[require.resolve("./logger")];
     const { logger: testLogger } = require("./logger");
@@ -41,7 +41,7 @@ describe("Logger Configuration", () => {
   });
 
   it("should not be silent in test environment when DEBUG_TESTS is set", () => {
-    process.env.NODE_ENV = "test";
+    (process.env as any).NODE_ENV = "test";
     process.env.DEBUG_TESTS = "true";
     delete require.cache[require.resolve("./logger")];
     const { logger: debugTestLogger } = require("./logger");
@@ -49,7 +49,7 @@ describe("Logger Configuration", () => {
   });
 
   it("should have console transport in non-test environment", () => {
-    process.env.NODE_ENV = "development";
+    (process.env as any).NODE_ENV = "development";
     delete require.cache[require.resolve("./logger")];
     const { logger: devLogger } = require("./logger");
     const consoleTransport = devLogger.transports.find((t: any) => t instanceof winston.transports.Console);
@@ -57,7 +57,7 @@ describe("Logger Configuration", () => {
   });
 
   it("should have file transports in production environment", () => {
-    process.env.NODE_ENV = "production";
+    (process.env as any).NODE_ENV = "production";
     delete require.cache[require.resolve("./logger")];
     const { logger: prodLogger } = require("./logger");
     const fileTransports = prodLogger.transports.filter((t: any) => t instanceof winston.transports.File);

@@ -8,6 +8,7 @@ import { type Task } from "../packages/mongodb-pipeline-ts/Task";
 import { type CMNode } from "./CMNodes";
 import { type CRNode } from "./CRNodes";
 import { db } from "./db";
+import { createCollection } from "@/src/db/collection";
 import { gh } from "./gh";
 import { type RelatedPull } from "./matchRelatedPulls";
 import type { GithubPullParsed } from "./parsePullsState";
@@ -73,7 +74,7 @@ export type CustomNodeRepo = {
   createdPulls?: Task<GithubPullParsed[]>;
 };
 export type CNRepo = CustomNodeRepo;
-export const CNRepos = db.collection<CNRepo>("CNRepos");
+export const CNRepos = createCollection<CNRepo>("CNRepos");
 
 CNRepos.createIndex({ repository: 1 }, { unique: true }).catch(() => {});
 

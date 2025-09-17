@@ -1,4 +1,5 @@
 import { db } from "@/src/db";
+import { createCollection } from "@/src/db/collection";
 import { gh } from "@/src/gh";
 import { ghUser } from "@/src/ghUser";
 import { parseIssueUrl } from "@/src/parseIssueUrl";
@@ -26,7 +27,7 @@ const milestoneUrls = [
   "https://github.com/Comfy-Org/ComfyUI_frontend/milestone/1",
   "https://github.com/Comfy-Org/desktop/milestone/1",
 ];
-export const GithubBountyTask = db.collection<{
+export const GithubBountyTask = createCollection<{
   issueUrl: string; // the Bounty issue url
   status?: "error" | "pending" | "done-2025-05-29";
 }>("GithubBountyTask");

@@ -1,4 +1,4 @@
-import KeyvSqlite from "@keyv/sqlite";
+// import KeyvSqlite from "@keyv/sqlite";
 import type { components as ghComponents } from "@octokit/openapi-types";
 import crypto from "crypto";
 import fs from "fs/promises";
@@ -8,10 +8,12 @@ import { Octokit } from "octokit";
 import path from "path";
 import { logger } from "./logger";
 
+const isBuildPhase = process.env.NEXT_PHASE === 'phase-production-build';
+
 const GH_TOKEN =
   process.env.GH_TOKEN_COMFY_PR ||
   process.env.GH_TOKEN ||
-  "WARNING: missing env.GH_TOKEN from https://github.com/settings/tokens?type=beta";
+  (isBuildPhase ? "build-placeholder-token" : "WARNING: missing env.GH_TOKEN from https://github.com/settings/tokens?type=beta");
 const octokit = new Octokit({ auth: GH_TOKEN });
 export const gh = octokit.rest;
 
@@ -32,10 +34,20 @@ let keyv: Keyv | null = null;
 async function getKeyv() {
   if (!keyv) {
     await ensureCacheDir();
-    keyv = new Keyv({
-      store: new KeyvSqlite(CACHE_FILE),
-      ttl: DEFAULT_TTL,
-    });
+    
+    // Disable SQLite cache during build
+    if (isBuildPhase) {
+      keyv = new Keyv({
+        ttl: DEFAULT_TTL,
+      });
+    } else {
+      // Dynamic import to avoid loading sqlite during build
+      const KeyvSqlite = (await import("@keyv/sqlite")).default;
+      keyv = new Keyv({
+        store: new KeyvSqlite(CACHE_FILE),
+        ttl: DEFAULT_TTL,
+      });
+    }
   }
   return keyv;
 }

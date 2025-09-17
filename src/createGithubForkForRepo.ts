@@ -2,6 +2,7 @@ import DIE from "@snomiao/die";
 import md5 from "md5";
 import minimist from "minimist";
 import { db } from "./db";
+import { createCollection } from "@/src/db/collection";
 import { FORK_OWNER } from "./FORK_OWNER";
 import { FORK_PREFIX } from "./FORK_PREFIX";
 import { createGithubFork } from "./gh/createGithubFork";
@@ -9,7 +10,7 @@ import { ghUser } from "./ghUser";
 import { parseGithubRepoUrl } from "./parseOwnerRepo";
 
 /** for cache */
-const ForkedRepo = db.collection<{ repo: string; forkedRepo: string; updatedAt: Date }>("ForkedRepo");
+const ForkedRepo = createCollection<{ repo: string; forkedRepo: string; updatedAt: Date }>("ForkedRepo");
 
 if (import.meta.main) {
   console.log(await createGithubForkForRepoEx("https://github.com/comfyanonymous/ComfyUI_TensorRT"));

@@ -4,6 +4,7 @@ import type { WithId } from "mongodb";
 import { sf } from "sflow";
 import type { z } from "zod";
 import { $stale, db } from "./db";
+import { createCollection } from "@/src/db/collection";
 import type { zSendEmailAction } from "./followRuleSchema";
 import { getGCloudOAuth2Client } from "./gcloud/GCloudOAuth2Credentials";
 import { sendGmail } from "./sendGmail";
@@ -21,7 +22,7 @@ export type EmailTask = {
   body: string;
 };
 
-export const EmailTasks = db.collection<EmailTask>("EmailTasks");
+export const EmailTasks = createCollection<EmailTask>("EmailTasks");
 await EmailTasks.createIndex({ from: 1, to: 1, subject: 1 });
 
 if (import.meta.main) {

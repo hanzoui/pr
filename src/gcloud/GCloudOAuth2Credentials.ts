@@ -4,9 +4,10 @@ import type { OAuth2Client } from "googleapis-common";
 import { uniq } from "rambda";
 import { sf } from "sflow";
 import { db } from "../db";
+import { createCollection } from "@/src/db/collection";
 import type { Awaitable } from "../types/Awaitable";
 import { getAuthenticatedClient } from "./getAuthenticatedClient";
-export const GCloudOAuth2Credentials = db.collection<{
+export const GCloudOAuth2Credentials = createCollection<{
   email: string;
   scopes: string[];
   fromUrl?: string;

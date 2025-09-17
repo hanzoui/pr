@@ -1,6 +1,6 @@
 import type { Task } from "@/packages/mongodb-pipeline-ts/Task";
 import DIE from "@snomiao/die";
-import { gh } from "./gh";
+import { gh } from "./ghc";
 import type { AwaitedReturnType } from "./types/AwaitedReturnType";
 
 const g = globalThis as typeof globalThis & {

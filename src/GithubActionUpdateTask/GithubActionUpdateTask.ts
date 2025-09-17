@@ -1,9 +1,10 @@
 import { db } from "../db";
+import { createCollection } from "@/src/db/collection";
 
 // task: https://www.notion.so/drip-art/Send-mass-PR-for-all-custom-node-repo-to-update-their-github-action-workflow-1626d73d365080439da3df94c95ad5e7
 // this task aim to update the repos /publish.yaml
 
-export const GithubActionUpdateTask = db.collection<{
+export const GithubActionUpdateTask = createCollection<{
   // cached status
   status?:
     | "error"
