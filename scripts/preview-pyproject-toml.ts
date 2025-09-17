@@ -2,7 +2,8 @@
 import { readFile, writeFile, mkdir, rm } from "fs/promises";
 import { $ } from "../src/cli/echoBunShell";
 import { existsSync } from "fs";
-import path from "path";
+import * as path from "path";
+import * as os from "os";
 
 /**
  * Preview what pyproject.toml will be generated for a repository
@@ -14,11 +15,11 @@ async function previewPyprojectToml() {
   const args = process.argv.slice(2);
   const repoIndex = args.indexOf("--repo");
   const outputIndex = args.indexOf("--output");
-  
-  const repoUrl = repoIndex >= 0 && args[repoIndex + 1] 
-    ? args[repoIndex + 1] 
+
+  const repoUrl = repoIndex >= 0 && args[repoIndex + 1]
+    ? args[repoIndex + 1]
     : "https://github.com/snomiao/ComfyNode-Registry-test"; // default test repo
-    
+
   const outputFile = outputIndex >= 0 && args[outputIndex + 1]
     ? args[outputIndex + 1]
     : null;

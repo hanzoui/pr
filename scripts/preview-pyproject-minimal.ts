@@ -1,6 +1,8 @@
 #!/usr/bin/env bun
 import { mkdir, rm, readFile } from "fs/promises";
 import { $ } from "../src/cli/echoBunShell";
+import * as path from "path";
+import * as os from "os";
 
 /**
  * Minimal script to see what comfy node init generates
@@ -9,7 +11,7 @@ import { $ } from "../src/cli/echoBunShell";
 
 async function previewMinimal() {
   const tempDir = path.join(os.tmpdir(), `comfy-pr-minimal-${Date.now()}`);
-  
+
   try {
     // Create empty directory
     await mkdir(tempDir, { recursive: true });
