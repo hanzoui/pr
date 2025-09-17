@@ -5,7 +5,7 @@ import { CNRepos } from "./CNRepos";
 import { $flatten, $fresh } from "./db";
 import { gh } from "./gh";
 import { ghUser } from "./ghUser";
-import { parseUrlRepoOwner, stringifyOwnerRepo } from "./parseOwnerRepo";
+import { parseGithubRepoUrl, stringifyOwnerRepo } from "./parseOwnerRepo";
 
 export async function updateCNRepoPullsDashboard() {
   if ((await ghUser()).login !== "snomiao") return [];
@@ -19,7 +19,7 @@ export async function updateCNRepoPullsDashboard() {
       const crPulls = match(repo.crPulls)
         .with($OK, ({ data }) => data)
         .otherwise(() => DIE("CR Pulls not found"));
-      const repoName = stringifyOwnerRepo(parseUrlRepoOwner(repo.repository));
+      const repoName = stringifyOwnerRepo(parseGithubRepoUrl(repo.repository));
       const body = crPulls
         .filter((e) => e.pull.prState !== "closed")
         .map((e) => {
@@ -41,7 +41,7 @@ export async function updateCNRepoPullsDashboard() {
 
   return [
     await gh.issues.update({
-      ...parseUrlRepoOwner(dashBoardRepo),
+      ...parseGithubRepoUrl(dashBoardRepo),
       issue_number: dashBoardIssueNumber,
       body,
     }),

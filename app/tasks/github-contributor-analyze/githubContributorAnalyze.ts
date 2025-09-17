@@ -1,6 +1,6 @@
 import { $pipeline } from "@/packages/mongodb-pipeline-ts/$pipeline";
 import { CNRepos } from "@/src/CNRepos";
-import { parseUrlRepoOwner, stringifyGithubRepoUrl } from "@/src/parseOwnerRepo";
+import { parseGithubRepoUrl, stringifyGithubRepoUrl } from "@/src/parseOwnerRepo";
 import { mkdir, rmdir } from "fs/promises";
 import isCI from "is-ci";
 import sflow from "sflow";
@@ -29,40 +29,40 @@ if (import.meta.main) {
     "This repository exceeded its LFS budget. The account responsible for the budget should increase it to restore access.",
     "Access to this repository has been disabled by GitHub staff.",
   ];
-  
+
   await sflow(
     GithubContributorAnalyzeTask.find({
       // data stale after 1day
       updatedAt: { $not: { $gt: new Date(Date.now() - 1000 * 60 * 60 * 24) } },
     }),
   )
-  //filter out not retryable error
-  .filter(e=>{
-    if (e.error) {
-      for (const error of notRetryableErrors) {
-        if (e.error.match(error)) {
-          console.log("filter out not retryable error", { repoUrl: e.repoUrl, error });
-          return false;
+    //filter out not retryable error
+    .filter((e) => {
+      if (e.error) {
+        for (const error of notRetryableErrors) {
+          if (e.error.match(error)) {
+            console.log("filter out not retryable error", { repoUrl: e.repoUrl, error });
+            return false;
+          }
         }
       }
-    }
-    return true;
-  })
-    .filter((e) =>!e.error?.match("Repository not found")) //filter out not retryable error
+      return true;
+    })
+    .filter((e) => !e.error?.match("Repository not found")) //filter out not retryable error
     .filter((e) => !e.error?.match("repoUrl not match")) //filter out not retryable error
     .filter(
       (e) =>
         !e.error?.match(
           "This repository exceeded its LFS budget. The account responsible for the budget should increase it to restore access.",
         ),
-    ) 
+    )
     .filter((e) => !e.error?.match("Access to this repository has been disabled by GitHub staff.")) //filter out not retryable error
 
     .pMap(
       async ({ _id, repoUrl }, index) => {
         console.log(`Task githubContributorAnalyze ${index}/${remain}/${total}`, { repoUrl });
         try {
-          const ghurl = stringifyGithubRepoUrl(parseUrlRepoOwner(repoUrl));
+          const ghurl = stringifyGithubRepoUrl(parseGithubRepoUrl(repoUrl));
           if (ghurl !== repoUrl) {
             console.log("repoUrl not match", { repoUrl, ghurl });
             throw new Error("repoUrl not match");
@@ -86,7 +86,7 @@ if (import.meta.main) {
     .run();
 
   console.log("done");
-  if(isCI) process.exit(0);
+  if (isCI) process.exit(0);
   // Array.prototype.groupBy = function <T, K extends keyof T>(key: K) {
   //   const arr = this;
   //   return Object.groupBy(arr, (e) => e[key]);

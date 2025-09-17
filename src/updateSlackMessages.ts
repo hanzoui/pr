@@ -4,6 +4,9 @@ import pMap from "p-map";
 import { postSlackMessage } from "./postSlackMessage";
 import { SlackMsgs } from "./slack/SlackMsgs";
 
+/**
+ * @deprecated use upsertSlackMessage instead
+ */
 export async function updateSlackMessages() {
   // send
   return await pMap(

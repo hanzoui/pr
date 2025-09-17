@@ -7,7 +7,7 @@ import { match, P } from "ts-pattern";
 import { type UnionToIntersection } from "type-fest";
 import { gh, type GH } from "../src/gh/index.js";
 import { ghc } from "../src/ghc.js";
-import { parseUrlRepoOwner } from "../src/parseOwnerRepo.js";
+import { parseGithubRepoUrl } from "../src/parseOwnerRepo.js";
 import { processIssueCommentForLableops } from "./easylabel";
 import type { WEBHOOK_EVENT } from "./github-webhook-event-type";
 export const REPOLIST = [
@@ -349,7 +349,7 @@ class RepoEventMonitor {
   private async checkPollingRepos() {
     sflow(this.pollingRepos).map((html_url) => {
       pageFlow(1, async (page, per_page = 100) => {
-        const { data } = await ghc.issues.listForRepo({ ...parseUrlRepoOwner(html_url), page, per_page });
+        const { data } = await ghc.issues.listForRepo({ ...parseGithubRepoUrl(html_url), page, per_page });
         return { data, next: data.length >= per_page ? page + 1 : null };
       }).flat();
     });
