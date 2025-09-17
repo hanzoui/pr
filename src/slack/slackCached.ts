@@ -112,7 +112,7 @@ export const slackCached = createCachedProxy(slack);
 if (import.meta.main) {
   async function runTest() {
     // Test the cached client
-    logger.info("Testing cached GitHub client...");
+    logger.info("Testing cached Slack client...");
 
     // This should make a real API call
     const result1 = await slack.users.profile.get({});
