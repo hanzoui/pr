@@ -16,17 +16,17 @@ jobs:
     timeout-minutes: 120 # 2 hours timeout
     steps:
       - uses: actions/checkout@v4
-      
+
       # Setup Git (required for cloning repositories)
       - name: Configure Git
         run: |
           git config --global user.name "GitHub Action"
           git config --global user.email "action@github.com"
           git --version
-      
+
       # Setup Bun
-      - uses: oven-sh/setup-bun@v1
-      
+      - uses: oven-sh/setup-bun@v2
+
       # Install dependencies
       - name: Install dependencies
         run: bun install
@@ -38,7 +38,7 @@ jobs:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR }}
         timeout-minutes: 100
-      
+
       # run summaryGithubContributorAnalyzeTask
       - name: Run summary task
         run: bun run app/tasks/github-contributor-analyze/summaryGithubContributorAnalyzeTask.ts
@@ -46,14 +46,14 @@ jobs:
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR }}
         timeout-minutes: 20
-        
+
       # Optional: Generate and upload analysis report
       - name: Generate analysis report
         if: always()
         run: |
           echo "Contributor analysis completed at $(date)" > analysis-report.txt
           echo "Workflow run: ${{ github.run_id }}" >> analysis-report.txt
-        
+
       # Optional: Upload artifacts
       - name: Upload analysis artifacts
         if: always()

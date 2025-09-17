@@ -1,3 +1,4 @@
+#!/usr/bin/env bun --hot
 import { slack } from "@/src/slack";
 import { getSlackChannel } from "@/src/slack/channels";
 import KeyvSqlite from "@keyv/sqlite";
@@ -5,6 +6,7 @@ import DIE from "@snomiao/die";
 import Keyv from "keyv";
 import { slackMessageUrlParse, slackMessageUrlStringify } from "../gh-design/gh-design";
 import { COMFY_PR_CACHE_DIR } from "./COMFY_PR_CACHE_DIR";
+import chalk from "chalk";
 
 const SlackChannelIdsCache = new Keyv<string>({
   store: new KeyvSqlite("sqlite://" + COMFY_PR_CACHE_DIR + "/slackChannelIdCache.sqlite"),
@@ -48,9 +50,12 @@ export async function upsertSlackMessage({
   }
   if (!channel) DIE(`No slack channel specified`);
 
-  if (process.env.DRY_RUN) throw new Error("sending slack message: " + JSON.stringify({ text, channel, url }));
-
   if (!url) {
+    if (process.env.DRY_RUN) {
+      console.error("DRY RUN MODE");
+      console.error("sending text:", text);
+      throw new Error(chalk.red("Sending slack message to: " + JSON.stringify({  channel })))
+    };
     const thread_ts = !replyUrl ? undefined : slackMessageUrlParse(replyUrl).ts;
     const msg = !thread_ts
       ? await slack.chat.postMessage({ text, channel })
@@ -59,6 +64,11 @@ export async function upsertSlackMessage({
     const url = slackMessageUrlStringify({ channel, ts: msg.ts! });
     return { ...msg, url, text, channel };
   }
+  if (process.env.DRY_RUN) {
+    console.error("DRY RUN MODE");
+    console.error("sending text:", text);
+    throw new Error(chalk.red("Updating slack message to: " + JSON.stringify({  channel, url })))
+  };
   const ts = slackMessageUrlParse(url).ts;
   const msg = await slack.chat.update({ text, channel, ts });
   return { ...msg, url, text, channel };
