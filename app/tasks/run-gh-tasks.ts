@@ -8,6 +8,7 @@ import runGithubBountyTask from "./gh-bounty/gh-bounty";
 import { runGithubDesignTask } from "./gh-design/gh-design";
 import runGithubDesktopReleaseNotificationTask from "./gh-desktop-release-notification/index";
 import runGithubFrontendReleaseNotificationTask from "./gh-frontend-release-notification/index";
+import runGithubCoreTagNotificationTask from "./gh-core-tag-notification/index";
 
 const TASKS = [
   {
@@ -25,6 +26,10 @@ const TASKS = [
   {
     name: "GitHub Frontend Release Notification Task",
     run: runGithubFrontendReleaseNotificationTask,
+  },
+  {
+    name: "GitHub Core Tag Notification Task",
+    run: runGithubCoreTagNotificationTask,
   },
   {
     name: "GitHub Bugcop Task",
