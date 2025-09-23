@@ -81,7 +81,6 @@ async function runGithubCoreTagNotificationTask() {
 
       const tagUrl = `https://github.com/${owner}/${repo}/releases/tag/${tag.name}`;
 
-      let tagDetails;
       let taggerDate;
       let message;
 
@@ -96,8 +95,7 @@ async function runGithubCoreTagNotificationTask() {
           taggerDate = new Date(gitTag.data.tagger.date);
           message = gitTag.data.message;
         }
-      } catch {
-      }
+      } catch {}
 
       let task = await save({
         tagName: tag.name,
@@ -118,7 +116,9 @@ async function runGithubCoreTagNotificationTask() {
           repo,
           ref: tag.commit.sha,
         });
-        const commitDate = new Date(commitData.data.commit.author?.date || commitData.data.commit.committer?.date || new Date());
+        const commitDate = new Date(
+          commitData.data.commit.author?.date || commitData.data.commit.committer?.date || new Date(),
+        );
 
         if (+commitDate < +new Date(config.sendSince)) {
           return task;
