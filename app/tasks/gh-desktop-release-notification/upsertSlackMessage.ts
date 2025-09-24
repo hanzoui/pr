@@ -1,12 +1,12 @@
 #!/usr/bin/env bun --hot
-import { slack } from "@/src/slack";
+import { getSlack, isSlackAvailable } from "@/src/slack";
 import { getSlackChannel } from "@/src/slack/channels";
 import KeyvSqlite from "@keyv/sqlite";
 import DIE from "@snomiao/die";
+import chalk from "chalk";
 import Keyv from "keyv";
 import { slackMessageUrlParse, slackMessageUrlStringify } from "../gh-design/gh-design";
 import { COMFY_PR_CACHE_DIR } from "./COMFY_PR_CACHE_DIR";
-import chalk from "chalk";
 
 const SlackChannelIdsCache = new Keyv<string>({
   store: new KeyvSqlite("sqlite://" + COMFY_PR_CACHE_DIR + "/slackChannelIdCache.sqlite"),
@@ -38,6 +38,8 @@ export async function upsertSlackMessage({
   replyUrl?: string;
   reply_broadcast?: boolean;
 }) {
+  const slack = getSlack();
+
   if (channelName) {
     channel ||=
       (await SlackChannelIdsCache.get(channelName)) ||
@@ -54,8 +56,8 @@ export async function upsertSlackMessage({
     if (process.env.DRY_RUN) {
       console.error("DRY RUN MODE");
       console.error("sending text:", text);
-      throw new Error(chalk.red("Sending slack message to: " + JSON.stringify({  channel })))
-    };
+      throw new Error(chalk.red("Sending slack message to: " + JSON.stringify({ channel })));
+    }
     const thread_ts = !replyUrl ? undefined : slackMessageUrlParse(replyUrl).ts;
     const msg = !thread_ts
       ? await slack.chat.postMessage({ text, channel })
@@ -67,37 +69,41 @@ export async function upsertSlackMessage({
   if (process.env.DRY_RUN) {
     console.error("DRY RUN MODE");
     console.error("sending text:", text);
-    throw new Error(chalk.red("Updating slack message to: " + JSON.stringify({  channel, url })))
-  };
+    throw new Error(chalk.red("Updating slack message to: " + JSON.stringify({ channel, url })));
+  }
   const ts = slackMessageUrlParse(url).ts;
   const msg = await slack.chat.update({ text, channel, ts });
   return { ...msg, url, text, channel };
 }
 
 if (import.meta.main) {
-  // const myMsg = slackMessageUrlParse('https://comfy-organization.slack.com/archives/C095SJWUYMR/p1755243753632819')
+  if (!isSlackAvailable()) {
+    console.log("Slack token not configured, skipping upsertSlackMessage test");
+  } else {
+    // const myMsg = slackMessageUrlParse('https://comfy-organization.slack.com/archives/C095SJWUYMR/p1755243753632819')
 
-  // post new message
-  const msg = await upsertSlackMessage({
-    channelName: "sno-test-channel",
-    text: "Hello @sno @snomiao <@sno> <@snomiao>, this is a test message from upsertSlackMessage function.",
-  });
-  // console.log(msg)
-  console.log(msg.url);
+    // post new message
+    const msg = await upsertSlackMessage({
+      channelName: "sno-test-channel",
+      text: "Hello @sno @snomiao <@sno> <@snomiao>, this is a test message from upsertSlackMessage function.",
+    });
+    // console.log(msg)
+    console.log(msg.url);
 
-  // // edit that by providing msg url
-  const msgEdited = await upsertSlackMessage({
-    ...msg,
-    text: msg.text + "\nThis is a msg edit",
-  });
-  console.log(msgEdited);
+    // // edit that by providing msg url
+    const msgEdited = await upsertSlackMessage({
+      ...msg,
+      text: msg.text + "\nThis is a msg edit",
+    });
+    console.log(msgEdited);
 
-  // // reply that msg by providing reply url
-  // const msgReplied = await upsertSlackMessage({
-  //   channel: msgEdited.channel,
-  //   text: "Hello @snomiao, this is a reply to last message.",
-  //   replyUrl: msgEdited.url,
-  //   reply_broadcast: true,
-  // });
-  // console.log(msgReplied)
+    // // reply that msg by providing reply url
+    // const msgReplied = await upsertSlackMessage({
+    //   channel: msgEdited.channel,
+    //   text: "Hello @snomiao, this is a reply to last message.",
+    //   replyUrl: msgEdited.url,
+    //   reply_broadcast: true,
+    // });
+    // console.log(msgReplied)
+  }
 }
