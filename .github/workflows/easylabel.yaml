@@ -3,7 +3,8 @@ name: "EasyLabel - Automated PR Labeling"
 on:
   workflow_dispatch:
   schedule:
-    - cron: "0 * * * *" # Run every hour at minute 0
+    # Run every 2 hours
+    - cron: "0 */2 * * *"
   push:
     branches:
       - easylabel-debug
@@ -11,7 +12,7 @@ on:
 jobs:
   run_easylabel:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
