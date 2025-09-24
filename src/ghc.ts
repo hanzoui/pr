@@ -6,6 +6,10 @@ import stableStringify from "json-stable-stringify";
 import Keyv from "keyv";
 import { Octokit } from "octokit";
 import path from "path";
+import { createLogger } from "./logger";
+import { MethodCacheProxy, createMethodCacheProxy } from "./utils/MethodCacheProxy";
+
+const logger = createLogger("ghc");
 
 const GH_TOKEN =
   process.env.GH_TOKEN_COMFY_PR ||
@@ -26,23 +30,23 @@ async function ensureCacheDir() {
   await fs.mkdir(CACHE_DIR, { recursive: true });
 }
 
-let keyv: Keyv | null = null;
+let store: Keyv | null = null;
+let cacheProxy: MethodCacheProxy<typeof gh> | null = null;
 
-async function getKeyv() {
-  if (!keyv) {
+async function getStore() {
+  if (!store) {
     await ensureCacheDir();
-    keyv = new Keyv({
+    store = new Keyv({
       store: new KeyvSqlite(CACHE_FILE),
       ttl: DEFAULT_TTL,
     });
   }
-  return keyv;
+  return store;
 }
 
-function createCacheKey(basePath: string[], prop: string | symbol, args: any[]): string {
+function createGhCacheKey(path: (string | symbol)[], args: any[]): string {
   // Create a deterministic key from the path and arguments
-  const fullPath = [...basePath, prop.toString()];
-  const apiPath = fullPath.join(".");
+  const apiPath = path.map(p => p.toString()).join(".");
 
   const argsText = args.map((e) => stableStringify(e)).join(",");
   const maxLength = 120 - apiPath.length - "gh.".length - 8 - 3; // Maximum length for args display
@@ -60,39 +64,28 @@ function createCacheKey(basePath: string[], prop: string | symbol, args: any[]):
   return cacheKey;
 }
 
-function createCachedProxy(target: any, basePath: string[] = []): any {
-  return new Proxy(target, {
-    get(obj, prop) {
-      const value = obj[prop];
+async function getCacheProxy() {
+  if (!cacheProxy) {
+    const store = await getStore();
+    cacheProxy = new MethodCacheProxy({
+      store,
+      root: gh,
+      getKey: createGhCacheKey,
+      namespace: "gh",
+    });
+  }
+  return cacheProxy;
+}
 
-      if (typeof value === "function") {
-        return async function (...args: any[]) {
-          const cacheKey = createCacheKey(basePath, prop, args);
-          const keyvInstance = await getKeyv();
+export async function clearGhCache(): Promise<void> {
+  const proxy = await getCacheProxy();
+  await proxy.clear();
+}
 
-          // Try to get from cache first
-          const cached = await keyvInstance.get(cacheKey);
-          if (cached !== undefined) {
-            // logger.debug(`Cache hit`, { cacheKey }); // cache hit info for debug
-            return cached;
-          }
-
-          // Call the original function
-          const result = await value.apply(obj, args);
-
-          // Cache the result
-          await keyvInstance.set(cacheKey, result);
-
-          return result;
-        };
-      } else if (typeof value === "object" && value !== null) {
-        // Recursively wrap nested objects
-        return createCachedProxy(value, [...basePath, prop.toString()]);
-      }
-
-      return value;
-    },
-  });
+export async function getGhCacheStats(): Promise<{ size: number; keys: string[] }> {
+  // Note: Keyv doesn't provide built-in stats, but we can query the SQLite directly if needed
+  // For now, return basic info
+  return { size: 0, keys: [] };
 }
 
 type DeepAsyncWrapper<T> = {
@@ -105,27 +98,41 @@ type DeepAsyncWrapper<T> = {
         : T[K];
 };
 
-type ListAll<T> = T extends (
-  pageable: infer A extends { per_page: number; page: number },
-  ...rest: infer R
-) => Promise<{
-  data: infer D;
-}>
-  ? T & { all: (params: Omit<A, "per_page" | "page">, ...rest: R) => Promise<D> }
-  : never;
+// Create the cached GitHub client
+const ghcPromise = (async () => {
+  const store = await getStore();
+  return createMethodCacheProxy({
+    store,
+    root: gh,
+    getKey: createGhCacheKey,
+    namespace: "gh",
+  });
+})();
 
-export async function clearGhCache(): Promise<void> {
-  const keyvInstance = await getKeyv();
-  await keyvInstance.clear();
-}
-
-export async function getGhCacheStats(): Promise<{ size: number; keys: string[] }> {
-  // Note: Keyv doesn't provide built-in stats, but we can query the SQLite directly if needed
-  // For now, return basic info
-  return { size: 0, keys: [] };
-}
-
-export const ghc = createCachedProxy(gh) as DeepAsyncWrapper<typeof gh>;
+export const ghc = new Proxy({} as DeepAsyncWrapper<typeof gh>, {
+  get(target, prop) {
+    return new Proxy(() => {}, {
+      async apply(_, __, args) {
+        const proxy = await ghcPromise;
+        return (proxy as any)[prop](...args);
+      },
+      get(_, innerProp) {
+        return new Proxy(() => {}, {
+          async apply(_, __, args) {
+            const proxy = await ghcPromise;
+            return (proxy as any)[prop][innerProp](...args);
+          },
+          get(_, deepProp) {
+            return async (...args: any[]) => {
+              const proxy = await ghcPromise;
+              return (proxy as any)[prop][innerProp][deepProp](...args);
+            };
+          },
+        });
+      },
+    });
+  },
+});
 
 // manual test with real api
 if (import.meta.main) {
