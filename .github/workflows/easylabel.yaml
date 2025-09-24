@@ -3,7 +3,7 @@ name: "EasyLabel - Automated PR Labeling"
 on:
   workflow_dispatch:
   schedule:
-    # Run every 2 hour
+    # Run every 2 hours
     - cron: "0 */2 * * *"
   push:
     branches:
