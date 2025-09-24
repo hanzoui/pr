@@ -1,17 +1,14 @@
 import KeyvSqlite from "@keyv/sqlite";
 import { WebClient } from "@slack/web-api";
-import DIE from "@snomiao/die";
 import crypto from "crypto";
 import fs from "fs/promises";
 import stableStringify from "json-stable-stringify";
 import Keyv from "keyv";
 import path from "path";
+import { getSlack, isSlackAvailable } from ".";
 import { createLogger } from "../logger";
 
 const logger = createLogger("slackCached");
-
-const SLACK_BOT_TOKEN = process.env.SLACK_BOT_TOKEN?.trim() || DIE("missing env.SLACK_BOT_TOKEN");
-const slack = new WebClient(SLACK_BOT_TOKEN);
 
 const CACHE_DIR = path.join(process.cwd(), "node_modules/.cache/Comfy-PR");
 const CACHE_FILE = path.join(CACHE_DIR, "slack-cache.sqlite");
@@ -106,13 +103,36 @@ function createCachedProxy<T extends object>(target: T, basePath: string[] = [])
   }
 }
 
-export const slackCached = createCachedProxy(slack);
+let cachedSlackInstance: ReturnType<typeof createCachedProxy<WebClient>> | null = null;
+
+export function getSlackCached(): ReturnType<typeof createCachedProxy<WebClient>> {
+  if (!cachedSlackInstance) {
+    cachedSlackInstance = createCachedProxy(getSlack());
+  }
+  return cachedSlackInstance;
+}
+
+// For backwards compatibility with deprecation warning
+export const slackCached = new Proxy({} as ReturnType<typeof createCachedProxy<WebClient>>, {
+  get(_target, prop) {
+    console.warn("Direct access to 'slackCached' is deprecated. Use getSlackCached() instead.");
+    const cached = getSlackCached();
+    return (cached as any)[prop];
+  },
+});
 
 // manual test with real api
 if (import.meta.main) {
   async function runTest() {
+    if (!isSlackAvailable()) {
+      logger.info("Slack token not configured, skipping test");
+      return;
+    }
+
     // Test the cached client
     logger.info("Testing cached Slack client...");
+
+    const slack = getSlack();
 
     // This should make a real API call
     const result1 = await slack.users.profile.get({});
