@@ -95,7 +95,10 @@ async function runGithubCoreTagNotificationTask() {
           taggerDate = new Date(gitTag.data.tagger.date);
           message = gitTag.data.message;
         }
-      } catch {}
+      } catch {
+        // Silently continue - tag might be lightweight (not annotated)
+        // Lightweight tags don't have tagger info, which is expected
+      }
 
       let task = await save({
         tagName: tag.name,
