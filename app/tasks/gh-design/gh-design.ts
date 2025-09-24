@@ -3,7 +3,7 @@ import { TaskMetaCollection } from "@/src/db/TaskMeta";
 import { gh } from "@/src/gh";
 import { parseIssueUrl } from "@/src/parseIssueUrl";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
-import { slack } from "@/src/slack";
+import { getSlack } from "@/src/slack";
 import { getSlackChannel } from "@/src/slack/channels";
 import DIE from "@snomiao/die";
 import isCI from "is-ci";
@@ -220,6 +220,7 @@ export async function runGithubDesignTask() {
         if (!task.slackUrl) {
           tlog(`Sending Slack Notification for design task: ${task.url} (${task.type})`);
           if (!dryRun) {
+            const slack = getSlack();
             const msg = await slack.chat.postMessage({
               channel,
               text,
@@ -243,6 +244,7 @@ export async function runGithubDesignTask() {
           if (task.slackMsgHash !== slackMsgHash) {
             tlog(`Updating Slack message for task: ${task.url}`);
             if (!dryRun) {
+              const slack = getSlack();
               await slack.chat.update({
                 ...slackMessageUrlParse(task.slackUrl),
                 text,
