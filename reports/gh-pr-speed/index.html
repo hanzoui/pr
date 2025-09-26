@@ -2433,24 +2433,21 @@
                     };
                 }
 
-                // Update stats bar with compact 6-line format
+                // Update stats bar with compact 5-line format
                 let statsHTML = `<div style="font-size: 12px; line-height: 1.4;">`;
 
                 // Line 1: Stats header
                 statsHTML += `<div style="font-weight: 600; color: #666; margin-bottom: 5px;">Stats:</div>`;
 
-                // Line 2: Showing X PRs
-                statsHTML += `<div>Showing ${totalCount.toLocaleString()} PRs</div>`;
+                // Line 2: Showing X PRs from date range
+                statsHTML += `<div>Showing ${totalCount.toLocaleString()} PRs from ${dateRange}</div>`;
 
-                // Line 3: Status breakdown (without bold label)
+                // Line 3: Status breakdown
                 statsHTML += `<div>Status: <span style="color: #28a745;">●</span> Merged: ${mergedCount.toLocaleString()} (${((mergedCount/totalCount)*100).toFixed(1)}%) | <span style="color: #ffc107;">●</span> Open: ${openCount.toLocaleString()} (${((openCount/totalCount)*100).toFixed(1)}%) | <span style="color: #dc3545;">●</span> Closed: ${closedCount.toLocaleString()} (${((closedCount/totalCount)*100).toFixed(1)}%)</div>`;
 
-                // Line 4: Date Range
-                statsHTML += `<div>Date Range: ${dateRange}</div>`;
-
-                // Line 5-6: Duration stats (if available)
+                // Line 4-5: Duration stats (if available)
                 if (durationStats) {
-                    statsHTML += `<div>Duration (${durationStats.count} merged PRs): ${durationStats.line1} | StdDev: ${durationStats.stdDev}d</div>`;
+                    statsHTML += `<div>Durations (${durationStats.count} merged PRs): ${durationStats.line1} | StdDev: ${durationStats.stdDev}d</div>`;
                     statsHTML += `<div style="font-size: 11px;">${durationStats.line2}</div>`;
                 }
 
