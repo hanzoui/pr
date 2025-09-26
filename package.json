@@ -84,6 +84,7 @@
     "concurrent-lock": "^1.0.7",
     "d3": "^7.9.0",
     "daisyui": "^4.12.10",
+    "date-fns": "^4.1.0",
     "defer-close": "^1.1.0",
     "dotenv": "^16.4.5",
     "enhanced-ms": "^3.0.0",
