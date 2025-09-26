@@ -27,9 +27,10 @@ const TEAM_MEMBERS: TeamMember[] = [
   { username: "benceruleanlu", startDate: new Date("2020-01-01"), displayName: "Ben" },
   { username: "webfiltered", startDate: new Date("2020-01-01"), displayName: "Blake" },
   { username: "Kosinkadink", startDate: new Date("2020-01-01"), displayName: "Kosinkadink" },
-  { username: "comfyanonymous", startDate: new Date("2020-01-01"), displayName: "Comfy" },
-  // { username: "KohakuBlueleaf", startDate: new Date("2020-01-01"), displayName: "KohakuBlueleaf" }, // not team member
   { username: "yoland68", startDate: new Date("2020-01-01"), displayName: "Yoland" },
+  //
+  { username: "KohakuBlueleaf", startDate: new Date("2020-01-01"), displayName: "KohakuBlueleaf" }, // not team member
+  { username: "comfyanonymous", startDate: new Date("2020-01-01"), displayName: "Comfy" },
   { username: "snomiao", startDate: new Date("2020-01-01"), displayName: "Sno" },
 ];
 
@@ -702,10 +703,11 @@ async function generateReportWithJSON() {
 
   // Write JSON file
   const fs = await import("fs/promises");
-  const jsonPath = "./reports/gh-pr-speed/data.json";
+  const pwd = process.cwd();
+  const jsonPath = `${pwd}/data.json`;
   await fs.writeFile(jsonPath, JSON.stringify(data, null, 2));
   console.log(`\nJSON data saved to ${jsonPath}`);
-  console.log(`View the interactive report at: reports/gh-pr-speed/index.html`);
+  console.log(`View the interactive report at: ${pwd}/index.html`);
 
   return data;
 }
