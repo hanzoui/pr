@@ -341,13 +341,15 @@
             justify-content: center;
         }
 
-        /* Enhanced select styles for Gantt controls */
-        #gantt-chart-section select:hover {
+        /* Enhanced select and input styles for Gantt controls */
+        #gantt-chart-section select:hover,
+        #gantt-chart-section input[type="text"]:hover {
             border-color: #007bff;
             transition: border-color 0.2s ease;
         }
 
-        #gantt-chart-section select:focus {
+        #gantt-chart-section select:focus,
+        #gantt-chart-section input[type="text"]:focus {
             outline: none;
             border-color: #007bff;
             box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
@@ -661,6 +663,10 @@
             <div class="controls" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
                 <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
                     <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
+                        <div id="gantt-stats" style="padding: 15px; background-color: white; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; line-height: 1.6; word-wrap: break-word;">
+                            <div style="color: #666; margin-bottom: 5px; font-weight: 600;">Current Filters</div>
+                            <div style="color: #333;">Loading...</div>
+                        </div>
                         <div>
                             <label style="display: block; margin-bottom: 5px; color: #666; font-size: 0.85em; font-weight: 500;">Sort by</label>
                             <select id="gantt-sort" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white; font-size: 14px;">
@@ -697,15 +703,21 @@
                     <div style="padding: 20px; background: white; border-radius: 6px;">
                         <label style="display: block; margin-bottom: 15px; color: #666; font-size: 0.85em; font-weight: 500;">Filter by Date Range</label>
                         <div id="gantt-date-range-slider" style="margin-bottom: 15px;"></div>
-                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #555;">
+                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #555; margin-bottom: 20px;">
                             <span id="gantt-date-start" style="font-weight: 500;">-</span>
                             <span style="color: #999;">to</span>
                             <span id="gantt-date-end" style="font-weight: 500;">-</span>
                         </div>
+                        <label style="display: block; margin-bottom: 10px; color: #666; font-size: 0.85em; font-weight: 500;">Search by Keywords</label>
+                        <input type="text" id="gantt-search-keywords"
+                               placeholder="Enter keywords separated by spaces (e.g., fix bug ui)"
+                               style="width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
+                        <div style="margin-top: 5px; font-size: 11px; color: #999;">
+                            Searches in PR titles. All keywords must match.
+                        </div>
                     </div>
                 </div>
             </div>
-            <div id="gantt-stats" style="padding: 10px; background-color: #f8f9fa; border: 1px solid #ddd; margin: 10px 0; border-radius: 4px; font-size: 14px;"></div>
             <div id="gantt-chart"></div>
         </div>
     </div>
@@ -2265,6 +2277,16 @@
                 document.getElementById(id).addEventListener('change', () => updateGanttChart(allPRs));
             });
 
+            // Set up search input with throttling
+            let searchTimeout = null;
+            const searchInput = document.getElementById('gantt-search-keywords');
+            searchInput.addEventListener('input', () => {
+                if (searchTimeout) clearTimeout(searchTimeout);
+                searchTimeout = setTimeout(() => {
+                    updateGanttChart(allPRs);
+                }, 300); // 300ms throttle
+            });
+
             updateGanttChart(allPRs);
         }
 
@@ -2294,10 +2316,14 @@
             const filterUser = document.getElementById('gantt-filter-user').value;
             const filterRepo = document.getElementById('gantt-filter-repo').value;
             const filterStatus = document.getElementById('gantt-filter-status').value;
+            const searchKeywords = document.getElementById('gantt-search-keywords').value.trim();
 
             // Use date range values from slider
             const fromDate = ganttDateRangeValues.start;
             const toDate = ganttDateRangeValues.end;
+
+            // Parse search keywords (split by spaces, filter empty)
+            const keywords = searchKeywords ? searchKeywords.toLowerCase().split(/\s+/).filter(k => k.length > 0) : [];
 
             // Filter PRs
             let filteredPRs = allPRs.filter(pr => {
@@ -2314,6 +2340,14 @@
                 const prDate = new Date(pr.created_at);
                 if (fromDate && prDate < fromDate) return false;
                 if (toDate && prDate >= toDate) return false;
+
+                // Filter by keywords (all keywords must match in title)
+                if (keywords.length > 0) {
+                    const title = pr.title.toLowerCase();
+                    const allMatch = keywords.every(keyword => title.includes(keyword));
+                    if (!allMatch) return false;
+                }
+
                 return true;
             });
 
@@ -2391,28 +2425,39 @@
                     const variance = durations.reduce((sum, d) => sum + Math.pow(d - avg, 2), 0) / count;
                     const stdDev = Math.sqrt(variance);
 
-                    durationStats = `<br/><strong>Duration (${count} merged PRs):</strong>
-                        Min: ${min.toFixed(1)}d |
-                        P15: ${p15.toFixed(1)}d |
-                        Avg: ${avg.toFixed(1)}d |
-                        Median: ${median.toFixed(1)}d |
-                        P75: ${p75.toFixed(1)}d |
-                        P95: ${p95.toFixed(1)}d |
-                        Max: ${max.toFixed(1)}d |
-                        StdDev: ${stdDev.toFixed(1)}d`;
+                    // Format duration stats across multiple lines
+                    durationStats = {
+                        count,
+                        line1: `Avg: ${avg.toFixed(1)}d`,
+                        line2: `Min: ${min.toFixed(1)}d | P15: ${p15.toFixed(1)}d | Median: ${median.toFixed(1)}d | P75: ${p75.toFixed(1)}d | P95: ${p95.toFixed(1)}d | Max: ${max.toFixed(1)}d | StdDev: ${stdDev.toFixed(1)}d`
+                    };
                 }
 
-                // Update stats bar
-                statsContainer.innerHTML = `
-                    <strong>Showing ${totalCount.toLocaleString()} PRs</strong> |
-                    <span style="color: #28a745;">●</span> Merged: ${mergedCount.toLocaleString()} (${((mergedCount/totalCount)*100).toFixed(1)}%) |
-                    <span style="color: #ffc107;">●</span> Open: ${openCount.toLocaleString()} (${((openCount/totalCount)*100).toFixed(1)}%) |
-                    <span style="color: #dc3545;">●</span> Closed: ${closedCount.toLocaleString()} (${((closedCount/totalCount)*100).toFixed(1)}%) |
-                    <strong>Date Range:</strong> ${dateRange}
-                    ${durationStats}
-                `;
+                // Update stats bar with compact 5-line format
+                let statsHTML = `<div style="font-size: 12px; line-height: 1.5;">`;
+
+                // Line 1: Showing X PRs
+                statsHTML += `<div><strong>Showing ${totalCount.toLocaleString()} PRs</strong></div>`;
+
+                // Line 2: Status breakdown
+                statsHTML += `<div><strong>Status:</strong> <span style="color: #28a745;">●</span> Merged: ${mergedCount.toLocaleString()} (${((mergedCount/totalCount)*100).toFixed(1)}%) | <span style="color: #ffc107;">●</span> Open: ${openCount.toLocaleString()} (${((openCount/totalCount)*100).toFixed(1)}%) | <span style="color: #dc3545;">●</span> Closed: ${closedCount.toLocaleString()} (${((closedCount/totalCount)*100).toFixed(1)}%)</div>`;
+
+                // Line 3: Date Range
+                statsHTML += `<div><strong>Date Range:</strong> ${dateRange}</div>`;
+
+                // Line 4-5: Duration stats (if available)
+                if (durationStats) {
+                    statsHTML += `<div><strong>Duration (${durationStats.count} merged PRs):</strong> ${durationStats.line1}</div>`;
+                    statsHTML += `<div style="font-size: 11px;">${durationStats.line2}</div>`;
+                }
+
+                statsHTML += `</div>`;
+                statsContainer.innerHTML = statsHTML;
             } else {
-                statsContainer.innerHTML = '<strong>No PRs match the current filters</strong>';
+                statsContainer.innerHTML = `
+                    <div style="color: #666; margin-bottom: 5px; font-weight: 600;">Current Filters</div>
+                    <div style="color: #dc3545; font-weight: 500;">No PRs match filters</div>
+                `;
             }
 
             if (filteredPRs.length === 0) {
