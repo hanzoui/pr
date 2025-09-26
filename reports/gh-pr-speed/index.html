@@ -354,6 +354,12 @@
         }
 
         @media (max-width: 768px) {
+            #gantt-chart-section .controls > div:first-child {
+                grid-template-columns: 1fr !important;
+            }
+        }
+
+        @media (max-width: 1024px) {
             #gantt-chart-section .controls > div {
                 grid-template-columns: 1fr !important;
             }
@@ -653,47 +659,49 @@
         <div class="chart-container" id="gantt-chart-section">
             <h2><a href="#gantt-chart-section">Individual PR Gantt Chart</a></h2>
             <div class="controls" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin-bottom: 20px;">
-                    <div>
-                        <label style="display: block; margin-bottom: 5px; color: #666; font-size: 0.85em; font-weight: 500;">Sort by</label>
-                        <select id="gantt-sort" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white; font-size: 14px;">
-                            <option value="created">Created Date</option>
-                            <option value="closed">Closed/Merged Date</option>
-                            <option value="user">User</option>
-                            <option value="repository">Repository</option>
-                            <option value="duration">Duration</option>
-                            <option value="status">Status</option>
-                        </select>
+                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; color: #666; font-size: 0.85em; font-weight: 500;">Sort by</label>
+                            <select id="gantt-sort" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white; font-size: 14px;">
+                                <option value="created">Created Date</option>
+                                <option value="closed">Closed/Merged Date</option>
+                                <option value="user">User</option>
+                                <option value="repository">Repository</option>
+                                <option value="duration">Duration</option>
+                                <option value="status">Status</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; color: #666; font-size: 0.85em; font-weight: 500;">Filter by User</label>
+                            <select id="gantt-filter-user" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white; font-size: 14px;">
+                                <option value="">All Users</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; color: #666; font-size: 0.85em; font-weight: 500;">Filter by Repository</label>
+                            <select id="gantt-filter-repo" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white; font-size: 14px;">
+                                <option value="">All Repositories</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="display: block; margin-bottom: 5px; color: #666; font-size: 0.85em; font-weight: 500;">Filter by Status</label>
+                            <select id="gantt-filter-status" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white; font-size: 14px;">
+                                <option value="">All Statuses</option>
+                                <option value="merged">Merged</option>
+                                <option value="open">Open</option>
+                                <option value="closed">Closed</option>
+                            </select>
+                        </div>
                     </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 5px; color: #666; font-size: 0.85em; font-weight: 500;">Filter by User</label>
-                        <select id="gantt-filter-user" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white; font-size: 14px;">
-                            <option value="">All Users</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 5px; color: #666; font-size: 0.85em; font-weight: 500;">Filter by Repository</label>
-                        <select id="gantt-filter-repo" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white; font-size: 14px;">
-                            <option value="">All Repositories</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="display: block; margin-bottom: 5px; color: #666; font-size: 0.85em; font-weight: 500;">Filter by Status</label>
-                        <select id="gantt-filter-status" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white; font-size: 14px;">
-                            <option value="">All Statuses</option>
-                            <option value="merged">Merged</option>
-                            <option value="open">Open</option>
-                            <option value="closed">Closed</option>
-                        </select>
-                    </div>
-                </div>
-                <div style="padding: 15px; background: white; border-radius: 6px;">
-                    <label style="display: block; margin-bottom: 10px; color: #666; font-size: 0.85em; font-weight: 500;">Filter by Date Range</label>
-                    <div id="gantt-date-range-slider" style="margin-bottom: 10px;"></div>
-                    <div style="display: flex; justify-content: space-between; font-size: 13px; color: #555;">
-                        <span id="gantt-date-start" style="font-weight: 500;">-</span>
-                        <span style="color: #999;">to</span>
-                        <span id="gantt-date-end" style="font-weight: 500;">-</span>
+                    <div style="padding: 20px; background: white; border-radius: 6px;">
+                        <label style="display: block; margin-bottom: 15px; color: #666; font-size: 0.85em; font-weight: 500;">Filter by Date Range</label>
+                        <div id="gantt-date-range-slider" style="margin-bottom: 15px;"></div>
+                        <div style="display: flex; justify-content: space-between; font-size: 13px; color: #555;">
+                            <span id="gantt-date-start" style="font-weight: 500;">-</span>
+                            <span style="color: #999;">to</span>
+                            <span id="gantt-date-end" style="font-weight: 500;">-</span>
+                        </div>
                     </div>
                 </div>
             </div>
