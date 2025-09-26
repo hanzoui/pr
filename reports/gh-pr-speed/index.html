@@ -400,10 +400,14 @@
         }
 
         .stats-table th {
-            background-color: #f8f9fa;
+            background: #667eea;
             font-weight: 600;
+            color: white;
             position: sticky;
             top: 0;
+            font-size: 14px;
+            letter-spacing: 0.3px;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.2);
         }
 
         .stats-table tr:hover {
@@ -460,7 +464,6 @@
         <h3>📑 Quick Navigation</h3>
         <ul>
             <li><a href="#overview-section">📊 Overview</a></li>
-            <li><a href="#member-distribution-section">👥 PR Distribution</a></li>
             <li><a href="#repo-time-section">🏢 Repository Stats</a></li>
             <li><a href="#quarterly-trends-section">📈 Quarterly Trends</a></li>
             <li><a href="#status-distribution-section">🎯 Status Distribution</a></li>
@@ -619,11 +622,6 @@
                     </p>
                 </div>
             </div>
-        </div>
-
-        <div class="chart-container" id="member-distribution-section">
-            <h2><a href="#member-distribution-section">PR Distribution by Member</a></h2>
-            <div id="member-chart"></div>
         </div>
 
         <div class="chart-container" id="repo-time-section">
@@ -1156,7 +1154,6 @@
         }
 
         function renderCharts(data) {
-            renderMemberChart(data.memberStats);
             renderRepoTimeChart(data.repoStats);
             renderQuarterlyChart(data.quarterlyStats);
             renderStatusPieChart(data.summary, data.memberStats);
@@ -1164,114 +1161,6 @@
             renderMemberBoxplot(data.memberStats);
             renderMemberDetailsTable(data.memberStats);
             renderGanttChart(data.allPRs || []);
-        }
-
-        function renderMemberChart(memberStats) {
-            const container = d3.select("#member-chart");
-            container.selectAll("*").remove();
-
-            const margin = {top: 20, right: 30, bottom: 100, left: 60};
-            const width = container.node().getBoundingClientRect().width - margin.left - margin.right;
-            const height = 400 - margin.top - margin.bottom;
-
-            const svg = container
-                .append("svg")
-                .attr("width", width + margin.left + margin.right)
-                .attr("height", height + margin.top + margin.bottom);
-
-            const g = svg.append("g")
-                .attr("transform", `translate(${margin.left},${margin.top})`);
-
-            // Sort by total PRs
-            memberStats.sort((a, b) => b.totalPRs - a.totalPRs);
-
-            const x = d3.scaleBand()
-                .range([0, width])
-                .domain(memberStats.map(d => d.member))
-                .padding(0.1);
-
-            const y = d3.scaleLinear()
-                .domain([0, d3.max(memberStats, d => d.totalPRs)])
-                .range([height, 0]);
-
-            const color = d3.scaleOrdinal()
-                .domain(['merged', 'open', 'closed'])
-                .range(['#28a745', '#ffc107', '#dc3545']);
-
-            // Stack the data
-            const stack = d3.stack()
-                .keys(['merged', 'open', 'closed']);
-
-            const stackedData = stack(memberStats);
-
-            // Add bars
-            g.selectAll(".series")
-                .data(stackedData)
-                .enter().append("g")
-                .attr("fill", d => color(d.key))
-                .selectAll("rect")
-                .data(d => d)
-                .enter().append("rect")
-                .attr("x", d => x(d.data.member))
-                .attr("y", d => y(d[1]))
-                .attr("height", d => y(d[0]) - y(d[1]))
-                .attr("width", x.bandwidth())
-                .on("mouseover", function(event, d) {
-                    tooltip.transition()
-                        .duration(200)
-                        .style("opacity", .9);
-                    const key = d3.select(this.parentNode).datum().key;
-                    tooltip.html(`${d.data.member}<br/>${key}: ${d[1] - d[0]}`)
-                        .style("left", (event.pageX) + "px")
-                        .style("top", (event.pageY - 28) + "px");
-                })
-                .on("mouseout", function(d) {
-                    tooltip.transition()
-                        .duration(500)
-                        .style("opacity", 0);
-                });
-
-            // Add X axis
-            g.append("g")
-                .attr("transform", `translate(0,${height})`)
-                .call(d3.axisBottom(x))
-                .selectAll("text")
-                .attr("transform", "rotate(-45)")
-                .style("text-anchor", "end");
-
-            // Add Y axis
-            g.append("g")
-                .call(d3.axisLeft(y));
-
-            // Add Y axis label
-            g.append("text")
-                .attr("transform", "rotate(-90)")
-                .attr("y", 0 - margin.left)
-                .attr("x", 0 - (height / 2))
-                .attr("dy", "1em")
-                .style("text-anchor", "middle")
-                .text("Number of PRs");
-
-            // Add legend
-            const legend = svg.append("g")
-                .attr("transform", `translate(${width - 100}, 20)`);
-
-            const legendItems = ['merged', 'open', 'closed'];
-            legendItems.forEach((item, i) => {
-                const legendRow = legend.append("g")
-                    .attr("transform", `translate(0, ${i * 20})`);
-
-                legendRow.append("rect")
-                    .attr("width", 16)
-                    .attr("height", 16)
-                    .attr("fill", color(item));
-
-                legendRow.append("text")
-                    .attr("x", 20)
-                    .attr("y", 12)
-                    .style("font-size", "12px")
-                    .text(item.charAt(0).toUpperCase() + item.slice(1));
-            });
         }
 
         function renderRepoTimeChart(repoStats) {
@@ -1607,9 +1496,9 @@
             const container = d3.select("#status-pie-chart");
             container.selectAll("*").remove();
 
-            const width = 400;
-            const height = 300;
-            const radius = Math.min(width, height) / 2;
+            const width = 500;
+            const height = 350;
+            const radius = Math.min(width, height) / 2 - 40; // Add margin for labels
 
             const svg = container
                 .append("svg")
@@ -1663,13 +1552,15 @@
                 .attr("transform", d => {
                     const pos = outerArc.centroid(d);
                     const midangle = d.startAngle + (d.endAngle - d.startAngle) / 2;
-                    pos[0] = radius * 0.99 * (midangle < Math.PI ? 1 : -1);
+                    pos[0] = radius * 1.1 * (midangle < Math.PI ? 1 : -1);
                     return `translate(${pos})`;
                 })
                 .style("text-anchor", d => {
                     const midangle = d.startAngle + (d.endAngle - d.startAngle) / 2;
                     return (midangle < Math.PI ? 'start' : 'end');
                 })
+                .style("font-size", "14px")
+                .style("font-weight", "500")
                 .text(d => `${d.data.label}: ${d.data.value}`);
 
             // Add center text
@@ -2289,20 +2180,17 @@
             updateGanttChart(allPRs);
         }
 
-        function getRepoOwner(repository) {
-            // Map repository names to their GitHub owners
+        function getRepoInfo(repository) {
+            // Map display names to actual GitHub repository info
             const repoMap = {
-                'ComfyUI': 'comfyanonymous',
-                'ComfyUI_frontend': 'Comfy-Org',
-                'Frontend': 'Comfy-Org',
-                'desktop': 'Comfy-Org',
-                'Desktop': 'Comfy-Org',
-                'comfy-api': 'Comfy-Org',
-                'Comfy-API': 'Comfy-Org',
-                'cloud': 'Comfy-Org',
-                'Cloud': 'Comfy-Org'
+                'ComfyUI': { owner: 'comfyanonymous', repo: 'ComfyUI' },
+                'Frontend': { owner: 'Comfy-Org', repo: 'ComfyUI_frontend' },
+                'Desktop': { owner: 'Comfy-Org', repo: 'desktop' },
+                'Registry': { owner: 'Comfy-Org', repo: 'registry-web' },
+                'Comfy-API': { owner: 'Comfy-Org', repo: 'comfy-api' },
+                'Cloud': { owner: 'Comfy-Org', repo: 'cloud' }
             };
-            return repoMap[repository] || 'Comfy-Org';
+            return repoMap[repository] || { owner: 'Comfy-Org', repo: repository };
         }
 
         function updateGanttChart(allPRs) {
@@ -2437,26 +2325,26 @@
                 let statsHTML = `<div style="font-size: 12px; line-height: 1.4;">`;
 
                 // Line 1: Stats header
-                statsHTML += `<div style="font-weight: 600; color: #666; margin-bottom: 5px;">Stats:</div>`;
+                statsHTML += `<div style="font-weight: 700; color: #2c3e50; margin-bottom: 10px; font-size: 17px; letter-spacing: 0.5px; text-transform: uppercase; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Statistics</div>`;
 
                 // Line 2: Showing X PRs from date range
-                statsHTML += `<div>Showing ${totalCount.toLocaleString()} PRs from ${dateRange}</div>`;
+                statsHTML += `<div style="font-size: 16px; color: #34495e; margin-bottom: 8px;">Showing <strong style="color: #3498db; font-size: 20px;">${totalCount.toLocaleString()}</strong> PRs from <strong style="color: #2c3e50;">${dateRange}</strong></div>`;
 
                 // Line 3: Status breakdown
-                statsHTML += `<div>Status: <span style="color: #28a745;">●</span> Merged: ${mergedCount.toLocaleString()} (${((mergedCount/totalCount)*100).toFixed(1)}%) | <span style="color: #ffc107;">●</span> Open: ${openCount.toLocaleString()} (${((openCount/totalCount)*100).toFixed(1)}%) | <span style="color: #dc3545;">●</span> Closed: ${closedCount.toLocaleString()} (${((closedCount/totalCount)*100).toFixed(1)}%)</div>`;
+                statsHTML += `<div style="font-size: 15px; margin-bottom: 8px;">Status: <span style="color: #27ae60; font-weight: 600;">● Merged: ${mergedCount.toLocaleString()} (${((mergedCount/totalCount)*100).toFixed(1)}%)</span> | <span style="color: #f39c12; font-weight: 600;">● Open: ${openCount.toLocaleString()} (${((openCount/totalCount)*100).toFixed(1)}%)</span> | <span style="color: #e74c3c; font-weight: 600;">● Closed: ${closedCount.toLocaleString()} (${((closedCount/totalCount)*100).toFixed(1)}%)</span></div>`;
 
                 // Line 4-5: Duration stats (if available)
                 if (durationStats) {
-                    statsHTML += `<div>Durations (${durationStats.count} merged PRs): ${durationStats.line1} | StdDev: ${durationStats.stdDev}d</div>`;
-                    statsHTML += `<div style="font-size: 11px;">${durationStats.line2}</div>`;
+                    statsHTML += `<div style="font-size: 15px; color: #34495e; margin-bottom: 6px;"><strong style="color: #2c3e50;">Durations (${durationStats.count} merged PRs):</strong> <span style="color: #8e44ad; font-weight: 600;">${durationStats.line1}</span> | <span style="color: #95a5a6; font-weight: 600;">StdDev: ${durationStats.stdDev}d</span></div>`;
+                    statsHTML += `<div style="font-size: 14px; color: #546e7a; font-weight: 500;">${durationStats.line2}</div>`;
                 }
 
                 statsHTML += `</div>`;
                 statsContainer.innerHTML = statsHTML;
             } else {
                 statsContainer.innerHTML = `
-                    <div style="font-weight: 600; color: #666; margin-bottom: 5px;">Stats:</div>
-                    <div style="color: #dc3545; font-weight: 500;">No PRs match filters</div>
+                    <div style="font-weight: 700; color: #2c3e50; margin-bottom: 10px; font-size: 17px; letter-spacing: 0.5px; text-transform: uppercase; border-bottom: 2px solid #3498db; padding-bottom: 5px;">Statistics</div>
+                    <div style="color: #e74c3c; font-weight: 600; font-size: 16px;">No PRs match filters</div>
                 `;
             }
 
@@ -2548,7 +2436,8 @@
                     })
                     .on("click", function(event) {
                         // Open GitHub PR page in new tab
-                        const githubUrl = `https://github.com/${getRepoOwner(pr.repository)}/${pr.repository}/pull/${pr.number}`;
+                        const repoInfo = getRepoInfo(pr.repository);
+                        const githubUrl = `https://github.com/${repoInfo.owner}/${repoInfo.repo}/pull/${pr.number}`;
                         window.open(githubUrl, '_blank');
                     })
                     .style("cursor", "pointer");
