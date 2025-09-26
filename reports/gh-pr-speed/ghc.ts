@@ -60,7 +60,7 @@ function createCacheKey(basePath: string[], prop: string | symbol, args: any[]):
   return cacheKey;
 }
 
-function createCachedProxy(target: any, basePath: string[] = []): any {
+function createCachedProxy(target: any, basePath: string[] = []): DeepAsyncWrapper<typeof target> {
   return new Proxy(target, {
     get(obj, prop) {
       const value = obj[prop];
@@ -105,14 +105,53 @@ type DeepAsyncWrapper<T> = {
         : T[K];
 };
 
-type ListAll<T> = T extends (
-  pageable: infer A extends { per_page: number; page: number },
-  ...rest: infer R
-) => Promise<{
+type ListAll<T> = T extends (pageable: infer A extends { per_page: number; page: number }) => Promise<{
   data: infer D;
 }>
-  ? T & { all: (params: Omit<A, "per_page" | "page">, ...rest: R) => Promise<D> }
-  : never;
+  ? T & { all: (params: Omit<A, "per_page" | "page">) => Promise<D> }
+  : T;
+
+type DeepListAllWrapper<T> = {
+  [K in keyof T]: T[K] extends (...args: any[]) => Promise<any>
+    ? ListAll<T[K]>
+    : T[K] extends object
+      ? DeepListAllWrapper<T[K]>
+      : T[K];
+};
+
+// Create a proxy that adds `.all` method to list methods
+// Note: This is a simplified version and may need adjustments based on actual API patterns
+function createListAllProxy<T extends object>(obj: T): DeepListAllWrapper<T> {
+  return new Proxy(obj, {
+    get(target, prop) {
+      const value = (target as any)[prop];
+      if (typeof value === "function") {
+        return async function (...args: any[]) {
+          // Check if the function is a list method by inspecting its parameters
+          const firstArg = args[0];
+          if (firstArg && typeof firstArg === "object" && "per_page" in firstArg && "page" in firstArg) {
+            // It's a list method, add `.all` method
+            const listMethod = value.bind(target);
+            const allMethod = async function (params: any, ...rest: any[]) {
+              let allData: any[] = [];
+              let page = 1;
+              while (true) {
+                const response = await listMethod({ ...params, per_page: 100, page }, ...rest);
+                allData = allData.concat(response.data);
+                if (response.data.length < 100) break; // No more pages
+                page++;
+              }
+              return allData;
+            };
+            return Object.assign(allMethod, { __listMethod: listMethod });
+          }
+          return value.apply(target, args);
+        };
+      }
+      return value;
+    },
+  }) as DeepListAllWrapper<T>;
+}
 
 export async function clearGhCache(): Promise<void> {
   const keyvInstance = await getKeyv();
@@ -125,7 +164,7 @@ export async function getGhCacheStats(): Promise<{ size: number; keys: string[] 
   return { size: 0, keys: [] };
 }
 
-export const ghc = createCachedProxy(gh) as DeepAsyncWrapper<typeof gh>;
+export const ghc = createListAllProxy(createCachedProxy(gh));
 
 // manual test with real api
 if (import.meta.main) {
