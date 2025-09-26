@@ -661,12 +661,11 @@
         <div class="chart-container" id="gantt-chart-section">
             <h2><a href="#gantt-chart-section">Individual PR Gantt Chart</a></h2>
             <div class="controls" style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-                <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px;">
-                    <div style="display: grid; grid-template-columns: 1fr; gap: 15px;">
-                        <div id="gantt-stats" style="padding: 15px; background-color: white; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; line-height: 1.6; word-wrap: break-word;">
-                            <div style="color: #666; margin-bottom: 5px; font-weight: 600;">Current Filters</div>
-                            <div style="color: #333;">Loading...</div>
-                        </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 20px;">
+                    <div id="gantt-stats" style="padding: 15px; background-color: white; border: 1px solid #ddd; border-radius: 6px; font-size: 13px; line-height: 1.6; word-wrap: break-word;">
+                        <div style="color: #333;">Loading...</div>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
                         <div>
                             <label style="display: block; margin-bottom: 5px; color: #666; font-size: 0.85em; font-weight: 500;">Sort by</label>
                             <select id="gantt-sort" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white; font-size: 14px;">
@@ -2429,25 +2428,29 @@
                     durationStats = {
                         count,
                         line1: `Avg: ${avg.toFixed(1)}d`,
-                        line2: `Min: ${min.toFixed(1)}d | P15: ${p15.toFixed(1)}d | Median: ${median.toFixed(1)}d | P75: ${p75.toFixed(1)}d | P95: ${p95.toFixed(1)}d | Max: ${max.toFixed(1)}d | StdDev: ${stdDev.toFixed(1)}d`
+                        stdDev: stdDev.toFixed(1),
+                        line2: `Min: ${min.toFixed(1)}d | P15: ${p15.toFixed(1)}d | Median: ${median.toFixed(1)}d | P75: ${p75.toFixed(1)}d | P95: ${p95.toFixed(1)}d | Max: ${max.toFixed(1)}d`
                     };
                 }
 
-                // Update stats bar with compact 5-line format
-                let statsHTML = `<div style="font-size: 12px; line-height: 1.5;">`;
+                // Update stats bar with compact 6-line format
+                let statsHTML = `<div style="font-size: 12px; line-height: 1.4;">`;
 
-                // Line 1: Showing X PRs
-                statsHTML += `<div><strong>Showing ${totalCount.toLocaleString()} PRs</strong></div>`;
+                // Line 1: Stats header
+                statsHTML += `<div style="font-weight: 600; color: #666; margin-bottom: 5px;">Stats:</div>`;
 
-                // Line 2: Status breakdown
-                statsHTML += `<div><strong>Status:</strong> <span style="color: #28a745;">●</span> Merged: ${mergedCount.toLocaleString()} (${((mergedCount/totalCount)*100).toFixed(1)}%) | <span style="color: #ffc107;">●</span> Open: ${openCount.toLocaleString()} (${((openCount/totalCount)*100).toFixed(1)}%) | <span style="color: #dc3545;">●</span> Closed: ${closedCount.toLocaleString()} (${((closedCount/totalCount)*100).toFixed(1)}%)</div>`;
+                // Line 2: Showing X PRs
+                statsHTML += `<div>Showing ${totalCount.toLocaleString()} PRs</div>`;
 
-                // Line 3: Date Range
-                statsHTML += `<div><strong>Date Range:</strong> ${dateRange}</div>`;
+                // Line 3: Status breakdown (without bold label)
+                statsHTML += `<div>Status: <span style="color: #28a745;">●</span> Merged: ${mergedCount.toLocaleString()} (${((mergedCount/totalCount)*100).toFixed(1)}%) | <span style="color: #ffc107;">●</span> Open: ${openCount.toLocaleString()} (${((openCount/totalCount)*100).toFixed(1)}%) | <span style="color: #dc3545;">●</span> Closed: ${closedCount.toLocaleString()} (${((closedCount/totalCount)*100).toFixed(1)}%)</div>`;
 
-                // Line 4-5: Duration stats (if available)
+                // Line 4: Date Range
+                statsHTML += `<div>Date Range: ${dateRange}</div>`;
+
+                // Line 5-6: Duration stats (if available)
                 if (durationStats) {
-                    statsHTML += `<div><strong>Duration (${durationStats.count} merged PRs):</strong> ${durationStats.line1}</div>`;
+                    statsHTML += `<div>Duration (${durationStats.count} merged PRs): ${durationStats.line1} | StdDev: ${durationStats.stdDev}d</div>`;
                     statsHTML += `<div style="font-size: 11px;">${durationStats.line2}</div>`;
                 }
 
@@ -2455,7 +2458,7 @@
                 statsContainer.innerHTML = statsHTML;
             } else {
                 statsContainer.innerHTML = `
-                    <div style="color: #666; margin-bottom: 5px; font-weight: 600;">Current Filters</div>
+                    <div style="font-weight: 600; color: #666; margin-bottom: 5px;">Stats:</div>
                     <div style="color: #dc3545; font-weight: 500;">No PRs match filters</div>
                 `;
             }
