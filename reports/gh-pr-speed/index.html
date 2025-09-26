@@ -21,6 +21,73 @@
         .container {
             max-width: 1400px;
             margin: 0 auto;
+            margin-left: 220px; /* Make room for TOC */
+        }
+
+        /* Floating TOC styles */
+        .toc {
+            position: fixed;
+            left: 20px;
+            top: 80px;
+            width: 180px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            padding: 15px;
+            max-height: calc(100vh - 100px);
+            overflow-y: auto;
+            z-index: 100;
+        }
+
+        .toc h3 {
+            font-size: 0.9em;
+            color: #333;
+            margin-bottom: 12px;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #007bff;
+            font-weight: 600;
+        }
+
+        .toc ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .toc li {
+            margin-bottom: 8px;
+        }
+
+        .toc a {
+            color: #666;
+            text-decoration: none;
+            font-size: 0.85em;
+            display: block;
+            padding: 4px 8px;
+            border-radius: 4px;
+            transition: all 0.3s ease;
+        }
+
+        .toc a:hover {
+            background: #f0f7ff;
+            color: #007bff;
+            transform: translateX(5px);
+        }
+
+        .toc a.active {
+            background: #007bff;
+            color: white;
+            font-weight: 500;
+        }
+
+        /* Responsive - hide TOC on small screens */
+        @media (max-width: 1200px) {
+            .toc {
+                display: none;
+            }
+            .container {
+                margin-left: auto;
+            }
         }
 
         h1 {
@@ -330,6 +397,23 @@
     </style>
 </head>
 <body>
+    <!-- Floating Table of Contents -->
+    <nav class="toc" id="toc">
+        <h3>📑 Quick Navigation</h3>
+        <ul>
+            <li><a href="#overview-section">📊 Overview</a></li>
+            <li><a href="#member-distribution-section">👥 PR Distribution</a></li>
+            <li><a href="#repo-time-section">🏢 Repository Stats</a></li>
+            <li><a href="#quarterly-trends-section">📈 Quarterly Trends</a></li>
+            <li><a href="#status-distribution-section">🎯 Status Distribution</a></li>
+            <li><a href="#time-distribution-section">📉 Time Distribution</a></li>
+            <li><a href="#boxplot-section">📊 Box Plot</a></li>
+            <li><a href="#member-stats-section">📋 Member Statistics</a></li>
+            <li><a href="#gantt-chart-section">📅 Gantt Chart</a></li>
+            <li><a href="#dig-for-more">🔍 Dig for More</a></li>
+        </ul>
+    </nav>
+
     <div class="container">
         <h1>Comfy Team PR Speed Analysis</h1>
         <p class="subtitle">Pull Request Metrics Dashboard</p>
@@ -338,7 +422,7 @@
         <div id="last-updated"></div>
 
 
-        <div class="dashboard" id="summary-cards" style="grid-template-columns: 1fr 1fr 300px;">
+        <div class="dashboard" id="overview-section" style="grid-template-columns: 1fr 1fr 300px;">
             <div class="card">
                 <h2>PR Overview</h2>
                 <div class="metric">
@@ -979,7 +1063,6 @@
                 document.getElementById('fastest-merge').textContent = '-';
                 document.getElementById('p25-merge').textContent = '-';
                 document.getElementById('median-merge-time').textContent = '-';
-                document.getElementById('avg-merge-display').textContent = '-';
                 document.getElementById('p75-merge').textContent = '-';
                 document.getElementById('p90-merge').textContent = '-';
                 document.getElementById('p95-merge').textContent = '-';
@@ -2274,10 +2357,56 @@
         // Initialize on load
         window.addEventListener('load', () => {
             loadData();
+            initTOC();
         });
+
+        // Initialize TOC scroll highlighting
+        function initTOC() {
+            const sections = document.querySelectorAll('[id$="-section"], #dig-for-more');
+            const tocLinks = document.querySelectorAll('.toc a');
+
+            function updateActiveLink() {
+                const scrollPosition = window.scrollY + 100; // Offset for better highlighting
+
+                let currentSection = '';
+                sections.forEach(section => {
+                    if (section.offsetTop <= scrollPosition) {
+                        currentSection = '#' + section.id;
+                    }
+                });
+
+                tocLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href') === currentSection) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+
+            // Update on scroll
+            window.addEventListener('scroll', updateActiveLink);
+
+            // Add smooth scrolling to TOC links
+            tocLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const targetId = link.getAttribute('href').substring(1);
+                    const targetElement = document.getElementById(targetId);
+                    if (targetElement) {
+                        window.scrollTo({
+                            top: targetElement.offsetTop - 20,
+                            behavior: 'smooth'
+                        });
+                    }
+                });
+            });
+
+            // Initial update
+            updateActiveLink();
+        }
     </script>
 
-    <div class="chart-container" style="background: #f8f9fa; border-top: 2px solid #ddd; margin-top: 50px; padding: 30px; text-align: center;">
+    <div class="chart-container" id="dig-for-more" style="background: #f8f9fa; border-top: 2px solid #ddd; margin-top: 50px; padding: 30px; text-align: center;">
         <h2 style="color: #333; margin-bottom: 15px;">🔍 Dig for More</h2>
         <p style="color: #666; margin-bottom: 20px;">Want to explore the raw data or perform your own analysis?</p>
         <a href="data.json" download="comfyui-pr-speed-data.json"
