@@ -663,11 +663,14 @@
                         <option value="closed">Closed</option>
                     </select>
                 </label>
-                <label>Date Range:
-                    <input type="text" id="gantt-date-from" placeholder="2024-01-01">
-                    to
-                    <input type="text" id="gantt-date-to" placeholder="2999-01-01">
-                </label>
+                <div style="margin-top: 10px;">
+                    <label style="display: block; margin-bottom: 8px;">Filter by Date Range</label>
+                    <div id="gantt-date-range-slider" style="margin-bottom: 8px;"></div>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: #666;">
+                        <span id="gantt-date-start">-</span>
+                        <span id="gantt-date-end">-</span>
+                    </div>
+                </div>
             </div>
             <div id="gantt-stats" style="padding: 10px; background-color: #f8f9fa; border: 1px solid #ddd; margin: 10px 0; border-radius: 4px; font-size: 14px;"></div>
             <div id="gantt-chart"></div>
@@ -2048,6 +2051,152 @@
         }
 
 
+        let ganttDateRangeValues = { start: null, end: null };
+
+        function createGanttDateRangeSlider(allPRs) {
+            // Get date range from data
+            const dates = allPRs.map(pr => new Date(pr.created_at).getTime());
+            const minDate = new Date(Math.min(...dates));
+            const today = new Date();
+            today.setHours(23, 59, 59, 999);
+
+            // Initialize with full range
+            ganttDateRangeValues.start = minDate;
+            ganttDateRangeValues.end = today;
+
+            const container = document.getElementById('gantt-date-range-slider');
+            container.innerHTML = '';
+
+            // Create slider elements
+            const slider = document.createElement('div');
+            slider.className = 'range-slider';
+
+            const track = document.createElement('div');
+            track.className = 'range-slider-track';
+
+            const handleStart = document.createElement('div');
+            handleStart.className = 'range-slider-handle';
+            handleStart.id = 'gantt-handle-start';
+
+            const handleEnd = document.createElement('div');
+            handleEnd.className = 'range-slider-handle';
+            handleEnd.id = 'gantt-handle-end';
+
+            slider.appendChild(track);
+            slider.appendChild(handleStart);
+            slider.appendChild(handleEnd);
+            container.appendChild(slider);
+
+            // Update positions
+            updateGanttSliderPositions();
+
+            // Add drag functionality
+            let dragging = null;
+            let dragStartX = 0;
+            let originalStartDate = null;
+            let originalEndDate = null;
+            let updateTimeout = null;
+
+            // Throttle function for updates
+            function throttledUpdateGantt() {
+                if (updateTimeout) return;
+                updateTimeout = setTimeout(() => {
+                    updateGanttChart(allPRs);
+                    updateTimeout = null;
+                }, 100);
+            }
+
+            function updateGanttSliderPositions() {
+                const range = today.getTime() - minDate.getTime();
+                const startPos = ((ganttDateRangeValues.start.getTime() - minDate.getTime()) / range) * 100;
+                const endPos = ((ganttDateRangeValues.end.getTime() - minDate.getTime()) / range) * 100;
+
+                handleStart.style.left = `${startPos}%`;
+                handleEnd.style.left = `${endPos}%`;
+                track.style.left = `${startPos}%`;
+                track.style.width = `${endPos - startPos}%`;
+
+                // Update display
+                document.getElementById('gantt-date-start').textContent = ganttDateRangeValues.start.toLocaleDateString();
+                document.getElementById('gantt-date-end').textContent = ganttDateRangeValues.end.toLocaleDateString();
+            }
+
+            // Handle dragging
+            function handleMouseDown(e, handle, isTrack = false) {
+                e.preventDefault();
+                dragging = isTrack ? 'track' : handle;
+                dragStartX = e.clientX || e.touches[0].clientX;
+                originalStartDate = new Date(ganttDateRangeValues.start);
+                originalEndDate = new Date(ganttDateRangeValues.end);
+                document.body.style.cursor = 'grabbing';
+            }
+
+            function handleMouseMove(e) {
+                if (!dragging) return;
+
+                const currentX = e.clientX || e.touches[0].clientX;
+                const deltaX = currentX - dragStartX;
+                const sliderWidth = slider.offsetWidth;
+                const range = today.getTime() - minDate.getTime();
+                const timeDelta = (deltaX / sliderWidth) * range;
+
+                if (dragging === 'track') {
+                    // Move both handles together
+                    const newStart = new Date(originalStartDate.getTime() + timeDelta);
+                    const newEnd = new Date(originalEndDate.getTime() + timeDelta);
+                    const interval = originalEndDate.getTime() - originalStartDate.getTime();
+
+                    if (newStart >= minDate && newEnd <= today) {
+                        ganttDateRangeValues.start = newStart;
+                        ganttDateRangeValues.end = newEnd;
+                    } else if (newStart < minDate) {
+                        ganttDateRangeValues.start = minDate;
+                        ganttDateRangeValues.end = new Date(minDate.getTime() + interval);
+                    } else if (newEnd > today) {
+                        ganttDateRangeValues.end = today;
+                        ganttDateRangeValues.start = new Date(today.getTime() - interval);
+                    }
+                } else if (dragging === 'gantt-handle-start') {
+                    const newDate = new Date(originalStartDate.getTime() + timeDelta);
+                    if (newDate >= minDate && newDate < ganttDateRangeValues.end) {
+                        ganttDateRangeValues.start = newDate;
+                    }
+                } else if (dragging === 'gantt-handle-end') {
+                    const newDate = new Date(originalEndDate.getTime() + timeDelta);
+                    if (newDate <= today && newDate > ganttDateRangeValues.start) {
+                        ganttDateRangeValues.end = newDate;
+                    }
+                }
+
+                updateGanttSliderPositions();
+                throttledUpdateGantt();
+            }
+
+            function handleMouseUp() {
+                if (dragging) {
+                    dragging = null;
+                    document.body.style.cursor = '';
+                    updateGanttChart(allPRs);
+                }
+            }
+
+            // Add event listeners
+            handleStart.addEventListener('mousedown', (e) => handleMouseDown(e, 'gantt-handle-start'));
+            handleEnd.addEventListener('mousedown', (e) => handleMouseDown(e, 'gantt-handle-end'));
+            track.addEventListener('mousedown', (e) => handleMouseDown(e, null, true));
+
+            document.addEventListener('mousemove', handleMouseMove);
+            document.addEventListener('mouseup', handleMouseUp);
+
+            // Touch support
+            handleStart.addEventListener('touchstart', (e) => handleMouseDown(e, 'gantt-handle-start'));
+            handleEnd.addEventListener('touchstart', (e) => handleMouseDown(e, 'gantt-handle-end'));
+            track.addEventListener('touchstart', (e) => handleMouseDown(e, null, true));
+
+            document.addEventListener('touchmove', handleMouseMove, { passive: false });
+            document.addEventListener('touchend', handleMouseUp);
+        }
+
         function renderGanttChart(allPRs) {
             const container = d3.select("#gantt-chart");
             container.selectAll("*").remove();
@@ -2069,8 +2218,11 @@
             repoSelect.innerHTML = '<option value="">All Repositories</option>' +
                 repos.map(repo => `<option value="${repo}">${repo}</option>`).join('');
 
+            // Create date range slider for Gantt
+            createGanttDateRangeSlider(allPRs);
+
             // Set up event listeners for controls
-            ['gantt-sort', 'gantt-filter-user', 'gantt-filter-repo', 'gantt-filter-status', 'gantt-date-from', 'gantt-date-to'].forEach(id => {
+            ['gantt-sort', 'gantt-filter-user', 'gantt-filter-repo', 'gantt-filter-status'].forEach(id => {
                 document.getElementById(id).addEventListener('change', () => updateGanttChart(allPRs));
             });
 
@@ -2103,34 +2255,10 @@
             const filterUser = document.getElementById('gantt-filter-user').value;
             const filterRepo = document.getElementById('gantt-filter-repo').value;
             const filterStatus = document.getElementById('gantt-filter-status').value;
-            const dateFrom = document.getElementById('gantt-date-from').value;
-            const dateTo = document.getElementById('gantt-date-to').value;
 
-            // Parse date filters with fallback
-            let fromDate = null;
-            let toDate = null;
-
-            if (dateFrom) {
-                try {
-                    const parsed = new Date(dateFrom);
-                    if (!isNaN(parsed.getTime())) {
-                        fromDate = parsed;
-                    }
-                } catch (e) {
-                    // Invalid date, ignore filter
-                }
-            }
-
-            if (dateTo) {
-                try {
-                    const parsed = new Date(dateTo);
-                    if (!isNaN(parsed.getTime())) {
-                        toDate = parsed;
-                    }
-                } catch (e) {
-                    // Invalid date, ignore filter
-                }
-            }
+            // Use date range values from slider
+            const fromDate = ganttDateRangeValues.start;
+            const toDate = ganttDateRangeValues.end;
 
             // Filter PRs
             let filteredPRs = allPRs.filter(pr => {
@@ -2143,8 +2271,10 @@
                     if (actualState !== filterStatus) return false;
                 }
 
-                if (fromDate && new Date(pr.created_at) < fromDate) return false;
-                if (toDate && new Date(pr.created_at) > toDate) return false;
+                // Filter by date range (inclusive start, exclusive end)
+                const prDate = new Date(pr.created_at);
+                if (fromDate && prDate < fromDate) return false;
+                if (toDate && prDate >= toDate) return false;
                 return true;
             });
 
