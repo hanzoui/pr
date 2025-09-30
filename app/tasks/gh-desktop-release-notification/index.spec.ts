@@ -1,37 +1,42 @@
-import { db } from "@/src/db";
 import { gh } from "@/src/gh";
 import { getSlackChannel } from "@/src/slack/channels";
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import runGithubDesktopReleaseNotificationTask from "./index";
+import { afterEach, beforeEach, describe, expect, it, jest } from "bun:test";
+import { upsertSlackMessage } from "./upsertSlackMessage";
 
 jest.mock("@/src/gh");
 jest.mock("@/src/slack/channels");
 jest.mock("./upsertSlackMessage");
 
-const mockGh = gh as jest.Mocked<typeof gh>;
-const mockGetSlackChannel = getSlackChannel as jest.MockedFunction<typeof getSlackChannel>;
-const { upsertSlackMessage } = jest.requireMock("./upsertSlackMessage");
+const mockCollection = {
+  createIndex: jest.fn().mockResolvedValue({}),
+  findOne: jest.fn().mockResolvedValue(null),
+  findOneAndUpdate: jest.fn().mockImplementation((_filter, update) => Promise.resolve(update.$set)),
+};
+
+jest.mock("@/src/db", () => ({
+  db: {
+    collection: jest.fn(() => mockCollection),
+  },
+}));
+
+import runGithubDesktopReleaseNotificationTask from "./index";
 
 describe("GithubDesktopReleaseNotificationTask", () => {
-  let collection: any;
+  const mockGh = gh as jest.Mocked<typeof gh>;
+  const mockGetSlackChannel = getSlackChannel as jest.MockedFunction<typeof getSlackChannel>;
+  const mockUpsertSlackMessage = upsertSlackMessage as jest.MockedFunction<typeof upsertSlackMessage>;
 
   beforeEach(async () => {
     jest.clearAllMocks();
-
-    collection = {
-      findOne: jest.fn(),
-      findOneAndUpdate: jest.fn(),
-      createIndex: jest.fn(),
-    };
-
-    jest.spyOn(db, "collection").mockReturnValue(collection);
+    mockCollection.findOne.mockResolvedValue(null);
+    mockCollection.findOneAndUpdate.mockImplementation((_filter, update) => Promise.resolve(update.$set));
 
     mockGetSlackChannel.mockResolvedValue({
       id: "test-channel-id",
       name: "desktop",
     } as any);
 
-    upsertSlackMessage.mockResolvedValue({
+    mockUpsertSlackMessage.mockResolvedValue({
       text: "mocked message",
       channel: "test-channel-id",
       url: "https://slack.com/message/123",
@@ -39,7 +44,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
   });
 
   afterEach(async () => {
-    jest.restoreAllMocks();
+    jest.clearAllMocks();
   });
 
   describe("Draft Release Processing - Bug Fix Verification", () => {
@@ -61,7 +66,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       } as any;
 
       // First call - save initial draft data
-      collection.findOneAndUpdate.mockResolvedValueOnce({
+      mockCollection.findOneAndUpdate.mockResolvedValueOnce({
         url: mockDraftRelease.html_url,
         version: mockDraftRelease.tag_name,
         status: "draft",
@@ -71,10 +76,10 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       });
 
       // No coreTask
-      collection.findOne.mockResolvedValueOnce(null);
+      mockCollection.findOne.mockResolvedValueOnce(null);
 
       // Second call - save with drafting message in correct field
-      collection.findOneAndUpdate.mockResolvedValueOnce({
+      mockCollection.findOneAndUpdate.mockResolvedValueOnce({
         url: mockDraftRelease.html_url,
         version: mockDraftRelease.tag_name,
         status: "draft",
@@ -89,7 +94,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       await runGithubDesktopReleaseNotificationTask();
 
       // Verify the second save call has slackMessageDrafting field
-      expect(collection.findOneAndUpdate).toHaveBeenNthCalledWith(
+      expect(mockCollection.findOneAndUpdate).toHaveBeenNthCalledWith(
         2,
         { url: mockDraftRelease.html_url },
         {
@@ -106,7 +111,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       );
 
       // Ensure slackMessage field was NOT set
-      expect(collection.findOneAndUpdate).not.toHaveBeenCalledWith(
+      expect(mockCollection.findOneAndUpdate).not.toHaveBeenCalledWith(
         expect.anything(),
         {
           $set: expect.objectContaining({
@@ -138,7 +143,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
         "🔮 desktop <https://github.com/Comfy-Org/desktop/releases/tag/v1.0.0-draft|Release v1.0.0-draft> is draft!";
 
       // Return task with existing drafting message matching new message
-      collection.findOneAndUpdate.mockResolvedValue({
+      mockCollection.findOneAndUpdate.mockResolvedValue({
         url: mockDraftRelease.html_url,
         version: mockDraftRelease.tag_name,
         status: "draft",
@@ -152,15 +157,15 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       });
 
       // No coreTask
-      collection.findOne.mockResolvedValue(null);
+      mockCollection.findOne.mockResolvedValue(null);
 
       await runGithubDesktopReleaseNotificationTask();
 
       // Should NOT call upsertSlackMessage since text hasn't changed
-      expect(upsertSlackMessage).not.toHaveBeenCalled();
+      expect(mockUpsertSlackMessage).not.toHaveBeenCalled();
 
       // Should only have one save call (initial data)
-      expect(collection.findOneAndUpdate).toHaveBeenCalledTimes(1);
+      expect(mockCollection.findOneAndUpdate).toHaveBeenCalledTimes(1);
     });
 
     it("should update draft message when text changes", async () => {
@@ -181,7 +186,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       } as any;
 
       // Return task with old drafting message text
-      collection.findOneAndUpdate.mockResolvedValueOnce({
+      mockCollection.findOneAndUpdate.mockResolvedValueOnce({
         url: mockDraftRelease.html_url,
         version: "v1.0.0-draft", // Old version
         status: "draft",
@@ -195,10 +200,10 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       });
 
       // No coreTask
-      collection.findOne.mockResolvedValueOnce(null);
+      mockCollection.findOne.mockResolvedValueOnce(null);
 
       // Second call after update
-      collection.findOneAndUpdate.mockResolvedValueOnce({
+      mockCollection.findOneAndUpdate.mockResolvedValueOnce({
         url: mockDraftRelease.html_url,
         version: mockDraftRelease.tag_name,
         status: "draft",
@@ -213,7 +218,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       await runGithubDesktopReleaseNotificationTask();
 
       // Should update the drafting message since text changed
-      expect(upsertSlackMessage).toHaveBeenCalledWith(
+      expect(mockUpsertSlackMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           text: expect.stringContaining("v1.0.1-draft"),
         }),
@@ -240,7 +245,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       } as any;
 
       // First call - save initial data
-      collection.findOneAndUpdate.mockResolvedValueOnce({
+      mockCollection.findOneAndUpdate.mockResolvedValueOnce({
         url: mockStableRelease.html_url,
         version: mockStableRelease.tag_name,
         status: "stable",
@@ -250,10 +255,10 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       });
 
       // No coreTask
-      collection.findOne.mockResolvedValueOnce(null);
+      mockCollection.findOne.mockResolvedValueOnce(null);
 
       // Second call - save with stable message
-      collection.findOneAndUpdate.mockResolvedValueOnce({
+      mockCollection.findOneAndUpdate.mockResolvedValueOnce({
         url: mockStableRelease.html_url,
         version: mockStableRelease.tag_name,
         status: "stable",
@@ -268,7 +273,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       await runGithubDesktopReleaseNotificationTask();
 
       // Verify the second save call has slackMessage field
-      expect(collection.findOneAndUpdate).toHaveBeenNthCalledWith(
+      expect(mockCollection.findOneAndUpdate).toHaveBeenNthCalledWith(
         2,
         { url: mockStableRelease.html_url },
         {
@@ -306,7 +311,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
         "🔮 desktop <https://github.com/Comfy-Org/desktop/releases/tag/v1.0.0|Release v1.0.0> is stable!";
 
       // Return task with existing message matching new message
-      collection.findOneAndUpdate.mockResolvedValue({
+      mockCollection.findOneAndUpdate.mockResolvedValue({
         url: mockStableRelease.html_url,
         version: mockStableRelease.tag_name,
         status: "stable",
@@ -321,12 +326,12 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       });
 
       // No coreTask
-      collection.findOne.mockResolvedValue(null);
+      mockCollection.findOne.mockResolvedValue(null);
 
       await runGithubDesktopReleaseNotificationTask();
 
       // Should NOT call upsertSlackMessage since text hasn't changed
-      expect(upsertSlackMessage).not.toHaveBeenCalled();
+      expect(mockUpsertSlackMessage).not.toHaveBeenCalled();
     });
   });
 
@@ -349,7 +354,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       } as any;
 
       // First call - save initial data
-      collection.findOneAndUpdate.mockResolvedValueOnce({
+      mockCollection.findOneAndUpdate.mockResolvedValueOnce({
         url: mockPrerelease.html_url,
         version: mockPrerelease.tag_name,
         status: "prerelease",
@@ -359,10 +364,10 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       });
 
       // No coreTask
-      collection.findOne.mockResolvedValueOnce(null);
+      mockCollection.findOne.mockResolvedValueOnce(null);
 
       // Second call - save with drafting message
-      collection.findOneAndUpdate.mockResolvedValueOnce({
+      mockCollection.findOneAndUpdate.mockResolvedValueOnce({
         url: mockPrerelease.html_url,
         version: mockPrerelease.tag_name,
         status: "prerelease",
@@ -377,7 +382,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       await runGithubDesktopReleaseNotificationTask();
 
       // Verify the save call has slackMessageDrafting field, not slackMessage
-      expect(collection.findOneAndUpdate).toHaveBeenNthCalledWith(
+      expect(mockCollection.findOneAndUpdate).toHaveBeenNthCalledWith(
         2,
         { url: mockPrerelease.html_url },
         {
@@ -414,7 +419,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       } as any;
 
       // First call - save initial data with core version extracted
-      collection.findOneAndUpdate.mockResolvedValueOnce({
+      mockCollection.findOneAndUpdate.mockResolvedValueOnce({
         url: mockDesktopRelease.html_url,
         version: mockDesktopRelease.tag_name,
         status: "stable",
@@ -425,7 +430,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       });
 
       // Find core task
-      collection.findOne.mockResolvedValueOnce({
+      mockCollection.findOne.mockResolvedValueOnce({
         version: "v0.2.0",
         slackMessage: {
           text: "ComfyUI core v0.2.0 released",
@@ -434,7 +439,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       });
 
       // Second call - save with message including core version
-      collection.findOneAndUpdate.mockResolvedValueOnce({
+      mockCollection.findOneAndUpdate.mockResolvedValueOnce({
         url: mockDesktopRelease.html_url,
         version: mockDesktopRelease.tag_name,
         status: "stable",
@@ -449,7 +454,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
 
       await runGithubDesktopReleaseNotificationTask();
 
-      expect(upsertSlackMessage).toHaveBeenCalledWith(
+      expect(mockUpsertSlackMessage).toHaveBeenCalledWith(
         expect.objectContaining({
           text: expect.stringContaining("Core: v0.2.0"),
         }),
@@ -487,14 +492,14 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       } as any;
 
       // Mock responses for both releases
-      collection.findOneAndUpdate.mockResolvedValue({
+      mockCollection.findOneAndUpdate.mockResolvedValue({
         url: "mock",
         status: "stable",
         isStable: true,
         createdAt: new Date(),
       });
 
-      collection.findOne.mockResolvedValue(null);
+      mockCollection.findOne.mockResolvedValue(null);
 
       await runGithubDesktopReleaseNotificationTask();
 
@@ -531,7 +536,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
         }),
       } as any;
 
-      collection.findOneAndUpdate.mockResolvedValue({
+      mockCollection.findOneAndUpdate.mockResolvedValue({
         url: oldRelease.html_url,
         version: oldRelease.tag_name,
         status: "stable",
@@ -540,19 +545,19 @@ describe("GithubDesktopReleaseNotificationTask", () => {
         releasedAt: new Date(oldRelease.published_at),
       });
 
-      collection.findOne.mockResolvedValue(null);
+      mockCollection.findOne.mockResolvedValue(null);
 
       await runGithubDesktopReleaseNotificationTask();
 
       // Should save the release but not send a message
-      expect(collection.findOneAndUpdate).toHaveBeenCalledTimes(1);
-      expect(upsertSlackMessage).not.toHaveBeenCalled();
+      expect(mockCollection.findOneAndUpdate).toHaveBeenCalledTimes(1);
+      expect(mockUpsertSlackMessage).not.toHaveBeenCalled();
     });
   });
 
   describe("Database Index", () => {
     it("should create unique index on url field", async () => {
-      expect(collection.createIndex).toHaveBeenCalledWith({ url: 1 }, { unique: true });
+      expect(mockCollection.createIndex).toHaveBeenCalledWith({ url: 1 }, { unique: true });
     });
   });
 });
