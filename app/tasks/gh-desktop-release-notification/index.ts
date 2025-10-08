@@ -113,10 +113,10 @@ async function runGithubDesktopReleaseNotificationTask() {
 
       // upsert drafting message if new/changed
       const shouldSendDraftingMessage = !task.isStable || task.slackMessageDrafting?.url;
-      if (shouldSendDraftingMessage && task.slackMessage?.text?.trim() !== newSlackMessage.text.trim()) {
+      if (shouldSendDraftingMessage && task.slackMessageDrafting?.text?.trim() !== newSlackMessage.text.trim()) {
         task = await save({
           url,
-          slackMessage: await upsertSlackMessage({
+          slackMessageDrafting: await upsertSlackMessage({
             ...newSlackMessage,
             replyUrl: coreTask?.slackMessageDrafting?.url,
           }),
