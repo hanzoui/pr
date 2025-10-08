@@ -18,15 +18,56 @@ export type GH = ghComponents["schemas"];
 
 const CACHE_DIR = path.join(process.cwd(), "node_modules/.cache/Comfy-PR");
 const CACHE_FILE = path.join(CACHE_DIR, "gh-cache.sqlite");
-const DEFAULT_TTL = process.env.LOCAL_DEV
-  ? 30 * 60 * 1000 // cache 30 minutes when local dev
-  : 1 * 60 * 1000; // cache 1 minute in production
+const DEFAULT_TTL =
+  process.env.NODE_ENV === "development"
+    ? 86400 * 1000 // cache 24 hours when local dev
+    : 1 * 60 * 1000; // cache 1 minute in production
 
 async function ensureCacheDir() {
   await fs.mkdir(CACHE_DIR, { recursive: true });
 }
 
 let keyv: Keyv | null = null;
+
+export const ghc = createCachedProxy(gh);
+export const ghca = createListAllProxy(ghc);
+// ghca.repos.listActivities
+// Export listAll for easy usage
+export { listAll };
+
+// manual test with real api
+if (import.meta.main) {
+  async function runTest() {
+    // Test the cached client
+    console.info("Testing cached GitHub client...");
+
+    // This should make a real API call
+    const result1 = await ghc.repos.get({
+      owner: "octocat",
+      repo: "Hello-World",
+    });
+    console.info("First call result", { name: result1.data.name });
+
+    // This should use cache
+    const result2 = await ghc.repos.get({
+      owner: "octocat",
+      repo: "Hello-World",
+    });
+    console.info("Second call result (cached)", { name: result2.data.name });
+
+    // list all pull requests
+    const allPRs = await listAll(ghc.pulls.list)({
+      owner: "octocat",
+      repo: "Hello-World",
+      state: "all",
+    });
+    console.info(`Total PRs fetched with listAll(): ${allPRs.length}`);
+
+    console.info("Cache test complete!");
+  }
+
+  runTest().catch((error) => console.error("Test failed", error));
+}
 
 async function getKeyv() {
   if (!keyv) {
@@ -60,9 +101,9 @@ function createCacheKey(basePath: string[], prop: string | symbol, args: any[]):
   return cacheKey;
 }
 
-function createCachedProxy(target: any, basePath: string[] = []): DeepAsyncWrapper<typeof target> {
-  return new Proxy(target, {
-    get(obj, prop) {
+function createCachedProxy<T extends object>(target: T, basePath: string[] = []): DeepAsyncWrapper<T> {
+  return new Proxy(target as any, {
+    get(obj: any, prop: string | symbol) {
       const value = obj[prop];
 
       if (typeof value === "function") {
@@ -92,7 +133,7 @@ function createCachedProxy(target: any, basePath: string[] = []): DeepAsyncWrapp
 
       return value;
     },
-  });
+  }) as DeepAsyncWrapper<T>;
 }
 
 type DeepAsyncWrapper<T> = {
@@ -105,15 +146,36 @@ type DeepAsyncWrapper<T> = {
         : T[K];
 };
 
-type ListAll<T> = T extends (pageable: infer A extends { per_page: number; page: number }) => Promise<{
-  data: infer D;
-}>
-  ? T & { all: (params: Omit<A, "per_page" | "page">) => Promise<D> }
-  : T;
+// More flexible types that work with GitHub API
+type GitHubPaginatedFunction = (...args: any[]) => Promise<{ data: any[] }>;
+
+function listAll<T extends GitHubPaginatedFunction>(fn: T) {
+  return async (...args: Parameters<T>): Promise<Awaited<ReturnType<T>>["data"]> => {
+    let allData: any[] = [];
+    let page = 1;
+    const per_page = args[0]?.per_page || 100; // max per_page for GitHub API
+
+    while (true) {
+      // Clone the first argument (params) and add pagination
+      const [firstArg, ...restArgs] = args;
+      const paginatedParams = {
+        ...firstArg,
+        per_page,
+        page,
+      };
+
+      const response = await fn(paginatedParams, ...restArgs);
+      allData = allData.concat(response.data);
+      if (response.data.length < per_page) break; // No more pages
+      page++;
+    }
+    return allData as Awaited<ReturnType<T>>["data"];
+  };
+}
 
 type DeepListAllWrapper<T> = {
-  [K in keyof T]: T[K] extends (...args: any[]) => Promise<any>
-    ? ListAll<T[K]>
+  [K in keyof T]: T[K] extends GitHubPaginatedFunction
+    ? ReturnType<typeof listAll<T[K]>>
     : T[K] extends object
       ? DeepListAllWrapper<T[K]>
       : T[K];
@@ -122,31 +184,13 @@ type DeepListAllWrapper<T> = {
 // Create a proxy that adds `.all` method to list methods
 // Note: This is a simplified version and may need adjustments based on actual API patterns
 function createListAllProxy<T extends object>(obj: T): DeepListAllWrapper<T> {
-  return new Proxy(obj, {
-    get(target, prop) {
-      const value = (target as any)[prop];
-      if (typeof value === "function") {
-        return async function (...args: any[]) {
-          // Check if the function is a list method by inspecting its parameters
-          const firstArg = args[0];
-          if (firstArg && typeof firstArg === "object" && "per_page" in firstArg && "page" in firstArg) {
-            // It's a list method, add `.all` method
-            const listMethod = value.bind(target);
-            const allMethod = async function (params: any, ...rest: any[]) {
-              let allData: any[] = [];
-              let page = 1;
-              while (true) {
-                const response = await listMethod({ ...params, per_page: 100, page }, ...rest);
-                allData = allData.concat(response.data);
-                if (response.data.length < 100) break; // No more pages
-                page++;
-              }
-              return allData;
-            };
-            return Object.assign(allMethod, { __listMethod: listMethod });
-          }
-          return value.apply(target, args);
-        };
+  return new Proxy(obj as any, {
+    get(target, prop: string | symbol) {
+      const value = target[prop];
+      if (typeof value === "function" && prop.toString().startsWith("list")) {
+        return Object.assign(value, { all: listAll(value) });
+      } else if (typeof value === "object" && value !== null) {
+        return createListAllProxy(value);
       }
       return value;
     },
@@ -162,32 +206,4 @@ export async function getGhCacheStats(): Promise<{ size: number; keys: string[] 
   // Note: Keyv doesn't provide built-in stats, but we can query the SQLite directly if needed
   // For now, return basic info
   return { size: 0, keys: [] };
-}
-
-export const ghc = createListAllProxy(createCachedProxy(gh));
-
-// manual test with real api
-if (import.meta.main) {
-  async function runTest() {
-    // Test the cached client
-    console.info("Testing cached GitHub client...");
-
-    // This should make a real API call
-    const result1 = await ghc.repos.get({
-      owner: "octocat",
-      repo: "Hello-World",
-    });
-    console.info("First call result", { name: result1.data.name });
-
-    // This should use cache
-    const result2 = await ghc.repos.get({
-      owner: "octocat",
-      repo: "Hello-World",
-    });
-    console.info("Second call result (cached)", { name: result2.data.name });
-
-    console.info("Cache test complete!");
-  }
-
-  runTest().catch((error) => console.error("Test failed", error));
 }
