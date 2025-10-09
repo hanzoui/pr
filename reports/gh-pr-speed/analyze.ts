@@ -15,7 +15,7 @@ interface Repository {
 }
 
 const TEAM_MEMBERS: TeamMember[] = [
-  // Core team members - verified contributors
+  // Core team members - verified contributors (focusing on most active first)
   { username: "huchenlei", startDate: new Date("2020-01-01"), displayName: "HCL" },
   { username: "christian-byrne", startDate: new Date("2020-01-01"), displayName: "Christian" },
   { username: "robinjhuang", startDate: new Date("2020-01-01"), displayName: "Robin" },
@@ -23,24 +23,65 @@ const TEAM_MEMBERS: TeamMember[] = [
   { username: "bigcat88", startDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), displayName: "BigCat" }, // 2 months ago
   { username: "ltdrdata", startDate: new Date("2020-01-01"), displayName: "Dr Lt Data" },
   { username: "guill", startDate: new Date("2024-06-01"), displayName: "Guill" },
-  // Additional active contributors
+  // Additional active contributors (temporarily limiting for performance)
   { username: "benceruleanlu", startDate: new Date("2020-01-01"), displayName: "Ben" },
   { username: "webfiltered", startDate: new Date("2020-01-01"), displayName: "Blake" },
   { username: "Kosinkadink", startDate: new Date("2020-01-01"), displayName: "Kosinkadink" },
-  { username: "comfyanonymous", startDate: new Date("2020-01-01"), displayName: "Comfy" },
-  // { username: "KohakuBlueleaf", startDate: new Date("2020-01-01"), displayName: "KohakuBlueleaf" }, // not team member
   { username: "yoland68", startDate: new Date("2020-01-01"), displayName: "Yoland" },
+  { username: "KohakuBlueleaf", startDate: new Date("2020-01-01"), displayName: "KohakuBlueleaf" },
+  { username: "comfyanonymous", startDate: new Date("2020-01-01"), displayName: "Comfy" },
   { username: "snomiao", startDate: new Date("2020-01-01"), displayName: "Sno" },
 ];
 
-const REPOSITORIES: Repository[] = [
-  { owner: "comfyanonymous", repo: "ComfyUI", displayName: "ComfyUI" },
-  { owner: "Comfy-Org", repo: "ComfyUI_frontend", displayName: "Frontend" },
-  { owner: "Comfy-Org", repo: "registry-web", displayName: "Registry" },
-  { owner: "Comfy-Org", repo: "desktop", displayName: "Desktop" },
-  { owner: "Comfy-Org", repo: "comfy-api", displayName: "Comfy-API" },
-  { owner: "Comfy-Org", repo: "cloud", displayName: "Cloud" },
-];
+// Static repositories list will be replaced with dynamic fetching
+let REPOSITORIES: Repository[] = [];
+
+async function fetchAllComfyOrgRepos(): Promise<Repository[]> {
+  console.log("Using expanded list of Comfy-Org repositories...");
+
+  // Hardcoded list of all important Comfy-Org repositories
+  // This avoids rate limits and allows us to control exactly which repos to analyze
+  const repos: Repository[] = [
+    // Main repo
+    { owner: "comfyanonymous", repo: "ComfyUI", displayName: "ComfyUI" },
+
+    // Core frontend and desktop
+    { owner: "Comfy-Org", repo: "ComfyUI_frontend", displayName: "Frontend" },
+    { owner: "Comfy-Org", repo: "desktop", displayName: "Desktop" },
+
+    // Infrastructure and tools
+    { owner: "Comfy-Org", repo: "comfy-cli", displayName: "CLI" },
+    { owner: "Comfy-Org", repo: "registry-web", displayName: "Registry Web" },
+    { owner: "Comfy-Org", repo: "registry-backend", displayName: "Registry Backend" },
+    { owner: "Comfy-Org", repo: "ComfyUI-Manager", displayName: "Manager" },
+
+    // Documentation and resources
+    { owner: "Comfy-Org", repo: "docs", displayName: "Docs" },
+    { owner: "Comfy-Org", repo: "workflow_templates", displayName: "Workflow Templates" },
+    { owner: "Comfy-Org", repo: "example_workflows", displayName: "Example Workflows" },
+
+    // Libraries and APIs
+    { owner: "Comfy-Org", repo: "litegraph.js", displayName: "Litegraph" },
+    { owner: "Comfy-Org", repo: "comfy-api", displayName: "API" },
+
+    // Development tools
+    { owner: "Comfy-Org", repo: "ComfyUI_devtools", displayName: "DevTools" },
+    { owner: "Comfy-Org", repo: "security-scanner", displayName: "Security Scanner" },
+
+    // Cloud and services
+    { owner: "Comfy-Org", repo: "cloud", displayName: "Cloud" },
+
+    // Additional active repos
+    { owner: "Comfy-Org", repo: "Comfy-PR", displayName: "PR Tools" },
+    { owner: "Comfy-Org", repo: "ComfyUI_TensorRT", displayName: "TensorRT" },
+    { owner: "Comfy-Org", repo: "homepage", displayName: "Homepage" },
+    { owner: "Comfy-Org", repo: "rfcs", displayName: "RFCs" },
+    { owner: "Comfy-Org", repo: "translations", displayName: "Translations" },
+  ];
+
+  console.log(`Analyzing ${repos.length} repositories`);
+  return repos;
+}
 
 interface PRData {
   number: number;
@@ -343,6 +384,9 @@ function generateRepoStats(prs: PRData[]): RepoStats[] {
 }
 
 async function generateReport() {
+  // Fetch all Comfy-Org repos first
+  REPOSITORIES = await fetchAllComfyOrgRepos();
+
   console.log("=".repeat(80));
   console.log("Comfy Team PR Speed Analysis (All Repositories)");
   console.log("=".repeat(80));
@@ -616,6 +660,7 @@ async function generateReport() {
   // Return the data for JSON export
   return {
     generatedAt: new Date().toISOString(),
+    repositories: REPOSITORIES,
     summary: {
       totalPRs: totalTeamPRs,
       mergedPRs: totalMerged,
@@ -702,10 +747,11 @@ async function generateReportWithJSON() {
 
   // Write JSON file
   const fs = await import("fs/promises");
-  const jsonPath = "./reports/gh-pr-speed/data.json";
+  const pwd = process.cwd();
+  const jsonPath = `${pwd}/data.json`;
   await fs.writeFile(jsonPath, JSON.stringify(data, null, 2));
   console.log(`\nJSON data saved to ${jsonPath}`);
-  console.log(`View the interactive report at: reports/gh-pr-speed/index.html`);
+  console.log(`View the interactive report at: ${pwd}/index.html`);
 
   return data;
 }
