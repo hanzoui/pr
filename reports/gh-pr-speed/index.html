@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comfy Team PR Speed Analysis</title>
+    <title>Comfy Team PR Review Speed Analysis</title>
     <script src="https://d3js.org/d3.v7.min.js"></script>
     <style>
         * {
@@ -456,6 +456,116 @@
             margin-bottom: 5px;
             font-size: 13px;
         }
+
+        /* Multi-select dropdown styles */
+        .multi-select-wrapper {
+            position: relative;
+            width: 100%;
+        }
+
+        .multi-select-display {
+            width: 100%;
+            padding: 8px 30px 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+            font-size: 14px;
+            cursor: pointer;
+            position: relative;
+            min-height: 38px;
+            display: flex;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 4px;
+        }
+
+        .multi-select-display:hover {
+            border-color: #007bff;
+        }
+
+        .multi-select-display::after {
+            content: '▼';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 12px;
+            color: #666;
+        }
+
+        .multi-select-display.open {
+            border-color: #007bff;
+        }
+
+        .multi-select-display.open::after {
+            transform: translateY(-50%) rotate(180deg);
+        }
+
+        .multi-select-dropdown {
+            display: none;
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            max-height: 250px;
+            overflow-y: auto;
+            background: white;
+            border: 1px solid #007bff;
+            border-top: none;
+            border-radius: 0 0 4px 4px;
+            z-index: 1000;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .multi-select-dropdown.open {
+            display: block;
+        }
+
+        .multi-select-option {
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            transition: background 0.2s;
+        }
+
+        .multi-select-option:hover {
+            background: #f0f8ff;
+        }
+
+        .multi-select-option input[type="checkbox"] {
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .multi-select-option label {
+            cursor: pointer;
+            flex: 1;
+            margin: 0;
+            user-select: none;
+        }
+
+        .multi-select-tag {
+            background: #007bff;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 3px;
+            font-size: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .multi-select-tag-remove {
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .multi-select-all {
+            border-bottom: 1px solid #eee;
+            font-weight: 500;
+            background: #f8f9fa;
+        }
     </style>
 </head>
 <body>
@@ -476,7 +586,7 @@
     </nav>
 
     <div class="container">
-        <h1>Comfy Team PR Speed Analysis</h1>
+        <h1>Comfy Team PR Review Speed Analysis</h1>
         <p class="subtitle">Pull Request Metrics Dashboard</p>
 
 
@@ -558,15 +668,25 @@
                 <h2>Filters</h2>
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; margin-bottom: 8px; color: #666; font-size: 0.9em;">Filter by User</label>
-                    <select id="dashboard-filter-user" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
-                        <option value="">All Users</option>
-                    </select>
+                    <div class="multi-select-wrapper" id="dashboard-filter-user">
+                        <div class="multi-select-display" id="dashboard-filter-user-display">
+                            All Users
+                        </div>
+                        <div class="multi-select-dropdown" id="dashboard-filter-user-dropdown">
+                            <!-- Options will be populated dynamically -->
+                        </div>
+                    </div>
                 </div>
                 <div style="margin-bottom: 20px;">
                     <label style="display: block; margin-bottom: 8px; color: #666; font-size: 0.9em;">Filter by Repository</label>
-                    <select id="dashboard-filter-repo" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;">
-                        <option value="">All Repositories</option>
-                    </select>
+                    <div class="multi-select-wrapper" id="dashboard-filter-repo">
+                        <div class="multi-select-display" id="dashboard-filter-repo-display">
+                            All Repositories
+                        </div>
+                        <div class="multi-select-dropdown" id="dashboard-filter-repo-dropdown">
+                            <!-- Options will be populated dynamically -->
+                        </div>
+                    </div>
                 </div>
                 <div>
                     <div style="display: flex; align-items: center; margin-bottom: 8px;">
@@ -625,7 +745,7 @@
         </div>
 
         <div class="chart-container" id="repo-time-section">
-            <h2><a href="#repo-time-section">Average Merge Time by Repository</a></h2>
+            <h2><a href="#repo-time-section">Average Review & Merge Time by Repository</a></h2>
             <div id="repo-time-chart"></div>
         </div>
 
@@ -677,15 +797,25 @@
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 5px; color: #666; font-size: 0.85em; font-weight: 500;">Filter by User</label>
-                            <select id="gantt-filter-user" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white; font-size: 14px;">
-                                <option value="">All Users</option>
-                            </select>
+                            <div class="multi-select-wrapper" id="gantt-filter-user">
+                                <div class="multi-select-display" id="gantt-filter-user-display">
+                                    All Users
+                                </div>
+                                <div class="multi-select-dropdown" id="gantt-filter-user-dropdown">
+                                    <!-- Options will be populated dynamically -->
+                                </div>
+                            </div>
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 5px; color: #666; font-size: 0.85em; font-weight: 500;">Filter by Repository</label>
-                            <select id="gantt-filter-repo" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; background: white; font-size: 14px;">
-                                <option value="">All Repositories</option>
-                            </select>
+                            <div class="multi-select-wrapper" id="gantt-filter-repo">
+                                <div class="multi-select-display" id="gantt-filter-repo-display">
+                                    All Repositories
+                                </div>
+                                <div class="multi-select-dropdown" id="gantt-filter-repo-dropdown">
+                                    <!-- Options will be populated dynamically -->
+                                </div>
+                            </div>
                         </div>
                         <div>
                             <label style="display: block; margin-bottom: 5px; color: #666; font-size: 0.85em; font-weight: 500;">Filter by Status</label>
@@ -734,6 +864,8 @@
                 .then(response => response.json())
                 .then(data => {
                     globalData = data;
+                    chartData = data; // Store for resize
+                    window.reportData = data; // Store for getRepoInfo
 
                     // Populate filter dropdowns
                     populateFilters(data);
@@ -953,10 +1085,155 @@
             }
         }
 
+        let selectedUsers = [];
+        let selectedRepos = [];
+
         function applyFilters() {
-            const selectedUser = document.getElementById('dashboard-filter-user').value;
-            const selectedRepo = document.getElementById('dashboard-filter-repo').value;
-            updateDashboard(globalData, selectedUser, selectedRepo, dateRangeValues);
+            updateDashboard(globalData, selectedUsers, selectedRepos, dateRangeValues);
+        }
+
+        function createMultiSelect(elementId, items, onChangeCallback) {
+            const wrapper = document.getElementById(elementId);
+            const display = document.getElementById(elementId + '-display');
+            const dropdown = document.getElementById(elementId + '-dropdown');
+
+            let selectedItems = new Set();
+
+            // Clear dropdown
+            dropdown.innerHTML = '';
+
+            // Add "Select All" option
+            const allOption = document.createElement('div');
+            allOption.className = 'multi-select-option multi-select-all';
+            const allCheckbox = document.createElement('input');
+            allCheckbox.type = 'checkbox';
+            allCheckbox.id = elementId + '-all';
+            allCheckbox.checked = true;
+            const allLabel = document.createElement('label');
+            allLabel.htmlFor = elementId + '-all';
+            allLabel.textContent = 'Select All';
+            allOption.appendChild(allCheckbox);
+            allOption.appendChild(allLabel);
+            dropdown.appendChild(allOption);
+
+            // Add individual options
+            items.forEach(item => {
+                const option = document.createElement('div');
+                option.className = 'multi-select-option';
+
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.id = elementId + '-' + item.replace(/\s/g, '-');
+                checkbox.value = item;
+                checkbox.checked = true;
+
+                const label = document.createElement('label');
+                label.htmlFor = checkbox.id;
+                label.textContent = item;
+
+                option.appendChild(checkbox);
+                option.appendChild(label);
+                dropdown.appendChild(option);
+            });
+
+            // Update display text
+            function updateDisplay() {
+                const checkedBoxes = dropdown.querySelectorAll('.multi-select-option:not(.multi-select-all) input:checked');
+                selectedItems.clear();
+                checkedBoxes.forEach(cb => selectedItems.add(cb.value));
+
+                if (checkedBoxes.length === 0) {
+                    display.textContent = 'None selected';
+                    allCheckbox.checked = false;
+                    allCheckbox.indeterminate = false;
+                } else if (checkedBoxes.length === items.length) {
+                    display.textContent = 'All ' + items.length + ' selected';
+                    allCheckbox.checked = true;
+                    allCheckbox.indeterminate = false;
+                } else {
+                    display.textContent = checkedBoxes.length + ' of ' + items.length + ' selected';
+                    allCheckbox.checked = false;
+                    allCheckbox.indeterminate = true;
+                }
+
+                // Update selected arrays
+                // If all items or no items are selected, use empty array (means show all)
+                // If specific items are selected, use that array
+                if (elementId === 'dashboard-filter-user') {
+                    if (checkedBoxes.length === 0) {
+                        selectedUsers = ['__NONE_SELECTED__']; // Special value to indicate no data should be shown
+                    } else if (checkedBoxes.length === items.length) {
+                        selectedUsers = []; // Empty array means show all
+                    } else {
+                        selectedUsers = Array.from(selectedItems);
+                    }
+                } else if (elementId === 'dashboard-filter-repo') {
+                    if (checkedBoxes.length === 0) {
+                        selectedRepos = ['__NONE_SELECTED__']; // Special value to indicate no data should be shown
+                    } else if (checkedBoxes.length === items.length) {
+                        selectedRepos = []; // Empty array means show all
+                    } else {
+                        selectedRepos = Array.from(selectedItems);
+                    }
+                } else if (elementId === 'gantt-filter-user') {
+                    if (checkedBoxes.length === 0) {
+                        ganttSelectedUsers = ['__NONE_SELECTED__']; // Special value to indicate no data should be shown
+                    } else if (checkedBoxes.length === items.length) {
+                        ganttSelectedUsers = []; // Empty array means show all
+                    } else {
+                        ganttSelectedUsers = Array.from(selectedItems);
+                    }
+                } else if (elementId === 'gantt-filter-repo') {
+                    if (checkedBoxes.length === 0) {
+                        ganttSelectedRepos = ['__NONE_SELECTED__']; // Special value to indicate no data should be shown
+                    } else if (checkedBoxes.length === items.length) {
+                        ganttSelectedRepos = []; // Empty array means show all
+                    } else {
+                        ganttSelectedRepos = Array.from(selectedItems);
+                    }
+                }
+
+                onChangeCallback();
+            }
+
+            // Toggle dropdown
+            display.addEventListener('click', (e) => {
+                e.stopPropagation();
+                const isOpen = display.classList.toggle('open');
+                dropdown.classList.toggle('open', isOpen);
+
+                // Close other dropdowns
+                if (isOpen) {
+                    document.querySelectorAll('.multi-select-display').forEach(d => {
+                        if (d !== display) {
+                            d.classList.remove('open');
+                            d.nextElementSibling.classList.remove('open');
+                        }
+                    });
+                }
+            });
+
+            // Handle select all
+            allCheckbox.addEventListener('change', () => {
+                const checkboxes = dropdown.querySelectorAll('.multi-select-option:not(.multi-select-all) input');
+                checkboxes.forEach(cb => cb.checked = allCheckbox.checked);
+                updateDisplay();
+            });
+
+            // Handle individual checkboxes
+            dropdown.addEventListener('change', (e) => {
+                if (e.target.type === 'checkbox' && e.target !== allCheckbox) {
+                    updateDisplay();
+                }
+            });
+
+            // Prevent dropdown from closing when clicking inside
+            dropdown.addEventListener('click', (e) => {
+                e.stopPropagation();
+            });
+
+            // Initial update
+            updateDisplay();
         }
 
         function populateFilters(data) {
@@ -964,37 +1241,20 @@
             const users = [...new Set(data.allPRs.map(pr => pr.user))].sort();
             const repos = [...new Set(data.allPRs.map(pr => pr.repository))].sort();
 
-            // Populate user filter
-            const userSelect = document.getElementById('dashboard-filter-user');
-            userSelect.innerHTML = '<option value="">All Users</option>';
-            users.forEach(user => {
-                const option = document.createElement('option');
-                option.value = user;
-                option.textContent = user;
-                userSelect.appendChild(option);
-            });
-
-            // Populate repository filter
-            const repoSelect = document.getElementById('dashboard-filter-repo');
-            repoSelect.innerHTML = '<option value="">All Repositories</option>';
-            repos.forEach(repo => {
-                const option = document.createElement('option');
-                option.value = repo;
-                option.textContent = repo;
-                repoSelect.appendChild(option);
-            });
+            // Create multi-select dropdowns
+            createMultiSelect('dashboard-filter-user', users, applyFilters);
+            createMultiSelect('dashboard-filter-repo', repos, applyFilters);
 
             // Create date range slider
             createDateRangeSlider(data);
 
-            // Add auto-apply on change for dropdowns
-            userSelect.addEventListener('change', applyFilters);
-            repoSelect.addEventListener('change', applyFilters);
-
             // Add event listener for reset button
             document.getElementById('reset-filters').addEventListener('click', () => {
-                document.getElementById('dashboard-filter-user').value = '';
-                document.getElementById('dashboard-filter-repo').value = '';
+                // Reset multi-selects by recreating them
+                createMultiSelect('dashboard-filter-user', users, applyFilters);
+                createMultiSelect('dashboard-filter-repo', repos, applyFilters);
+                selectedUsers = [];
+                selectedRepos = [];
 
                 // Reset date range to full range (up to today)
                 const dates = data.allPRs.map(pr => new Date(pr.created_at).getTime());
@@ -1066,15 +1326,26 @@
             };
         }
 
-        function updateDashboard(data, filterUser = '', filterRepo = '', dateRange = null) {
-            // Filter PRs based on user, repo, and date range
+        function updateDashboard(data, filterUsers = [], filterRepos = [], dateRange = null) {
+            // Filter PRs based on users, repos, and date range
             let filteredPRs = data.allPRs;
-            if (filterUser) {
-                filteredPRs = filteredPRs.filter(pr => pr.user === filterUser);
+
+            // Check for special "none selected" case
+            if (filterUsers && filterUsers.includes('__NONE_SELECTED__')) {
+                filteredPRs = []; // Show no data
+            } else if (filterUsers && filterUsers.length > 0) {
+                // Specific items selected
+                filteredPRs = filteredPRs.filter(pr => filterUsers.includes(pr.user));
             }
-            if (filterRepo) {
-                filteredPRs = filteredPRs.filter(pr => pr.repository === filterRepo);
+            // Empty array means show all
+
+            if (filterRepos && filterRepos.includes('__NONE_SELECTED__')) {
+                filteredPRs = []; // Show no data
+            } else if (filterRepos && filterRepos.length > 0) {
+                // Specific items selected
+                filteredPRs = filteredPRs.filter(pr => filterRepos.includes(pr.repository));
             }
+            // Empty array means show all
             if (dateRange && dateRange.start && dateRange.end) {
                 filteredPRs = filteredPRs.filter(pr => {
                     const prDate = new Date(pr.created_at);
@@ -2138,6 +2409,9 @@
             document.addEventListener('touchend', handleMouseUp);
         }
 
+        let ganttSelectedUsers = [];
+        let ganttSelectedRepos = [];
+
         function renderGanttChart(allPRs) {
             const container = d3.select("#gantt-chart");
             container.selectAll("*").remove();
@@ -2151,19 +2425,15 @@
             const users = [...new Set(allPRs.map(pr => pr.user))].sort();
             const repos = [...new Set(allPRs.map(pr => pr.repository))].sort();
 
-            const userSelect = document.getElementById('gantt-filter-user');
-            userSelect.innerHTML = '<option value="">All Users</option>' +
-                users.map(user => `<option value="${user}">${user}</option>`).join('');
-
-            const repoSelect = document.getElementById('gantt-filter-repo');
-            repoSelect.innerHTML = '<option value="">All Repositories</option>' +
-                repos.map(repo => `<option value="${repo}">${repo}</option>`).join('');
+            // Create multi-select dropdowns for Gantt
+            createMultiSelect('gantt-filter-user', users, () => updateGanttChart(allPRs));
+            createMultiSelect('gantt-filter-repo', repos, () => updateGanttChart(allPRs));
 
             // Create date range slider for Gantt
             createGanttDateRangeSlider(allPRs);
 
             // Set up event listeners for controls
-            ['gantt-sort', 'gantt-filter-user', 'gantt-filter-repo', 'gantt-filter-status'].forEach(id => {
+            ['gantt-sort', 'gantt-filter-status'].forEach(id => {
                 document.getElementById(id).addEventListener('change', () => updateGanttChart(allPRs));
             });
 
@@ -2182,14 +2452,29 @@
 
         function getRepoInfo(repository) {
             // Map display names to actual GitHub repository info
+            // First check if it's the main ComfyUI repo
+            if (repository === 'ComfyUI') {
+                return { owner: 'comfyanonymous', repo: 'ComfyUI' };
+            }
+
+            // Try to find in the repositories list from data
+            if (window.reportData && window.reportData.repositories) {
+                const repo = window.reportData.repositories.find(r => r.displayName === repository);
+                if (repo) {
+                    return { owner: repo.owner, repo: repo.repo };
+                }
+            }
+
+            // Legacy mapping for backward compatibility
             const repoMap = {
-                'ComfyUI': { owner: 'comfyanonymous', repo: 'ComfyUI' },
                 'Frontend': { owner: 'Comfy-Org', repo: 'ComfyUI_frontend' },
                 'Desktop': { owner: 'Comfy-Org', repo: 'desktop' },
                 'Registry': { owner: 'Comfy-Org', repo: 'registry-web' },
                 'Comfy-API': { owner: 'Comfy-Org', repo: 'comfy-api' },
                 'Cloud': { owner: 'Comfy-Org', repo: 'cloud' }
             };
+
+            // Default to Comfy-Org if not found
             return repoMap[repository] || { owner: 'Comfy-Org', repo: repository };
         }
 
@@ -2200,8 +2485,8 @@
 
             // Get filter and sort values
             const sortBy = document.getElementById('gantt-sort').value;
-            const filterUser = document.getElementById('gantt-filter-user').value;
-            const filterRepo = document.getElementById('gantt-filter-repo').value;
+            const filterUsers = ganttSelectedUsers;
+            const filterRepos = ganttSelectedRepos;
             const filterStatus = document.getElementById('gantt-filter-status').value;
             const searchKeywords = document.getElementById('gantt-search-keywords').value.trim();
 
@@ -2212,31 +2497,40 @@
             // Parse search keywords (split by spaces, filter empty)
             const keywords = searchKeywords ? searchKeywords.toLowerCase().split(/\s+/).filter(k => k.length > 0) : [];
 
-            // Filter PRs
-            let filteredPRs = allPRs.filter(pr => {
-                if (filterUser && pr.user !== filterUser) return false;
-                if (filterRepo && pr.repository !== filterRepo) return false;
+            // Handle special case: if __NONE_SELECTED__ is present, show no data
+            let filteredPRs;
+            if ((filterUsers && filterUsers.includes('__NONE_SELECTED__')) ||
+                (filterRepos && filterRepos.includes('__NONE_SELECTED__'))) {
+                filteredPRs = []; // Show no data
+            } else {
+                // Filter PRs
+                filteredPRs = allPRs.filter(pr => {
+                    // Filter by users (empty array = all, specific items = filter)
+                    if (filterUsers && filterUsers.length > 0 && !filterUsers.includes(pr.user)) return false;
+                    // Filter by repos (empty array = all, specific items = filter)
+                    if (filterRepos && filterRepos.length > 0 && !filterRepos.includes(pr.repository)) return false;
 
-                // Handle status filtering with merged vs closed distinction
-                if (filterStatus) {
-                    const actualState = pr.merged_at ? 'merged' : pr.state;
-                    if (actualState !== filterStatus) return false;
-                }
+                    // Handle status filtering with merged vs closed distinction
+                    if (filterStatus) {
+                        const actualState = pr.merged_at ? 'merged' : pr.state;
+                        if (actualState !== filterStatus) return false;
+                    }
 
-                // Filter by date range (inclusive start, exclusive end)
-                const prDate = new Date(pr.created_at);
-                if (fromDate && prDate < fromDate) return false;
-                if (toDate && prDate >= toDate) return false;
+                    // Filter by date range (inclusive start, exclusive end)
+                    const prDate = new Date(pr.created_at);
+                    if (fromDate && prDate < fromDate) return false;
+                    if (toDate && prDate >= toDate) return false;
 
-                // Filter by keywords (all keywords must match in title)
-                if (keywords.length > 0) {
-                    const title = pr.title.toLowerCase();
-                    const allMatch = keywords.every(keyword => title.includes(keyword));
-                    if (!allMatch) return false;
-                }
+                    // Filter by keywords (all keywords must match in title)
+                    if (keywords.length > 0) {
+                        const title = pr.title.toLowerCase();
+                        const allMatch = keywords.every(keyword => title.includes(keyword));
+                        if (!allMatch) return false;
+                    }
 
-                return true;
-            });
+                    return true;
+                });
+            }
 
             // Sort PRs
             filteredPRs.sort((a, b) => {
@@ -2489,10 +2783,37 @@
             // Remove summary text to save space
         }
 
+        // Global click handler to close dropdowns
+        document.addEventListener('click', (e) => {
+            if (!e.target.closest('.multi-select-wrapper')) {
+                document.querySelectorAll('.multi-select-display.open').forEach(display => {
+                    display.classList.remove('open');
+                    display.nextElementSibling.classList.remove('open');
+                });
+            }
+        });
+
+        // Store the chart data globally for resize
+        let chartData = null;
+
         // Initialize on load
         window.addEventListener('load', () => {
             loadData();
             initTOC();
+        });
+
+        // Handle window resize
+        let resizeTimeout;
+        window.addEventListener('resize', () => {
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                if (chartData) {
+                    renderCharts(chartData);
+                    if (chartData.allPRs) {
+                        updateGanttChart(chartData.allPRs);
+                    }
+                }
+            }, 250); // Debounce resize events
         });
 
         // Initialize TOC scroll highlighting and folding
@@ -2564,7 +2885,7 @@
         <h2 style="color: #333; margin-bottom: 15px;">🔍 Dig for More</h2>
         <p style="color: #666; margin-bottom: 20px;">Want to explore the raw data or perform your own analysis?</p>
         <a href="data.json" download="comfyui-pr-speed-data.json"
-           style="display: inline-block; padding: 12px 30px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; font-weight: 500; transition: background 0.3s;"
+           style="display: inline-block; padding: 12px 30px; background: #007bff; color: white; text-decoration: none; border-radius: 5px; font-weight: 500; transition: background 0.3s; margin: 10px;"
            onmouseover="this.style.background='#0056b3'"
            onmouseout="this.style.background='#007bff'">
             📊 Download data.json
@@ -2572,6 +2893,23 @@
         <p style="color: #999; font-size: 12px; margin-top: 15px;">
             Contains all PR data, statistics, and metrics used in this dashboard
         </p>
+
+        <div style="margin-top: 30px; padding-top: 20px; border-top: 1px solid #ddd;">
+            <h3 style="color: #444; margin-bottom: 15px; font-size: 18px;">📈 Special Revisions</h3>
+            <ul style="list-style: none; padding: 0; margin: 0;">
+                <li style="margin-bottom: 10px;">
+                    <a href="https://gh-pr-speed-3g08lqs5s-comfyui.vercel.app/" target="_blank"
+                       style="color: #007bff; text-decoration: none; font-weight: 500; transition: color 0.3s;"
+                       onmouseover="this.style.color='#0056b3'; this.style.textDecoration='underline'"
+                       onmouseout="this.style.color='#007bff'; this.style.textDecoration='none'">
+                        🎯 Comfy Team PR Review Speed Analysis
+                    </a>
+                    <span style="color: #666; font-size: 14px; margin-left: 10px;">
+                        - ComfyUI repository only (excludes Comfy's data)
+                    </span>
+                </li>
+            </ul>
+        </div>
     </div>
 </body>
 </html>
