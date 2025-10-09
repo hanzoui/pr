@@ -65,6 +65,7 @@ export const router = t.router({
       async () =>
         await sflow(CNRepos.find({}, { projection: { repository: 1 } }))
           .map((e) => (e as unknown as { repository: string }).repository)
+          .filter((repo) => typeof repo === "string" && repo.length > 0)
           .toArray(),
     ),
   GithubContributorAnalyzeTask: t.procedure
