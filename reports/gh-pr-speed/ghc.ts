@@ -29,46 +29,6 @@ async function ensureCacheDir() {
 
 let keyv: Keyv | null = null;
 
-export const ghc = createCachedProxy(gh);
-export const ghca = createListAllProxy(ghc);
-// ghca.repos.listActivities
-// Export listAll for easy usage
-export { listAll };
-
-// manual test with real api
-if (import.meta.main) {
-  async function runTest() {
-    // Test the cached client
-    console.info("Testing cached GitHub client...");
-
-    // This should make a real API call
-    const result1 = await ghc.repos.get({
-      owner: "octocat",
-      repo: "Hello-World",
-    });
-    console.info("First call result", { name: result1.data.name });
-
-    // This should use cache
-    const result2 = await ghc.repos.get({
-      owner: "octocat",
-      repo: "Hello-World",
-    });
-    console.info("Second call result (cached)", { name: result2.data.name });
-
-    // list all pull requests
-    const allPRs = await listAll(ghc.pulls.list)({
-      owner: "octocat",
-      repo: "Hello-World",
-      state: "all",
-    });
-    console.info(`Total PRs fetched with listAll(): ${allPRs.length}`);
-
-    console.info("Cache test complete!");
-  }
-
-  runTest().catch((error) => console.error("Test failed", error));
-}
-
 async function getKeyv() {
   if (!keyv) {
     await ensureCacheDir();
@@ -206,4 +166,44 @@ export async function getGhCacheStats(): Promise<{ size: number; keys: string[] 
   // Note: Keyv doesn't provide built-in stats, but we can query the SQLite directly if needed
   // For now, return basic info
   return { size: 0, keys: [] };
+}
+
+export const ghc = createCachedProxy(gh);
+export const ghca = createListAllProxy(ghc);
+// ghca.repos.listActivities
+// Export listAll for easy usage
+export { listAll };
+
+// manual test with real api
+if (import.meta.main) {
+  async function runTest() {
+    // Test the cached client
+    console.info("Testing cached GitHub client...");
+
+    // This should make a real API call
+    const result1 = await ghc.repos.get({
+      owner: "octocat",
+      repo: "Hello-World",
+    });
+    console.info("First call result", { name: result1.data.name });
+
+    // This should use cache
+    const result2 = await ghc.repos.get({
+      owner: "octocat",
+      repo: "Hello-World",
+    });
+    console.info("Second call result (cached)", { name: result2.data.name });
+
+    // list all pull requests
+    const allPRs = await listAll(ghc.pulls.list)({
+      owner: "octocat",
+      repo: "Hello-World",
+      state: "all",
+    });
+    console.info(`Total PRs fetched with listAll(): ${allPRs.length}`);
+
+    console.info("Cache test complete!");
+  }
+
+  runTest().catch((error) => console.error("Test failed", error));
 }
