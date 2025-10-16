@@ -17,6 +17,7 @@ on:
       - "app/tasks/gh-bounty/**"
       - "app/tasks/gh-design/**"
       - "app/tasks/gh-desktop-release-notification/**"
+      - "app/tasks/gh-core-tag-notification/**"
       - "app/tasks/gh-bugcop/**"
 
 jobs:
