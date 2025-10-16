@@ -1,7 +1,7 @@
 {
   "compile-hero.disable-compile-files-on-did-save-code": false,
   "code-runner.executorMapByGlob": {
-    "*.{spec,test}.{js,ts,tsx,jsx,mjs}": "bun test --watch",
-    "*.{js,ts,tsx,jsx,mjs}": "bun --hot"
+    "*.{js,ts,tsx,jsx,mjs}": "bun --hot",
+    "*.{spec,test}.{js,ts,tsx,jsx,mjs}": "bun test --watch"
   }
 }
