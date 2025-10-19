@@ -24,9 +24,9 @@ export async function matchRelatedPulls(pulls: GithubPullParsed[]): Promise<
     };
   }[]
 > {
-  const pyproject = await readTemplateTitle("add-toml.md");
-  const publishcr = await readTemplateTitle("add-action.md");
-  const licenseUpdate = await readTemplateTitle("update-toml-license.md");
+  const pyproject = await readTemplateTitle("./templates/add-toml.md");
+  const publishcr = await readTemplateTitle("./templates/add-action.md");
+  const licenseUpdate = await readTemplateTitle("./templates/update-toml-license.md");
   const relatedPulls = await pMap(pulls, async (pull) =>
     match(pull)
       .with({ title: pyproject }, (pull) => ({
