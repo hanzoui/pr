@@ -7,24 +7,14 @@ import runGithubBugcopTask from "../../run/gh-bugcop/gh-bugcop";
 import runGithubBountyTask from "./gh-bounty/gh-bounty";
 import { runGithubDesignTask } from "./gh-design/gh-design";
 import runGithubDesktopReleaseNotificationTask from "./gh-desktop-release-notification/index";
+import runGhTestEvidenceTask from "./gh-test-evidence/gh-test-evidence";
 
 const TASKS = [
-  {
-    name: "GitHub Bounty Task",
-    run: runGithubBountyTask,
-  },
-  {
-    name: "GitHub Design Task",
-    run: runGithubDesignTask,
-  },
-  {
-    name: "GitHub Desktop Release Notification Task",
-    run: runGithubDesktopReleaseNotificationTask,
-  },
-  {
-    name: "GitHub Bugcop Task",
-    run: runGithubBugcopTask,
-  },
+  { name: "GitHub Bounty Task", run: runGithubBountyTask },
+  { name: "GitHub Design Task", run: runGithubDesignTask },
+  { name: "GitHub Desktop Release Notification Task", run: runGithubDesktopReleaseNotificationTask },
+  { name: "GitHub Bugcop Task", run: runGithubBugcopTask },
+  { name: "GitHub Test Evidence Task", run: runGhTestEvidenceTask },
 ];
 
 async function runAllTasks() {
