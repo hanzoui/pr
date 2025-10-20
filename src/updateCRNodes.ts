@@ -38,6 +38,9 @@ export async function updateCRNodes() {
   return [
     await $pipeline(CNRepos)
       .project({ repository: 1 })
+      .match({
+        repository: { $exists: true, $ne: null, $type: "string" },
+      })
       .set({
         on_registry_all: TaskOK({ $in: ["$repository", CRNodesRepo] }),
         on_registry: TaskOK({ $in: ["$repository", CRNodesRepoExcludeUnclaimed] }),
