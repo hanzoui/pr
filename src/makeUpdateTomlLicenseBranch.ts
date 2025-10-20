@@ -60,6 +60,9 @@ export async function updateTomlLicenseTasks() {
   await $pipeline(CNRepos)
     .match({ cr: { $exists: true } })
     .project({ _id: 0, repository: 1 })
+    .match({
+      repository: { $exists: true, $ne: null, $type: "string" },
+    })
     .merge({ into: LicenseTasks.collectionName, on: "repository" })
     .aggregate()
     .next();
