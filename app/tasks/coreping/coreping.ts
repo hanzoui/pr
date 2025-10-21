@@ -9,6 +9,7 @@ import { parseIssueUrl } from "@/src/parseIssueUrl";
 import { parseUrlRepoOwner } from "@/src/parseOwnerRepo";
 import DIE from "@snomiao/die";
 import chalk from "chalk";
+import isCI from "is-ci";
 import sflow, { pageFlow } from "sflow";
 import { P } from "ts-pattern";
 import z from "zod";
@@ -108,6 +109,14 @@ const saveTask = async (pr: Partial<ComfyCorePRs> & { url: string }) => {
 };
 
 if (import.meta.main) {
+  await runCorePingTask();
+  if (isCI) {
+    await db.close();
+    process.exit(0); // exit if running in CI
+  }
+}
+
+async function runCorePingTask() {
   // Designed to be mon to sat, TIME CHECKING
   // Pacific Daylight Time
 
@@ -211,13 +220,11 @@ if (import.meta.main) {
 
           return await saveTask({ url: html_url, status, statusMsg });
         }),
-
       // // handle issue comments, (also including pr comments)
       // pageFlow(1, async (page, per_page = 100) => {
       //   const { data } = await ghc.issues.listCommentsForRepo({ ...parseUrlRepoOwner(repoUrl), page, per_page });
       //   return { data, next: data.length >= per_page ? page + 1 : null };
       // }).flat(),
-
       // // handle pr review comments
       // pageFlow(1, async (page, per_page = 100) => {
       //   const { data } = await ghc.pulls.listReviewCommentsForRepo({ ...parseUrlRepoOwner(repoUrl), page, per_page });

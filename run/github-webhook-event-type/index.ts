@@ -1,5 +1,6 @@
 import type { components as GithubApiComponents } from "@octokit/openapi-types";
 type S = GithubApiComponents["schemas"];
+// todo(sno): deprecate this and use @octokit/webhooks-types
 export type WEBHOOK_EVENTS = {
   branch_protection_configuration: S[`webhook-branch-protection-configuration${string}` & keyof S];
   branch_protection_rule: S[`webhook-branch-protection-rule${string}` & keyof S];
