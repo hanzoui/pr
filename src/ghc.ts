@@ -73,7 +73,7 @@ function createCachedProxy(target: any, basePath: string[] = []): any {
           // Try to get from cache first
           const cached = await keyvInstance.get(cacheKey);
           if (cached !== undefined) {
-            // console.log(`HIT|${cacheKey}`); // cache hit info for debug
+            // logger.debug(`Cache hit`, { cacheKey }); // cache hit info for debug
             return cached;
           }
 
@@ -105,6 +105,15 @@ type DeepAsyncWrapper<T> = {
         : T[K];
 };
 
+type ListAll<T> = T extends (
+  pageable: infer A extends { per_page: number; page: number },
+  ...rest: infer R
+) => Promise<{
+  data: infer D;
+}>
+  ? T & { all: (params: Omit<A, "per_page" | "page">, ...rest: R) => Promise<D> }
+  : never;
+
 export async function clearGhCache(): Promise<void> {
   const keyvInstance = await getKeyv();
   await keyvInstance.clear();
@@ -122,24 +131,24 @@ export const ghc = createCachedProxy(gh) as DeepAsyncWrapper<typeof gh>;
 if (import.meta.main) {
   async function runTest() {
     // Test the cached client
-    console.log("Testing cached GitHub client...");
+    console.info("Testing cached GitHub client...");
 
     // This should make a real API call
     const result1 = await ghc.repos.get({
       owner: "octocat",
       repo: "Hello-World",
     });
-    console.log("First call result:", result1.data.name);
+    console.info("First call result", { name: result1.data.name });
 
     // This should use cache
     const result2 = await ghc.repos.get({
       owner: "octocat",
       repo: "Hello-World",
     });
-    console.log("Second call result (cached):", result2.data.name);
+    console.info("Second call result (cached)", { name: result2.data.name });
 
-    console.log("Cache test complete!");
+    console.info("Cache test complete!");
   }
 
-  runTest().catch(console.error);
+  runTest().catch((error) => console.error("Test failed", error));
 }

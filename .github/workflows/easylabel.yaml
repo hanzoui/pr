@@ -1,0 +1,29 @@
+name: "EasyLabel - Automated PR Labeling"
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Run every 2 hours
+    - cron: "0 */2 * * *"
+  push:
+    branches:
+      - easylabel-debug
+
+jobs:
+  run_easylabel:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+
+      # Install dependencies
+      - run: bun i
+
+      # Run EasyLabel task with timeout
+      - run: bun run/easylabel.tsx
+        env:
+          GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR_BOT }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          SLACK_BOT_CHANNEL: ${{ secrets.SLACK_BOT_CHANNEL }}
+          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}

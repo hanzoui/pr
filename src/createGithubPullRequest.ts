@@ -6,13 +6,13 @@ import sflow from "sflow";
 import { isRepoBypassed } from "./bypassRepos";
 import { gh } from "./gh";
 import type { GithubPull } from "./gh/GithubPull";
-import { parseUrlRepoOwner } from "./parseOwnerRepo";
+import { parseGithubRepoUrl } from "./parseOwnerRepo";
 import { parseTitleBodyOfMarkdown } from "./parseTitleBodyOfMarkdown";
 if (import.meta.main) {
   const srcUrl = "https://github.com/ComfyNodePRs/PR-ComfyUI-DareMerge-7bcbf6a9";
   const dstUrl = "https://github.com/54rt1n/ComfyUI-DareMerge";
-  const src = parseUrlRepoOwner(srcUrl);
-  const dst = parseUrlRepoOwner(dstUrl);
+  const src = parseGithubRepoUrl(srcUrl);
+  const dst = parseGithubRepoUrl(dstUrl);
   const branch = "licence-update";
   const repo = (await gh.repos.get({ ...dst })).data;
   const head_repo = `${src.owner}/${src.repo}`;
@@ -80,8 +80,8 @@ export async function createGithubPullRequest({
   // TODO: try grab a lock with reop+branch
   if (isRepoBypassed(dstUrl)) DIE("dst repo is requested to be bypassed");
 
-  const dst = parseUrlRepoOwner(dstUrl);
-  const src = parseUrlRepoOwner(srcUrl);
+  const dst = parseGithubRepoUrl(dstUrl);
+  const src = parseGithubRepoUrl(srcUrl);
   const repo = (await gh.repos.get({ ...dst })).data;
 
   // 2025-03-13 prevent duplicated PR, if there are PR is closed with same content.
@@ -178,7 +178,7 @@ export async function createGithubPullRequest({
           cause: { mismatch, expected: { title, body }, actual: pickAll(["title", "body"], pr_result) },
         }),
       );
-    const { owner, repo } = parseUrlRepoOwner(dstUrl); // upstream repo
+    const { owner, repo } = parseGithubRepoUrl(dstUrl); // upstream repo
     const updated = (await catchArgs(ghPR().pulls.update)({ pull_number: pr_result.number, body, title, owner, repo }))
       .data!;
     const updatedPRStillMismatch = updated.title !== title || updated.body !== body;

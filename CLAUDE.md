@@ -102,3 +102,16 @@ const stats = await getGhCacheStats();
 
 - Short args: `gh.repos.get({"owner":"octocat","repo":"Hello-World"})#b3117af2`
 - Long args: `gh.repos.get({"owner":"octocat","descripti...bbbbbbbbbb"})#4240f076`
+
+## SFlow Stream Processing Library
+
+### Overview
+
+SFlow is a powerful functional stream processing library used throughout the codebase for handling asynchronous data operations. It provides a rich set of utilities for transforming streams with a functional programming approach, similar to RxJS but optimized for modern JavaScript/TypeScript and WebStreams.
+
+### Implementation Details
+
+- **Package**: `sflow@1.24.0`
+- **Author**: snomiao
+- **License**: MIT
+- **Core Concepts**: SFlow is built around composable stream operators, lazy evaluation, and support for both synchronous and asynchronous data flows.

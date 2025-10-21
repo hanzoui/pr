@@ -1,5 +1,5 @@
 import { gh } from ".";
-import { parseUrlRepoOwner } from "../parseOwnerRepo";
+import { parseGithubRepoUrl } from "../parseOwnerRepo";
 import { yaml } from "../utils/yaml";
 import { fetchGithubPulls } from "./fetchGithubPulls";
 if (import.meta.main) {
@@ -19,7 +19,7 @@ if (import.meta.main) {
 export async function fetchIssueComments(repo: string, pull: { number: number }) {
   const result = (
     await gh.issues.listComments({
-      ...parseUrlRepoOwner(repo),
+      ...parseGithubRepoUrl(repo),
       issue_number: pull.number,
       direction: "asc",
       sort: "created",

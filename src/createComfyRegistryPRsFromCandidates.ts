@@ -5,7 +5,7 @@ import { $OK, TaskError, TaskOK } from "../packages/mongodb-pipeline-ts/Task";
 import { CNRepos } from "./CNRepos";
 import { createComfyRegistryPullRequests } from "./createComfyRegistryPullRequests";
 import { $flatten, $stale } from "./db";
-import { parseUrlRepoOwner, stringifyOwnerRepo } from "./parseOwnerRepo";
+import { parseGithubRepoUrl, stringifyOwnerRepo } from "./parseOwnerRepo";
 import { notifySlackLinks } from "./slack/notifySlackLinks";
 import { tLog } from "./utils/tLog";
 if (import.meta.main) {
@@ -36,7 +36,7 @@ export async function createComfyRegistryPRsFromCandidates() {
       match(createdPulls).with($OK, async ({ data }) => {
         const links = data.map((e) => ({
           href: e.html_url,
-          name: stringifyOwnerRepo(parseUrlRepoOwner(e.html_url.replace(/\/pull\/.*$/, ""))) + " #" + e.title,
+          name: stringifyOwnerRepo(parseGithubRepoUrl(e.html_url.replace(/\/pull\/.*$/, ""))) + " #" + e.title,
         }));
         await notifySlackLinks("PR Created", links);
         await pMap(data, async (pull) => {

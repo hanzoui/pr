@@ -5,16 +5,41 @@ import isCI from "is-ci";
 // Import all the 5-minute tasks
 import runGithubBugcopTask from "../../run/gh-bugcop/gh-bugcop";
 import runGithubBountyTask from "./gh-bounty/gh-bounty";
+import runGithubCoreTagNotificationTask from "./gh-core-tag-notification/index";
 import { runGithubDesignTask } from "./gh-design/gh-design";
 import runGithubDesktopReleaseNotificationTask from "./gh-desktop-release-notification/index";
+import runGithubFrontendReleaseNotificationTask from "./gh-frontend-release-notification/index";
 import runGhTestEvidenceTask from "./gh-test-evidence/gh-test-evidence";
 
 const TASKS = [
-  { name: "GitHub Bounty Task", run: runGithubBountyTask },
-  { name: "GitHub Design Task", run: runGithubDesignTask },
-  { name: "GitHub Desktop Release Notification Task", run: runGithubDesktopReleaseNotificationTask },
-  { name: "GitHub Bugcop Task", run: runGithubBugcopTask },
-  { name: "GitHub Test Evidence Task", run: runGhTestEvidenceTask },
+  {
+    name: "GitHub Bounty Task",
+    run: runGithubBountyTask,
+  },
+  {
+    name: "GitHub Design Task",
+    run: runGithubDesignTask,
+  },
+  {
+    name: "GitHub Desktop Release Notification Task",
+    run: runGithubDesktopReleaseNotificationTask,
+  },
+  {
+    name: "GitHub Frontend Release Notification Task",
+    run: runGithubFrontendReleaseNotificationTask,
+  },
+  {
+    name: "GitHub Core Tag Notification Task",
+    run: runGithubCoreTagNotificationTask,
+  },
+  {
+    name: "GitHub Bugcop Task",
+    run: runGithubBugcopTask,
+  },
+  {
+    name: "GitHub Test Evidence Task",
+    run: runGhTestEvidenceTask,
+  },
 ];
 
 async function runAllTasks() {
