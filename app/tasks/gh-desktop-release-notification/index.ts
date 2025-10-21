@@ -1,6 +1,6 @@
 import { db } from "@/src/db";
 import { gh } from "@/src/gh";
-import { parseUrlRepoOwner } from "@/src/parseOwnerRepo";
+import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
 import { getSlackChannel } from "@/src/slack/channels";
 import DIE from "@snomiao/die";
 import isCI from "is-ci";
@@ -71,7 +71,7 @@ async function runGithubDesktopReleaseNotificationTask() {
   );
 
   await sflow(config.repos)
-    .map(parseUrlRepoOwner)
+    .map(parseGithubRepoUrl)
     .flatMap(({ owner, repo }) =>
       gh.repos
         .listReleases({
@@ -113,10 +113,10 @@ async function runGithubDesktopReleaseNotificationTask() {
 
       // upsert drafting message if new/changed
       const shouldSendDraftingMessage = !task.isStable || task.slackMessageDrafting?.url;
-      if (shouldSendDraftingMessage && task.slackMessage?.text?.trim() !== newSlackMessage.text.trim()) {
+      if (shouldSendDraftingMessage && task.slackMessageDrafting?.text?.trim() !== newSlackMessage.text.trim()) {
         task = await save({
           url,
-          slackMessage: await upsertSlackMessage({
+          slackMessageDrafting: await upsertSlackMessage({
             ...newSlackMessage,
             replyUrl: coreTask?.slackMessageDrafting?.url,
           }),

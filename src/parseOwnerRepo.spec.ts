@@ -1,66 +1,71 @@
-import { parseUrlRepoOwner, stringifyGithubOrigin, stringifyGithubRepoUrl, stringifyOwnerRepo } from "./parseOwnerRepo";
+import {
+  parseGithubRepoUrl,
+  stringifyGithubOrigin,
+  stringifyGithubRepoUrl,
+  stringifyOwnerRepo,
+} from "./parseOwnerRepo";
 
 describe("parseOwnerRepo", () => {
-  describe("parseUrlRepoOwner", () => {
+  describe("parseGithubRepoUrl", () => {
     it("should parse SSH GitHub URL", () => {
-      const result = parseUrlRepoOwner("git@github.com:owner/repo");
+      const result = parseGithubRepoUrl("git@github.com:owner/repo");
       expect(result).toEqual({
         owner: "owner",
-        repo: "repo"
+        repo: "repo",
       });
     });
 
     it("should parse SSH GitHub URL with .git extension", () => {
-      const result = parseUrlRepoOwner("git@github.com:owner/repo.git");
+      const result = parseGithubRepoUrl("git@github.com:owner/repo.git");
       expect(result).toEqual({
         owner: "owner",
-        repo: "repo"
+        repo: "repo",
       });
     });
 
     it("should parse HTTPS GitHub URL", () => {
-      const result = parseUrlRepoOwner("https://github.com/owner/repo");
+      const result = parseGithubRepoUrl("https://github.com/owner/repo");
       expect(result).toEqual({
         owner: "owner",
-        repo: "repo"
+        repo: "repo",
       });
     });
 
     it("should parse HTTPS GitHub URL with .git extension", () => {
-      const result = parseUrlRepoOwner("https://github.com/owner/repo.git");
+      const result = parseGithubRepoUrl("https://github.com/owner/repo.git");
       expect(result).toEqual({
         owner: "owner",
-        repo: "repo"
+        repo: "repo",
       });
     });
 
     it("should handle owner/repo with hyphens and underscores", () => {
-      const result = parseUrlRepoOwner("git@github.com:my-org_name/my-repo_name");
+      const result = parseGithubRepoUrl("git@github.com:my-org_name/my-repo_name");
       expect(result).toEqual({
         owner: "my-org_name",
-        repo: "my-repo_name"
+        repo: "my-repo_name",
       });
     });
 
     it("should handle owner/repo with numbers", () => {
-      const result = parseUrlRepoOwner("https://github.com/user123/repo456");
+      const result = parseGithubRepoUrl("https://github.com/user123/repo456");
       expect(result).toEqual({
         owner: "user123",
-        repo: "repo456"
+        repo: "repo456",
       });
     });
 
     it("should handle real-world example URLs", () => {
-      const result1 = parseUrlRepoOwner("git@github.com:Comfy-Org/ComfyUI-Registry");
+      const result1 = parseGithubRepoUrl("git@github.com:Comfy-Org/ComfyUI-Registry");
       expect(result1).toEqual({
         owner: "Comfy-Org",
-        repo: "ComfyUI-Registry"
+        repo: "ComfyUI-Registry",
       });
 
-      const result2 = parseUrlRepoOwner("https://github.com/snomiao/ComfyUI-FD-Tagger.git");
+      const result2 = parseGithubRepoUrl("https://github.com/snomiao/ComfyUI-FD-Tagger.git");
       expect(result2).toEqual({
         owner: "snomiao",
-        repo: "ComfyUI-FD-Tagger"
+        repo: "ComfyUI-FD-Tagger",
       });
     });
   });
@@ -118,23 +123,23 @@ describe("parseOwnerRepo", () => {
   });
 
   describe("integration tests", () => {
-    it("should work end-to-end with parseUrlRepoOwner and stringifyOwnerRepo", () => {
+    it("should work end-to-end with parseGithubRepoUrl and stringifyOwnerRepo", () => {
       const originalUrl = "git@github.com:Comfy-Org/ComfyUI-Registry.git";
-      const parsed = parseUrlRepoOwner(originalUrl);
+      const parsed = parseGithubRepoUrl(originalUrl);
       const stringified = stringifyOwnerRepo(parsed);
       expect(stringified).toBe("Comfy-Org/ComfyUI-Registry");
     });
 
-    it("should work end-to-end with parseUrlRepoOwner and stringifyGithubRepoUrl", () => {
+    it("should work end-to-end with parseGithubRepoUrl and stringifyGithubRepoUrl", () => {
       const originalUrl = "git@github.com:snomiao/ComfyUI-FD-Tagger";
-      const parsed = parseUrlRepoOwner(originalUrl);
+      const parsed = parseGithubRepoUrl(originalUrl);
       const httpsUrl = stringifyGithubRepoUrl(parsed);
       expect(httpsUrl).toBe("https://github.com/snomiao/ComfyUI-FD-Tagger");
     });
 
-    it("should work end-to-end with parseUrlRepoOwner and stringifyGithubOrigin", async () => {
+    it("should work end-to-end with parseGithubRepoUrl and stringifyGithubOrigin", async () => {
       const originalUrl = "https://github.com/owner/repo.git";
-      const parsed = parseUrlRepoOwner(originalUrl);
+      const parsed = parseGithubRepoUrl(originalUrl);
       const sshUrl = await stringifyGithubOrigin(parsed);
       expect(sshUrl).toBe("git@github.com:owner/repo");
     });

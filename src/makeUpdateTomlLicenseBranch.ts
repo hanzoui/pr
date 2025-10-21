@@ -16,7 +16,7 @@ import { getBranchWorkingDir } from "./getBranchWorkingDir";
 import { gh } from "./gh";
 import type { GithubPull } from "./gh/GithubPull";
 import { GIT_USEREMAIL, GIT_USERNAME } from "./ghUser";
-import { parseUrlRepoOwner, stringifyGithubOrigin } from "./parseOwnerRepo";
+import { parseGithubRepoUrl, stringifyGithubOrigin } from "./parseOwnerRepo";
 import { parseTitleBodyOfMarkdown } from "./parseTitleBodyOfMarkdown";
 
 type LicenseUpdateTask = {
@@ -60,6 +60,9 @@ export async function updateTomlLicenseTasks() {
   await $pipeline(CNRepos)
     .match({ cr: { $exists: true } })
     .project({ _id: 0, repository: 1 })
+    .match({
+      repository: { $exists: true, $ne: null, $type: "string" },
+    })
     .merge({ into: LicenseTasks.collectionName, on: "repository" })
     .aggregate()
     .next();
@@ -131,8 +134,8 @@ export async function makeUpdateTomlLicenseBranch(upstreamUrl: string, forkUrl: 
   const { title, body } = parseTitleBodyOfMarkdown(tmpl);
 
   // check forked repo if target branch existed
-  const origin = await stringifyGithubOrigin(parseUrlRepoOwner(forkUrl));
-  const repo = parseUrlRepoOwner(forkUrl);
+  const origin = await stringifyGithubOrigin(parseGithubRepoUrl(forkUrl));
+  const repo = parseGithubRepoUrl(forkUrl);
   const existedBranch = await gh.repos.getBranch({ ...repo, branch }).catch(() => null);
 
   const cwd = await getBranchWorkingDir(upstreamUrl, forkUrl, branch);
@@ -208,7 +211,7 @@ export async function pyprojectTomlUpdateLicenses(tomlFile: string, upstreamRepo
 
   // - [Writing your pyproject.toml - Python Packaging User Guide]( https://packaging.python.org/en/latest/guides/writing-pyproject-toml/#license )
   updated ||= await (async function () {
-    const resp = await gh.repos.get({ ...parseUrlRepoOwner(upstreamRepoUrl) });
+    const resp = await gh.repos.get({ ...parseGithubRepoUrl(upstreamRepoUrl) });
     const license = resp.data.license;
     if (!license) return null;
     return `license = { text = "${license?.name}" }`;

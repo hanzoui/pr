@@ -13,7 +13,7 @@ import { $flatten, $stale } from "./db";
 import { gh } from "./gh";
 import { parsePull } from "./gh/parsePull";
 import { ghUser } from "./ghUser";
-import { parseUrlRepoOwner } from "./parseOwnerRepo";
+import { parseGithubRepoUrl } from "./parseOwnerRepo";
 import { readTemplate } from "./readTemplateTitle";
 import { notifySlackLinks } from "./slack/notifySlackLinks";
 import { tLog } from "./utils/tLog";
@@ -135,7 +135,7 @@ export async function updateOutdatedPullsTemplates() {
 
           const edited = await gh.issues
             .update({
-              ...parseUrlRepoOwner(repository),
+              ...parseGithubRepoUrl(repository),
               issue_number: number,
               ...(pull.title === replacement.title ? {} : { title: replacement.title }),
               ...(pull.body === replacement.body ? {} : { body: replacement.body }),
@@ -145,7 +145,7 @@ export async function updateOutdatedPullsTemplates() {
             .catch(TaskError);
           const updatedPull = (
             await gh.pulls.get({
-              ...parseUrlRepoOwner(repository),
+              ...parseGithubRepoUrl(repository),
               pull_number: number,
             })
           ).data;

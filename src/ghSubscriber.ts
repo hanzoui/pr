@@ -1,15 +1,14 @@
 import { Octokit } from "octokit";
 import sflow from "sflow";
-import { parseUrlRepoOwner } from "./parseOwnerRepo";
+import { parseGithubRepoUrl } from "./parseOwnerRepo";
 
 const tokens = process.env.GH_SUBSCRIBER_TOKENS?.split(",") || [];
 const gh = (token: string) => new Octokit({ auth: token }).rest;
 
 // dont await
- showSubscriberUsers();
+showSubscriberUsers();
 
 if (import.meta.main) {
-  
   await showSubscriberUsers();
   // subscribeToRepo('')
   await watchRepo("https://github.com/snomiao/ComfyNode-Registry-test");
@@ -54,7 +53,7 @@ export async function watchRepo(repoUrl: string) {
   await sflow(tokens)
     .map((token) => gh(token))
     .map(async (gh) => {
-      const result = await gh.activity.setRepoSubscription({ ...parseUrlRepoOwner(repoUrl), subscribed: true });
+      const result = await gh.activity.setRepoSubscription({ ...parseGithubRepoUrl(repoUrl), subscribed: true });
 
       console.log(result);
     })
@@ -64,7 +63,7 @@ export async function unwatchRepo(repoUrl: string) {
   await sflow(tokens)
     .map((token) => gh(token))
     .map(async (gh) => {
-      const result = await gh.activity.setRepoSubscription({ ...parseUrlRepoOwner(repoUrl), subscribed: false });
+      const result = await gh.activity.setRepoSubscription({ ...parseGithubRepoUrl(repoUrl), subscribed: false });
       console.log(result);
     })
     .run();
