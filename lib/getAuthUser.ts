@@ -1,10 +1,20 @@
 import { auth } from "@/lib/auth";
 import { db } from "@/src/db";
+import type { User } from "better-auth";
 import { headers as getHeaders } from "next/headers";
 
-const Users = db.collection("users");
+const Users = db.collection<{
+  email: string;
+  admin?: boolean;
+  login?: string;
+}>("users");
 
-export async function getAuthUser() {
+export type AuthUser = User & {
+  admin: boolean;
+  login?: string;
+};
+
+export async function getAuthUser(): Promise<AuthUser | null> {
   const session = await auth.api.getSession({
     headers: await getHeaders(),
   });
@@ -18,7 +28,14 @@ export async function getAuthUser() {
     return null;
   }
 
-  const user = { ...session.user, ...(await Users.findOne({ email })) } as any;
+  const dbUser = await Users.findOne({ email });
+
+  const user: AuthUser = {
+    ...session.user,
+    ...dbUser,
+    admin: dbUser?.admin ?? false,
+    login: dbUser?.login,
+  };
 
   // TODO: move this into .env file, it's public anyway
   user.admin ||= email.endsWith("@comfy.org");
