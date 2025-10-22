@@ -31,7 +31,7 @@ export const metadata: Metadata = {
  */
 export default async function GithubActionUpdateTaskPage() {
   const user = await getAuthUser();
-  if (!user.admin) return forbidden();
+  if (!user?.admin) return forbidden();
   const data = await listGithubActionUpdateTask();
 
   function filterHopper<T>(values: T[], predicates: Array<(value: T) => any>) {

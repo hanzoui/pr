@@ -18,6 +18,10 @@ export const dynamic = "force-dynamic";
  */
 export default async function GmailPage() {
   const user = await getAuthUser();
+  if (!user) {
+    return <div>Please log in to continue</div>;
+  }
+
   let authorizeUrl = "";
   const getOAuth2Client = async () =>
     await getGCloudOAuth2Client({
