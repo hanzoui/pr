@@ -31,7 +31,7 @@ const mockOpenAI = {
             {
               message: {
                 content: JSON.stringify({
-                  isTestExplainationIncluded: false,
+                  isTestExplanationIncluded: false,
                   isTestScreenshotIncluded: false,
                   isTestVideoIncluded: false,
                 }),
@@ -145,7 +145,7 @@ describe("gh-test-evidence", () => {
         {
           message: {
             content: JSON.stringify({
-              isTestExplainationIncluded: true,
+              isTestExplanationIncluded: true,
               isTestScreenshotIncluded: true,
               isTestVideoIncluded: false,
             }),
@@ -161,7 +161,7 @@ describe("gh-test-evidence", () => {
   it("should generate correct warning message format", async () => {
     // Test the warning message format matches the ComfyUI_frontend pattern
     const evidence = {
-      isTestExplainationIncluded: false,
+      isTestExplanationIncluded: false,
       isTestScreenshotIncluded: false,
       isTestVideoIncluded: false,
     };
