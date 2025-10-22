@@ -1,6 +1,6 @@
-import { getAuthUser } from "@/app/api/auth/[...nextauth]/getAuthUser";
 import "@/app/markdown.css";
 import "@/app/tasks-panel.css";
+import { getAuthUser } from "@/lib/getAuthUser";
 import { parseTitleBodyOfMarkdown } from "@/src/parseTitleBodyOfMarkdown";
 import { yaml } from "@/src/utils/yaml";
 import { compareBy } from "comparing";

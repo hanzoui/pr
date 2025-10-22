@@ -1,11 +1,12 @@
 import { auth } from "@/lib/auth";
 import { mongo } from "@/src/db";
+import { headers as getHeaders } from "next/headers";
 
 const Users = mongo.collection("users");
 
 export async function getAuthUser() {
   const session = await auth.api.getSession({
-    headers: new Headers(),
+    headers: await getHeaders(),
   });
 
   if (!session?.user) {

@@ -1,16 +1,8 @@
 // /followup/actions/email
 
-import { getAuthUser } from "@/app/api/auth/[...nextauth]/getAuthUser";
-import {
-  TaskDataOrNull,
-  TaskError,
-  TaskErrorOrNull,
-  TaskOK,
-} from "@/packages/mongodb-pipeline-ts/Task";
-import {
-  GCloudOAuth2Credentials,
-  getGCloudOAuth2Client,
-} from "@/src/gcloud/GCloudOAuth2Credentials";
+import { getAuthUser } from "@/lib/getAuthUser";
+import { TaskDataOrNull, TaskError, TaskErrorOrNull, TaskOK } from "@/packages/mongodb-pipeline-ts/Task";
+import { GCloudOAuth2Credentials, getGCloudOAuth2Client } from "@/src/gcloud/GCloudOAuth2Credentials";
 import { sendGmail } from "@/src/sendGmail";
 import { yaml } from "@/src/utils/yaml";
 import DIE from "@snomiao/die";
