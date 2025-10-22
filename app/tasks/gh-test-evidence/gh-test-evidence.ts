@@ -204,7 +204,7 @@ Return a JSON object with these boolean fields:
 Be lenient - if there's any indication of testing explanation or visual evidence, mark it as included.`;
 
   const completion = await openai.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: "gpt-5-mini",
     messages: [{ role: "user", content: prompt }],
     response_format: {
       type: "json_schema",
