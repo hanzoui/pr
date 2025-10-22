@@ -15,7 +15,7 @@ const REPOS = ["https://github.com/Comfy-Org/desktop", "https://github.com/comfy
 const BOT_COMMENT_MARKER = "<!-- COMFY_PR_BOT_TEST_EVIDENCE -->";
 
 const TestEvidenceSchema = z.object({
-  isTestExplainationIncluded: z.boolean().describe("true if PR body includes test plan or test explanations"),
+  isTestExplanationIncluded: z.boolean().describe("true if PR body includes test plan or test explanations"),
   isTestScreenshotIncluded: z.boolean().describe("true if PR body includes test screenshots or images"),
   isTestVideoIncluded: z.boolean().describe("true if PR body includes test videos or YouTube links"),
 });
@@ -124,7 +124,7 @@ async function processPR(pr: Awaited<ReturnType<typeof ghc.pulls.list>>["data"][
 
   // Determine what's missing
   const missingItems: string[] = [];
-  if (!task.evidence?.isTestExplainationIncluded) missingItems.push("test explanation");
+  if (!task.evidence?.isTestExplanationIncluded) missingItems.push("test explanation");
   if (!task.evidence?.isTestScreenshotIncluded) missingItems.push("screenshot");
   if (!task.evidence?.isTestVideoIncluded) missingItems.push("video");
 
@@ -197,7 +197,7 @@ PR Body:
 ${pr.body || "(empty)"}
 
 Return a JSON object with these boolean fields:
-- isTestExplainationIncluded: true if the PR body includes any test plan, test steps, or explanation of how the changes were tested
+- isTestExplanationIncluded: true if the PR body includes any test plan, test steps, or explanation of how the changes were tested
 - isTestScreenshotIncluded: true if the PR body includes screenshots, images, or GIFs (look for image URLs, github user-attachments, etc.)
 - isTestVideoIncluded: true if the PR body includes videos or YouTube links (look for youtube.com, youtu.be, video links)
 
@@ -214,11 +214,11 @@ Be lenient - if there's any indication of testing explanation or visual evidence
         schema: {
           type: "object",
           properties: {
-            isTestExplainationIncluded: { type: "boolean" },
+            isTestExplanationIncluded: { type: "boolean" },
             isTestScreenshotIncluded: { type: "boolean" },
             isTestVideoIncluded: { type: "boolean" },
           },
-          required: ["isTestExplainationIncluded", "isTestScreenshotIncluded", "isTestVideoIncluded"],
+          required: ["isTestExplanationIncluded", "isTestScreenshotIncluded", "isTestVideoIncluded"],
           additionalProperties: false,
         },
       },
@@ -232,7 +232,7 @@ Be lenient - if there's any indication of testing explanation or visual evidence
 function generateWarningMessage(evidence: TestEvidence): string {
   const warnings: string[] = [];
 
-  if (!evidence.isTestExplainationIncluded) {
+  if (!evidence.isTestExplanationIncluded) {
     warnings.push(`⚠️ **Warning: Test Explanation Missing**
 
 If this PR modifies behavior that requires testing, a test explanation is required. PRs lacking applicable test explanations may not be reviewed until added. Please add test explanations to ensure code quality and prevent regressions.`);
