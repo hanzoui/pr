@@ -1,8 +1,8 @@
 import { auth } from "@/lib/auth";
-import { mongo } from "@/src/db";
+import { db } from "@/src/db";
 import { headers as getHeaders } from "next/headers";
 
-const Users = mongo.collection("users");
+const Users = db.collection("users");
 
 export async function getAuthUser() {
   const session = await auth.api.getSession({
@@ -18,7 +18,7 @@ export async function getAuthUser() {
     return null;
   }
 
-  const user = { ...session.user, ...(await Users.findOne({ email })) };
+  const user = { ...session.user, ...(await Users.findOne({ email })) } as any;
 
   // TODO: move this into .env file, it's public anyway
   user.admin ||= email.endsWith("@comfy.org");

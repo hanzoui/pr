@@ -1,9 +1,9 @@
-import { mongo } from "@/src/db";
+import { db } from "@/src/db";
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 
 export const auth = betterAuth({
-  database: mongodbAdapter(mongo),
+  database: mongodbAdapter(db),
   emailAndPassword: {
     enabled: false,
   },
