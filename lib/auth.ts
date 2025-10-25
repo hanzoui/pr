@@ -2,22 +2,50 @@ import { db } from "@/src/db";
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 
+// Backward compatibility with NextAuth environment variables
+const getAuthConfig = () => {
+  // GitHub OAuth - support both AUTH_GITHUB_* and GITHUB_* (NextAuth style)
+  const githubId = process.env.AUTH_GITHUB_ID || process.env.GITHUB_ID || "";
+  const githubSecret = process.env.AUTH_GITHUB_SECRET || process.env.GITHUB_SECRET || "";
+
+  // Google OAuth - support both AUTH_GOOGLE_* and GOOGLE_* (NextAuth style)
+  const googleId = process.env.AUTH_GOOGLE_ID || process.env.GOOGLE_ID || "";
+  const googleSecret = process.env.AUTH_GOOGLE_SECRET || process.env.GOOGLE_SECRET || "";
+
+  // Base URL - support multiple env var names
+  const baseURL =
+    process.env.BETTER_AUTH_URL ||
+    process.env.NEXTAUTH_URL ||
+    (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
+
+  return {
+    githubId,
+    githubSecret,
+    googleId,
+    googleSecret,
+    baseURL,
+  };
+};
+
+const config = getAuthConfig();
+
 export const auth = betterAuth({
   database: mongodbAdapter(db),
+  baseURL: config.baseURL,
   emailAndPassword: {
     enabled: false,
   },
   socialProviders: {
     github: {
-      clientId: process.env.AUTH_GITHUB_ID || "",
-      clientSecret: process.env.AUTH_GITHUB_SECRET || "",
-      enabled: !!process.env.AUTH_GITHUB_SECRET,
+      clientId: config.githubId,
+      clientSecret: config.githubSecret,
+      enabled: !!config.githubSecret,
     },
     google: {
-      clientId: process.env.AUTH_GOOGLE_ID || "",
-      clientSecret: process.env.AUTH_GOOGLE_SECRET || "",
-      enabled: !!process.env.AUTH_GOOGLE_SECRET,
+      clientId: config.googleId,
+      clientSecret: config.googleSecret,
+      enabled: !!config.googleSecret,
     },
   },
-  trustedOrigins: process.env.NEXTAUTH_URL ? [process.env.NEXTAUTH_URL] : [],
+  trustedOrigins: config.baseURL ? [config.baseURL] : [],
 });
