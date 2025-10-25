@@ -3,7 +3,7 @@ import { gh } from "@/src/gh";
 import { ghc } from "@/src/ghc";
 import { ghUser } from "@/src/ghUser";
 import { parseIssueUrl } from "@/src/parseIssueUrl";
-import { parseUrlRepoOwner } from "@/src/parseOwnerRepo";
+import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
 import DIE from "@snomiao/die";
 import isCI from "is-ci";
 import { OpenAI } from "openai";
@@ -68,7 +68,7 @@ export default async function runGhTestEvidenceTask() {
     // Get all open PRs
     const prs = await pageFlow(1, async (page, per_page = 100) => {
       const { data } = await ghc.pulls.list({
-        ...parseUrlRepoOwner(repoUrl),
+        ...parseGithubRepoUrl(repoUrl),
         state: "open",
         page,
         per_page,
