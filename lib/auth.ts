@@ -1,4 +1,4 @@
-import { db } from "@/src/db";
+import { mongo } from "@/src/db";
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
 
@@ -30,7 +30,7 @@ const getAuthConfig = () => {
 const config = getAuthConfig();
 
 export const auth = betterAuth({
-  database: mongodbAdapter(db),
+  database: mongodbAdapter(mongo.db()),
   baseURL: config.baseURL,
   emailAndPassword: {
     enabled: false,
@@ -48,4 +48,11 @@ export const auth = betterAuth({
     },
   },
   trustedOrigins: config.baseURL ? [config.baseURL] : [],
+  // Add CORS configuration
+  cors: {
+    origin: true, // Allow all origins for now
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+  },
 });
