@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
-import { MongoClient } from "mongodb";
+import { MongoClient, type Db } from "mongodb";
 
 // Backward compatibility with NextAuth environment variables
 const getAuthConfig = () => {
@@ -36,7 +36,7 @@ const MONGODB_URI = process.env.MONGODB_URI ?? "mongodb://localhost:27017";
 const mongoClient = new MongoClient(MONGODB_URI);
 
 export const auth = betterAuth({
-  database: mongodbAdapter(mongoClient.db() as any),
+  database: mongodbAdapter(mongoClient.db() as Db),
   baseURL: config.baseURL,
   emailAndPassword: {
     enabled: false,
