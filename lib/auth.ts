@@ -1,6 +1,6 @@
 import { betterAuth } from "better-auth";
 import { mongodbAdapter } from "better-auth/adapters/mongodb";
-import { MongoClient } from "mongodb";
+import { MongoClient, type Db } from "mongodb";
 
 // Backward compatibility with NextAuth environment variables
 const getAuthConfig = () => {
@@ -13,9 +13,10 @@ const getAuthConfig = () => {
   const googleSecret = process.env.AUTH_GOOGLE_SECRET || process.env.GOOGLE_SECRET || "";
 
   // Base URL - support multiple env var names
+  // Priority: BETTER_AUTH_URL > NEXT_PUBLIC_APP_URL > VERCEL_URL
   const baseURL =
     process.env.BETTER_AUTH_URL ||
-    process.env.NEXTAUTH_URL ||
+    process.env.NEXT_PUBLIC_APP_URL ||
     (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : undefined);
 
   return {
@@ -34,7 +35,7 @@ const MONGODB_URI = process.env.MONGODB_URI ?? "mongodb://localhost:27017";
 const mongoClient = new MongoClient(MONGODB_URI);
 
 export const auth = betterAuth({
-  database: mongodbAdapter(mongoClient.db() as any),
+  database: mongodbAdapter(mongoClient.db() satisfies Db),
   baseURL: config.baseURL,
   emailAndPassword: {
     enabled: false,
