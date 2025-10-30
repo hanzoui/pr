@@ -1,40 +1,38 @@
 import { db } from "@/src/db";
-import { gh } from "@/lib/github";
+import { gh } from "@/src/gh";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
-import { getSlackChannel } from "@/lib/slack/channels";
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
+import { getSlackChannel } from "@/src/slack/channels";
+import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
 import runGithubFrontendReleaseNotificationTask from "./index";
 
-jest.mock("@/src/gh");
-jest.mock("@/src/slack/channels");
-jest.mock("../gh-desktop-release-notification/upsertSlackMessage");
+mock.module("@/src/gh", () => ({ gh: {} }));
+mock.module("@/src/slack/channels", () => ({ getSlackChannel: mock() }));
+mock.module("../gh-desktop-release-notification/upsertSlackMessage", () => ({ upsertSlackMessage: mock() }));
 
-const mockGh = gh as jest.Mocked<typeof gh>;
-const mockGetSlackChannel = getSlackChannel as jest.MockedFunction<typeof getSlackChannel>;
-const { upsertSlackMessage } = jest.requireMock(
-  "../gh-desktop-release-notification/upsertSlackMessage",
-);
+const mockGh = gh as any;
+const mockGetSlackChannel = getSlackChannel as any;
+
+import { upsertSlackMessage } from "../gh-desktop-release-notification/upsertSlackMessage";
+const mockUpsertSlackMessage = upsertSlackMessage as any;
 
 describe("GithubFrontendReleaseNotificationTask", () => {
   let collection: any;
 
   beforeEach(async () => {
-    jest.clearAllMocks();
-
     collection = {
-      findOne: jest.fn(),
-      findOneAndUpdate: jest.fn(),
-      createIndex: jest.fn(),
+      findOne: mock(),
+      findOneAndUpdate: mock(),
+      createIndex: mock(),
     };
 
-    jest.spyOn(db, "collection").mockReturnValue(collection);
+    spyOn(db, "collection").mockReturnValue(collection);
 
     mockGetSlackChannel.mockResolvedValue({
       id: "test-channel-id",
       name: "frontend",
     } as any);
 
-    upsertSlackMessage.mockResolvedValue({
+    mockUpsertSlackMessage.mockResolvedValue({
       text: "mocked message",
       channel: "test-channel-id",
       url: "https://slack.com/message/123",
@@ -42,7 +40,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
   });
 
   afterEach(async () => {
-    jest.restoreAllMocks();
+    // Cleanup
   });
 
   describe("parseGithubRepoUrl", () => {
@@ -68,9 +66,11 @@ describe("GithubFrontendReleaseNotificationTask", () => {
       };
 
       mockGh.repos = {
-        listReleases: jest.fn().mockResolvedValue({
-          data: [mockRelease],
-        }),
+        listReleases: mock(() =>
+          Promise.resolve({
+            data: [mockRelease],
+          }),
+        ),
       } as any;
 
       // First call - no existing message
@@ -128,9 +128,11 @@ describe("GithubFrontendReleaseNotificationTask", () => {
       };
 
       mockGh.repos = {
-        listReleases: jest.fn().mockResolvedValue({
-          data: [mockRelease],
-        }),
+        listReleases: mock(() =>
+          Promise.resolve({
+            data: [mockRelease],
+          }),
+        ),
       } as any;
 
       // Return task with existing message text matching new message
@@ -167,9 +169,11 @@ describe("GithubFrontendReleaseNotificationTask", () => {
       };
 
       mockGh.repos = {
-        listReleases: jest.fn().mockResolvedValue({
-          data: [mockPrerelease],
-        }),
+        listReleases: mock(() =>
+          Promise.resolve({
+            data: [mockPrerelease],
+          }),
+        ),
       } as any;
 
       // First call - save initial data
@@ -221,9 +225,11 @@ describe("GithubFrontendReleaseNotificationTask", () => {
       };
 
       mockGh.repos = {
-        listReleases: jest.fn().mockResolvedValue({
-          data: [mockDraft],
-        }),
+        listReleases: mock(() =>
+          Promise.resolve({
+            data: [mockDraft],
+          }),
+        ),
       } as any;
 
       collection.findOneAndUpdate.mockResolvedValue({
@@ -263,9 +269,11 @@ describe("GithubFrontendReleaseNotificationTask", () => {
       };
 
       mockGh.repos = {
-        listReleases: jest.fn().mockResolvedValue({
-          data: [oldRelease],
-        }),
+        listReleases: mock(() =>
+          Promise.resolve({
+            data: [oldRelease],
+          }),
+        ),
       } as any;
 
       collection.findOneAndUpdate.mockResolvedValue({
@@ -297,9 +305,11 @@ describe("GithubFrontendReleaseNotificationTask", () => {
       };
 
       mockGh.repos = {
-        listReleases: jest.fn().mockResolvedValue({
-          data: [mockRelease],
-        }),
+        listReleases: mock(() =>
+          Promise.resolve({
+            data: [mockRelease],
+          }),
+        ),
       } as any;
 
       // Return task with old message text
@@ -356,9 +366,11 @@ describe("GithubFrontendReleaseNotificationTask", () => {
       };
 
       mockGh.repos = {
-        listReleases: jest.fn().mockResolvedValue({
-          data: [mockRelease],
-        }),
+        listReleases: mock(() =>
+          Promise.resolve({
+            data: [mockRelease],
+          }),
+        ),
       } as any;
 
       // First call - save initial data
