@@ -79,7 +79,7 @@ Examples:
 ./tf.sh plan -out=tfplan
 ./tf.sh apply tfplan
 ./tf.sh state list
-./tf.sh state show google_storage_bucket.cache_bucket
+./tf.sh state show google_artifact_registry_repository.comfy_pr
 ```
 
 ## Important Files
@@ -124,7 +124,7 @@ If Terraform state is locked:
 ./tf.sh state list
 
 # Show specific resource details
-./tf.sh state show google_storage_bucket.cache_bucket
+./tf.sh state show google_artifact_registry_repository.comfy_pr
 ```
 
 ## CI/CD Integration
