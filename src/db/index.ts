@@ -11,11 +11,21 @@ if (!process.env.MONGODB_URI)
   console.warn("MONGODB_URI is not set, using default value. This may cause issues in production.");
 const MONGODB_URI = process.env.MONGODB_URI ?? "mongodb://PLEASE_SET_MONGODB_URI:27017";
 
+// Detect if we're in a build/compile phase (not runtime)
+const IS_BUILD_PHASE =
+  process.env.NEXT_PHASE === "phase-production-build" ||
+  (process.env.NODE_ENV === "production" && !process.env.MONGODB_URI);
+
 // Lazy initialization to avoid blocking during Next.js build
 let _mongo: Awaited<ReturnType<typeof hotResource<MongoClient>>> | null = null;
 let _initPromise: Promise<Awaited<ReturnType<typeof hotResource<MongoClient>>>> | null = null;
 
 async function getMongo() {
+  // During build phase, return a mock that never connects
+  if (IS_BUILD_PHASE) {
+    throw new Error("MongoDB connection not available during build phase");
+  }
+
   if (_mongo) return _mongo;
   if (_initPromise) return _initPromise;
 
@@ -63,13 +73,19 @@ function createCollectionProxy(collectionName: string): any {
       }
 
       // Return a function that lazily connects and calls the method
-      const lazyMethod = (...args: any[]) =>
-        getMongo().then((m) => {
+      const lazyMethod = (...args: any[]) => {
+        // During build phase, return a resolved promise with a no-op
+        if (IS_BUILD_PHASE) {
+          return Promise.resolve({});
+        }
+
+        return getMongo().then((m) => {
           const dbInstance = m.db();
           const collection = dbInstance.collection(collectionName);
           const value = (collection as any)[prop];
           return typeof value === "function" ? value.apply(collection, args) : value;
         });
+      };
 
       return lazyMethod;
     },
@@ -103,6 +119,7 @@ export const db = new Proxy({} as ReturnType<MongoClient["db"]> & { close: () =>
     if (prop === "then") return undefined; // Prevent Promise auto-awaiting
     if (prop === "close") {
       return async () => {
+        if (IS_BUILD_PHASE) return;
         const m = await getMongo();
         return m.close();
       };
@@ -110,12 +127,14 @@ export const db = new Proxy({} as ReturnType<MongoClient["db"]> & { close: () =>
     if (prop === "collection") {
       return (name: string, options?: any) => createCollectionProxy(name);
     }
-    return (...args: any[]) =>
-      getMongo().then((m) => {
+    return (...args: any[]) => {
+      if (IS_BUILD_PHASE) return Promise.resolve({});
+      return getMongo().then((m) => {
         const dbInstance = m.db();
         const value = (dbInstance as any)[prop];
         return typeof value === "function" ? value.apply(dbInstance, args) : value;
       });
+    };
   },
 });
 
