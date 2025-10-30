@@ -204,23 +204,18 @@ describe("GithubCoreTagNotificationTask", () => {
       listTags: mock(() => Promise.resolve({ data: mockTags })),
     } as any;
 
-    mockCollection.findOne.mockResolvedValue({
-      tagName: "v0.2.0",
-      commitSha: "existing123",
-      url: "https://github.com/comfyanonymous/ComfyUI/releases/tag/v0.2.0",
-      slackMessages: [
-        {
+    mockCollection.findOne.mockImplementation(() =>
+      Promise.resolve({
+        tagName: "v0.2.0",
+        commitSha: "existing123",
+        url: "https://github.com/comfyanonymous/ComfyUI/releases/tag/v0.2.0",
+        slackMessage: {
           text: "Already sent",
-          channel: "test-channel-desktop",
-          url: "https://slack.com/message/old1",
+          channel: "test-channel-id",
+          url: "https://slack.com/message/old",
         },
-        {
-          text: "Already sent",
-          channel: "test-channel-live-ops",
-          url: "https://slack.com/message/old2",
-        },
-      ],
-    });
+      }),
+    );
 
     await runGithubCoreTagNotificationTask();
 
