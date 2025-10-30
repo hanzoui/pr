@@ -1,72 +1,73 @@
-import { db } from "@/src/db";
-import { beforeEach, describe, it, mock } from "bun:test";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, it, mock } from "bun:test";
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
 
-// Mock dependencies
-const mockGh = {
-  issues: {
-    createComment: mock(() => Promise.resolve({ data: { id: 123 } })),
-    updateComment: mock(() => Promise.resolve({ data: { id: 123 } })),
-    deleteComment: mock(() => Promise.resolve()),
-    listComments: mock(() => Promise.resolve({ data: [] })),
-  },
+// Mock database
+const mockDb = {
+  collection: mock(() => ({
+    deleteMany: mock(() => Promise.resolve()),
+    findOne: mock(() => Promise.resolve(null)),
+    updateOne: mock(() => Promise.resolve()),
+  })),
 };
 
-const mockGhc = {
-  pulls: {
-    list: mock(() => Promise.resolve({ data: [] })),
-  },
-  issues: {
-    listComments: mock(() => Promise.resolve({ data: [] })),
-  },
-};
+mock.module("@/src/db", () => ({ db: mockDb }));
 
-const mockGhUser = mock(() => Promise.resolve({ login: "test-bot" }));
-
-const mockOpenAI = {
-  chat: {
-    completions: {
-      create: mock(() =>
-        Promise.resolve({
-          choices: [
-            {
-              message: {
-                content: JSON.stringify({
-                  isTestExplanationIncluded: false,
-                  isTestScreenshotIncluded: false,
-                  isTestVideoIncluded: false,
-                }),
-              },
-            },
-          ],
-        }),
-      ),
-    },
-  },
-};
-
-// Mock modules
-mock.module("@/src/gh", () => ({ gh: mockGh }));
-mock.module("@/src/ghc", () => ({ ghc: mockGhc }));
-mock.module("@/src/ghUser", () => ({ ghUser: mockGhUser }));
-mock.module("openai", () => ({
-  OpenAI: class {
-    chat = mockOpenAI.chat;
-  },
-}));
+// Setup MSW server
+const server = setupServer(
+  // GitHub API endpoints
+  http.get("https://api.github.com/repos/:owner/:repo/pulls", () => {
+    return HttpResponse.json([]);
+  }),
+  http.get("https://api.github.com/repos/:owner/:repo/issues/:number/comments", () => {
+    return HttpResponse.json([]);
+  }),
+  http.post("https://api.github.com/repos/:owner/:repo/issues/:number/comments", () => {
+    return HttpResponse.json({ id: 123 });
+  }),
+  http.patch("https://api.github.com/repos/:owner/:repo/issues/comments/:comment_id", () => {
+    return HttpResponse.json({ id: 123 });
+  }),
+  http.delete("https://api.github.com/repos/:owner/:repo/issues/comments/:comment_id", () => {
+    return HttpResponse.json({});
+  }),
+  // OpenAI API endpoint
+  http.post("https://api.openai.com/v1/chat/completions", () => {
+    return HttpResponse.json({
+      choices: [
+        {
+          message: {
+            content: JSON.stringify({
+              isTestExplanationIncluded: false,
+              isTestScreenshotIncluded: false,
+              isTestVideoIncluded: false,
+            }),
+          },
+        },
+      ],
+    });
+  }),
+);
 
 describe("gh-test-evidence", () => {
-  beforeEach(async () => {
-    // Clear database collection before each test
-    const collection = db.collection("GithubTestEvidenceTask");
-    await collection.deleteMany({});
+  beforeAll(() => {
+    // Start MSW server before all tests
+    server.listen({ onUnhandledRequest: "error" });
+  });
 
-    // Reset mocks
-    mockGh.issues.createComment.mockClear();
-    mockGh.issues.updateComment.mockClear();
-    mockGh.issues.deleteComment.mockClear();
-    mockGhc.pulls.list.mockClear();
-    mockGhc.issues.listComments.mockClear();
-    mockOpenAI.chat.completions.create.mockClear();
+  afterEach(() => {
+    // Reset handlers after each test
+    server.resetHandlers();
+  });
+
+  afterAll(() => {
+    // Clean up after all tests
+    server.close();
+  });
+
+  beforeEach(() => {
+    // Reset mocks before each test
+    mockDb.collection.mockClear();
   });
 
   it("should analyze PR with missing test evidence", async () => {
@@ -84,8 +85,14 @@ describe("gh-test-evidence", () => {
       },
     };
 
-    mockGhc.pulls.list.mockResolvedValueOnce({ data: [mockPR] });
-    mockGhc.issues.listComments.mockResolvedValueOnce({ data: [] });
+    server.use(
+      http.get("https://api.github.com/repos/:owner/:repo/pulls", () => {
+        return HttpResponse.json([mockPR]);
+      }),
+      http.get("https://api.github.com/repos/:owner/:repo/issues/:number/comments", () => {
+        return HttpResponse.json([]);
+      }),
+    );
 
     // Import and run the task
     const runGhTestEvidenceTask = (await import("./gh-test-evidence")).default;
@@ -110,7 +117,11 @@ describe("gh-test-evidence", () => {
       },
     };
 
-    mockGhc.pulls.list.mockResolvedValueOnce({ data: [mockPR] });
+    server.use(
+      http.get("https://api.github.com/repos/:owner/:repo/pulls", () => {
+        return HttpResponse.json([mockPR]);
+      }),
+    );
 
     // Should not call OpenAI or create comments for draft PRs
     // This would be verified in a full integration test
@@ -137,22 +148,29 @@ describe("gh-test-evidence", () => {
       body: "<!-- COMFY_PR_BOT_TEST_EVIDENCE -->\nWarning message",
     };
 
-    mockGhc.pulls.list.mockResolvedValueOnce({ data: [mockPR] });
-    mockGhc.issues.listComments.mockResolvedValueOnce({ data: [existingComment] });
-
-    mockOpenAI.chat.completions.create.mockResolvedValueOnce({
-      choices: [
-        {
-          message: {
-            content: JSON.stringify({
-              isTestExplanationIncluded: true,
-              isTestScreenshotIncluded: true,
-              isTestVideoIncluded: false,
-            }),
-          },
-        },
-      ],
-    });
+    server.use(
+      http.get("https://api.github.com/repos/:owner/:repo/pulls", () => {
+        return HttpResponse.json([mockPR]);
+      }),
+      http.get("https://api.github.com/repos/:owner/:repo/issues/:number/comments", () => {
+        return HttpResponse.json([existingComment]);
+      }),
+      http.post("https://api.openai.com/v1/chat/completions", () => {
+        return HttpResponse.json({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  isTestExplanationIncluded: true,
+                  isTestScreenshotIncluded: true,
+                  isTestVideoIncluded: false,
+                }),
+              },
+            },
+          ],
+        });
+      }),
+    );
 
     // Should call deleteComment
     // This would be verified in a full integration test
