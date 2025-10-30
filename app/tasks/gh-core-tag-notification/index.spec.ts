@@ -9,8 +9,8 @@ mock.module("../gh-desktop-release-notification/upsertSlackMessage", () => ({ up
 
 const mockCollection = {
   createIndex: mock(() => Promise.resolve({})),
-  findOne: mock(() => Promise.resolve(null)),
-  findOneAndUpdate: mock((_filter: any, update: any) => Promise.resolve(update.$set)),
+  findOne: mock(() => Promise.resolve(null)) as any,
+  findOneAndUpdate: mock((_filter: any, update: any) => Promise.resolve(update.$set)) as any,
 };
 
 mock.module("@/src/db", () => ({
