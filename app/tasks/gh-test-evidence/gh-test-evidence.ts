@@ -15,7 +15,7 @@ const REPOS = ["https://github.com/Comfy-Org/desktop", "https://github.com/comfy
 const BOT_COMMENT_MARKER = "<!-- COMFY_PR_BOT_TEST_EVIDENCE -->";
 
 const TestEvidenceSchema = z.object({
-  isTestExplanationIncluded: z.boolean().describe("true if PR body includes test plan or test explanations"),
+  isTestExplanationIncluded: z.boolean().describe("true if PR body includes test plan or test explanation"),
   isTestScreenshotIncluded: z.boolean().describe("true if PR body includes test screenshots or images"),
   isTestVideoIncluded: z.boolean().describe("true if PR body includes test videos or YouTube links"),
 });
