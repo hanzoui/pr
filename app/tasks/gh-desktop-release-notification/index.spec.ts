@@ -488,14 +488,10 @@ describe("GithubDesktopReleaseNotificationTask", () => {
         body: "Desktop release",
       };
 
-      let callCount = 0;
       mockGh.repos = {
-        listReleases: mock(() => {
-          callCount++;
-          return Promise.resolve(callCount === 1
-            ? { data: [mockComfyUIRelease] }
-            : { data: [mockDesktopRelease] });
-        }),
+        listReleases: mock()
+          .mockResolvedValueOnce({ data: [mockComfyUIRelease] })
+          .mockResolvedValueOnce({ data: [mockDesktopRelease] }),
       } as any;
 
       // Mock responses for both releases
@@ -538,9 +534,11 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       };
 
       mockGh.repos = {
-        listReleases: mock(() => Promise.resolve({
-          data: [oldRelease],
-        })),
+        listReleases: mock(() =>
+          Promise.resolve({
+            data: [oldRelease],
+          }),
+        ),
       } as any;
 
       mockCollection.findOneAndUpdate.mockResolvedValue({
@@ -564,6 +562,12 @@ describe("GithubDesktopReleaseNotificationTask", () => {
 
   describe("Database Index", () => {
     it("should create unique index on url field", async () => {
+      mockGh.repos = {
+        listReleases: mock(() => Promise.resolve({ data: [] })),
+      } as any;
+
+      await runGithubDesktopReleaseNotificationTask();
+
       expect(mockCollection.createIndex).toHaveBeenCalledWith({ url: 1 }, { unique: true });
     });
   });
