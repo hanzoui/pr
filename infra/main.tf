@@ -1,4 +1,4 @@
-# Team Dash - Cloud Run Deployment with Direct IAP (No Load Balancer)
+# Comfy-PR - Cloud Run Deployment with Direct IAP (No Load Balancer)
 
 terraform {
   required_providers {
@@ -58,9 +58,9 @@ provider "google-beta" {
 resource "google_artifact_registry_repository" "comfy_pr" {
   location      = var.region
   repository_id = var.service_name
-  description   = "Docker repository for Team Dash"
+  description   = "Docker repository for comfy-pr"
   format        = "DOCKER"
-  
+
   # depends_on = [google_project_service.apis]
 }
 
@@ -116,8 +116,8 @@ resource "google_cloud_run_v2_service" "comfy_pr" {
 # Cloud Run service account for accessing GCS bucket
 resource "google_service_account" "cloud_run_sa" {
   account_id   = "${var.service_name}-sa"
-  display_name = "Cloud Run Service Account for Team Dash"
-  description  = "Service account for Team Dash Cloud Run service"
+  display_name = "Cloud Run Service Account for comfy-pr"
+  description  = "Service account for comfy-pr Cloud Run service"
 }
 
 # Note: Storage permissions removed - using ephemeral storage only
@@ -125,8 +125,8 @@ resource "google_service_account" "cloud_run_sa" {
 # Service account for GitHub Actions (deployment)
 resource "google_service_account" "github_actions_sa" {
   account_id   = "github-actions-${var.service_name}"
-  display_name = "GitHub Actions Service Account for Team Dash"
-  description  = "Service account for GitHub Actions to deploy Team Dash"
+  display_name = "GitHub Actions Service Account for comfy-pr"
+  description  = "Service account for GitHub Actions to deploy comfy-pr"
 }
 
 # Grant GitHub Actions service account permission to push to Artifact Registry
