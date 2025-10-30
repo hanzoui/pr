@@ -50,17 +50,28 @@ export const mongo = new Proxy({} as Awaited<ReturnType<typeof hotResource<Mongo
 
 // Proxy for collection to make createIndex and other methods lazy
 function createCollectionProxy(collectionName: string): any {
-  return new Proxy({} as any, {
+  // Create a function that can be called and also has properties
+  const proxyFn = function () {} as any;
+
+  return new Proxy(proxyFn, {
     get: (target, prop) => {
       if (prop === "then") return undefined; // Prevent Promise auto-awaiting
-      return (...args: any[]) =>
+
+      // Return a function that lazily connects and calls the method
+      const lazyMethod = (...args: any[]) =>
         getMongo().then((m) => {
           const dbInstance = m.db();
           const collection = dbInstance.collection(collectionName);
           const value = (collection as any)[prop];
           return typeof value === "function" ? value.apply(collection, args) : value;
         });
+
+      return lazyMethod;
     },
+    // Make the proxy look like an object with methods
+    has: () => true,
+    ownKeys: () => ["createIndex", "findOne", "find", "insertOne", "updateOne", "deleteOne"],
+    getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true }),
   });
 }
 
