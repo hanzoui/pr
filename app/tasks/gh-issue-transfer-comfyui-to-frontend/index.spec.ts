@@ -162,7 +162,7 @@ describe("GithubFrontendIssueTransferTask", () => {
     expect(createdIssue.body).toContain(
       "*This issue is transferred from: https://github.com/comfyanonymous/ComfyUI/issues/123*",
     );
-    expect(createdIssue.labels).toEqual(["bug"]);
+    expect(createdIssue.labels).toEqual(["frontend", "bug"]);
     expect(createdIssue.assignees).toEqual(["testuser"]);
 
     // Verify comment was posted
