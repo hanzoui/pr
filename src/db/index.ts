@@ -50,12 +50,17 @@ export const mongo = new Proxy({} as Awaited<ReturnType<typeof hotResource<Mongo
 
 // Proxy for collection to make createIndex and other methods lazy
 function createCollectionProxy(collectionName: string): any {
-  // Create a function that can be called and also has properties
-  const proxyFn = function () {} as any;
+  // Use a plain object that can be extended with Object.assign
+  const target = {} as any;
 
-  return new Proxy(proxyFn, {
+  return new Proxy(target, {
     get: (target, prop) => {
       if (prop === "then") return undefined; // Prevent Promise auto-awaiting
+
+      // Check if property was added directly to the target (e.g., via Object.assign)
+      if (prop in target) {
+        return target[prop];
+      }
 
       // Return a function that lazily connects and calls the method
       const lazyMethod = (...args: any[]) =>
@@ -68,10 +73,28 @@ function createCollectionProxy(collectionName: string): any {
 
       return lazyMethod;
     },
+    // Allow properties to be set (for Object.assign)
+    set: (target, prop, value) => {
+      target[prop] = value;
+      return true;
+    },
     // Make the proxy look like an object with methods
-    has: () => true,
-    ownKeys: () => ["createIndex", "findOne", "find", "insertOne", "updateOne", "deleteOne"],
-    getOwnPropertyDescriptor: () => ({ enumerable: true, configurable: true }),
+    has: (target, prop) => prop in target || true,
+    ownKeys: (target) => [
+      ...Object.keys(target),
+      "createIndex",
+      "findOne",
+      "find",
+      "insertOne",
+      "updateOne",
+      "deleteOne",
+    ],
+    getOwnPropertyDescriptor: (target, prop) => {
+      if (prop in target) {
+        return Object.getOwnPropertyDescriptor(target, prop);
+      }
+      return { enumerable: true, configurable: true, writable: true };
+    },
   });
 }
 
