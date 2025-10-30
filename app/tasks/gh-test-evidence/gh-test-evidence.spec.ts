@@ -1,6 +1,6 @@
-import { afterAll, afterEach, beforeAll, beforeEach, describe, it, mock } from "bun:test";
+import { server } from "@/src/test/msw-setup";
+import { beforeEach, describe, it, mock } from "bun:test";
 import { http, HttpResponse } from "msw";
-import { setupServer } from "msw/node";
 
 // Mock database
 const mockDb = {
@@ -13,61 +13,29 @@ const mockDb = {
 
 mock.module("@/src/db", () => ({ db: mockDb }));
 
-// Setup MSW server
-const server = setupServer(
-  // GitHub API endpoints
-  http.get("https://api.github.com/repos/:owner/:repo/pulls", () => {
-    return HttpResponse.json([]);
-  }),
-  http.get("https://api.github.com/repos/:owner/:repo/issues/:number/comments", () => {
-    return HttpResponse.json([]);
-  }),
-  http.post("https://api.github.com/repos/:owner/:repo/issues/:number/comments", () => {
-    return HttpResponse.json({ id: 123 });
-  }),
-  http.patch("https://api.github.com/repos/:owner/:repo/issues/comments/:comment_id", () => {
-    return HttpResponse.json({ id: 123 });
-  }),
-  http.delete("https://api.github.com/repos/:owner/:repo/issues/comments/:comment_id", () => {
-    return HttpResponse.json({});
-  }),
-  // OpenAI API endpoint
-  http.post("https://api.openai.com/v1/chat/completions", () => {
-    return HttpResponse.json({
-      choices: [
-        {
-          message: {
-            content: JSON.stringify({
-              isTestExplanationIncluded: false,
-              isTestScreenshotIncluded: false,
-              isTestVideoIncluded: false,
-            }),
-          },
-        },
-      ],
-    });
-  }),
-);
-
 describe("gh-test-evidence", () => {
-  beforeAll(() => {
-    // Start MSW server before all tests
-    server.listen({ onUnhandledRequest: "error" });
-  });
-
-  afterEach(() => {
-    // Reset handlers after each test
-    server.resetHandlers();
-  });
-
-  afterAll(() => {
-    // Clean up after all tests
-    server.close();
-  });
-
   beforeEach(() => {
     // Reset mocks before each test
     mockDb.collection.mockClear();
+
+    // Setup default OpenAI handler
+    server.use(
+      http.post("https://api.openai.com/v1/chat/completions", () => {
+        return HttpResponse.json({
+          choices: [
+            {
+              message: {
+                content: JSON.stringify({
+                  isTestExplanationIncluded: false,
+                  isTestScreenshotIncluded: false,
+                  isTestVideoIncluded: false,
+                }),
+              },
+            },
+          ],
+        });
+      }),
+    );
   });
 
   it("should analyze PR with missing test evidence", async () => {
