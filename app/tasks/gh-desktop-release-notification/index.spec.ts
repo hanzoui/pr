@@ -432,13 +432,15 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       });
 
       // Find core task
-      mockCollection.findOne.mockResolvedValueOnce({
-        version: "v0.2.0",
-        slackMessage: {
-          text: "ComfyUI core v0.2.0 released",
-          url: "https://slack.com/message/core-123",
-        },
-      });
+      mockCollection.findOne.mockImplementationOnce(() =>
+        Promise.resolve({
+          version: "v0.2.0",
+          slackMessage: {
+            text: "ComfyUI core v0.2.0 released",
+            url: "https://slack.com/message/core-123",
+          },
+        }),
+      );
 
       // Second call - save with message including core version
       mockCollection.findOneAndUpdate.mockResolvedValueOnce({
