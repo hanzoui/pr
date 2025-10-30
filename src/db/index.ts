@@ -48,6 +48,22 @@ export const mongo = new Proxy({} as Awaited<ReturnType<typeof hotResource<Mongo
   },
 });
 
+// Proxy for collection to make createIndex and other methods lazy
+function createCollectionProxy(collectionName: string): any {
+  return new Proxy({} as any, {
+    get: (target, prop) => {
+      if (prop === "then") return undefined; // Prevent Promise auto-awaiting
+      return (...args: any[]) =>
+        getMongo().then((m) => {
+          const dbInstance = m.db();
+          const collection = dbInstance.collection(collectionName);
+          const value = (collection as any)[prop];
+          return typeof value === "function" ? value.apply(collection, args) : value;
+        });
+    },
+  });
+}
+
 export const db = new Proxy({} as ReturnType<MongoClient["db"]> & { close: () => Promise<void> }, {
   get: (target, prop) => {
     if (prop === "then") return undefined; // Prevent Promise auto-awaiting
@@ -56,6 +72,9 @@ export const db = new Proxy({} as ReturnType<MongoClient["db"]> & { close: () =>
         const m = await getMongo();
         return m.close();
       };
+    }
+    if (prop === "collection") {
+      return (name: string, options?: any) => createCollectionProxy(name);
     }
     return (...args: any[]) =>
       getMongo().then((m) => {
