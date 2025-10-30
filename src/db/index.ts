@@ -11,47 +11,60 @@ if (!process.env.MONGODB_URI)
   console.warn("MONGODB_URI is not set, using default value. This may cause issues in production.");
 const MONGODB_URI = process.env.MONGODB_URI ?? "mongodb://PLEASE_SET_MONGODB_URI:27017";
 
-// Skip actual DB connection during Next.js build
-const isBuildPhase = process.env.NEXT_PHASE === "phase-production-build";
+// Lazy initialization to avoid blocking during Next.js build
+let _mongo: Awaited<ReturnType<typeof hotResource<MongoClient>>> | null = null;
+let _initPromise: Promise<Awaited<ReturnType<typeof hotResource<MongoClient>>>> | null = null;
 
-export const mongo = await (isBuildPhase
-  ? Promise.resolve(null as any as MongoClient)
-  : hotResource(async () => [new MongoClient(MONGODB_URI), (conn) => conn.close()]));
+async function getMongo() {
+  if (_mongo) return _mongo;
+  if (_initPromise) return _initPromise;
 
-// Create a Proxy for db during build that returns dummy collection objects
-const buildTimeDb = new Proxy({} as any, {
-  get(target, prop) {
-    if (prop === "collection") {
-      return () =>
-        new Proxy({} as any, {
-          get(target, prop) {
-            if (prop === "createIndex") return () => Promise.resolve();
-            return () => {};
-          },
-        });
-    }
-    if (prop === "close") return async () => {};
-    return () => {};
-  },
-}) as ReturnType<MongoClient["db"]> & { close: () => Promise<void> };
+  _initPromise = hotResource(async () => [new MongoClient(MONGODB_URI), (conn) => conn.close()]);
+  _mongo = await _initPromise;
 
-export const db = isBuildPhase
-  ? buildTimeDb
-  : Object.assign(mongo.db(), {
-      close: async () => await mongo.close(),
-    });
+  // allow db conn for 45 mins in CI env to prevent long running CI jobs
+  if (isCI) {
+    setTimeout(
+      async () => {
+        await _mongo?.close();
+        // should not be needed, but just in case
+        process.exit(0);
+      },
+      45 * 60 * 1000,
+    );
+  }
 
-// allow db conn for 45 mins in CI env to prevent long running CI jobs
-if (isCI) {
-  setTimeout(
-    async () => {
-      await mongo.close();
-      // should not be needed, but just in case
-      process.exit(0);
-    },
-    45 * 60 * 1000,
-  );
+  return _mongo;
 }
+
+export const mongo = new Proxy({} as Awaited<ReturnType<typeof hotResource<MongoClient>>>, {
+  get: (target, prop) => {
+    if (prop === "then") return undefined; // Prevent Promise auto-awaiting
+    return (...args: any[]) =>
+      getMongo().then((m) => {
+        const value = (m as any)[prop];
+        return typeof value === "function" ? value.apply(m, args) : value;
+      });
+  },
+});
+
+export const db = new Proxy({} as ReturnType<MongoClient["db"]> & { close: () => Promise<void> }, {
+  get: (target, prop) => {
+    if (prop === "then") return undefined; // Prevent Promise auto-awaiting
+    if (prop === "close") {
+      return async () => {
+        const m = await getMongo();
+        return m.close();
+      };
+    }
+    return (...args: any[]) =>
+      getMongo().then((m) => {
+        const dbInstance = m.db();
+        const value = (dbInstance as any)[prop];
+        return typeof value === "function" ? value.apply(dbInstance, args) : value;
+      });
+  },
+});
 
 if (import.meta.main) {
   console.log(await db.admin().ping());
