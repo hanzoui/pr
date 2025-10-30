@@ -1,18 +1,29 @@
-import { db } from "@/src/db";
-import { gh } from "@/src/gh";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
-import { getSlackChannel } from "@/src/slack/channels";
 import { afterEach, beforeEach, describe, expect, it, mock, spyOn } from "bun:test";
-import runGithubFrontendReleaseNotificationTask from "./index";
 
+// Mock db module BEFORE importing anything that uses it
+const mockDb = {
+  collection: mock(() => ({
+    findOne: mock(),
+    findOneAndUpdate: mock(),
+    createIndex: mock(),
+  })),
+  close: mock(),
+};
+mock.module("@/src/db", () => ({ db: mockDb }));
 mock.module("@/src/gh", () => ({ gh: {} }));
 mock.module("@/src/slack/channels", () => ({ getSlackChannel: mock() }));
 mock.module("../gh-desktop-release-notification/upsertSlackMessage", () => ({ upsertSlackMessage: mock() }));
 
+// Now we can import the modules that depend on mocked modules
+const { db } = await import("@/src/db");
+const { gh } = await import("@/src/gh");
+const { getSlackChannel } = await import("@/src/slack/channels");
+const { upsertSlackMessage } = await import("../gh-desktop-release-notification/upsertSlackMessage");
+const { default: runGithubFrontendReleaseNotificationTask } = await import("./index");
+
 const mockGh = gh as any;
 const mockGetSlackChannel = getSlackChannel as any;
-
-import { upsertSlackMessage } from "../gh-desktop-release-notification/upsertSlackMessage";
 const mockUpsertSlackMessage = upsertSlackMessage as any;
 
 describe("GithubFrontendReleaseNotificationTask", () => {
