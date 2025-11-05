@@ -1,47 +1,63 @@
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 
-// Track mocked function calls
-let mockUpsertSlackMessageCalls: any[] = [];
-let mockFindOneAndUpdateCalls: any[] = [];
-let mockFindOneCalls: any[] = [];
-let mockTagsData: any[] = [];
-let mockCommitData: any = null;
-let mockGitTagData: any = null;
+// Factory function to create fresh mock state for each test
+const createMockState = () => ({
+  upsertSlackMessageCalls: [] as any[],
+  findOneAndUpdateCalls: [] as any[],
+  findOneCalls: [] as any[],
+  tagsData: [] as any[],
+  commitData: {
+    commit: {
+      author: { date: new Date().toISOString() },
+      committer: { date: new Date().toISOString() },
+    },
+  } as any,
+  gitTagData: null as any,
+  // Allow per-test customization of findOne behavior
+  findOneImpl: null as ((filter: any) => Promise<any>) | null,
+  // Allow per-test customization of findOneAndUpdate behavior
+  findOneAndUpdateImpl: null as ((filter: any, update: any, options: any) => Promise<any>) | null,
+});
 
-// Mock external dependencies BEFORE importing the module under test
-const mockCollection = {
+let mockState = createMockState();
+
+// Create mock collection with behavior that references mockState
+const createMockCollection = () => ({
   createIndex: async () => ({}),
   findOne: async (filter: any) => {
-    mockFindOneCalls.push(filter);
-    return null;
+    mockState.findOneCalls.push(filter);
+    return mockState.findOneImpl ? mockState.findOneImpl(filter) : null;
   },
   findOneAndUpdate: async (filter: any, update: any, options: any) => {
-    const result = { ...filter, ...update.$set };
-    mockFindOneAndUpdateCalls.push({ filter, update, options, result });
+    const defaultResult = { ...filter, ...update.$set };
+    const result = mockState.findOneAndUpdateImpl
+      ? await mockState.findOneAndUpdateImpl(filter, update, options)
+      : defaultResult;
+    mockState.findOneAndUpdateCalls.push({ filter, update, options, result });
     return result;
   },
-};
+});
 
-// Use bun's mock.module
+// Set up mocks before any imports
 const { mock } = await import("bun:test");
+
 mock.module("@/src/db", () => ({
   db: {
-    collection: () => mockCollection,
+    collection: () => createMockCollection(),
     close: async () => {},
   },
 }));
 
-// Mock GitHub client
 mock.module("@/src/gh", () => ({
   gh: {
     repos: {
-      listTags: async () => ({ data: mockTagsData }),
-      getCommit: async () => ({ data: mockCommitData }),
+      listTags: async () => ({ data: mockState.tagsData }),
+      getCommit: async () => ({ data: mockState.commitData }),
     },
     git: {
       getTag: async () => {
-        if (mockGitTagData) {
-          return { data: mockGitTagData };
+        if (mockState.gitTagData) {
+          return { data: mockState.gitTagData };
         }
         throw new Error("Not an annotated tag");
       },
@@ -49,15 +65,13 @@ mock.module("@/src/gh", () => ({
   },
 }));
 
-// Mock Slack channels
 mock.module("@/src/slack/channels", () => ({
   getSlackChannel: async () => ({ id: "test-channel-id", name: "desktop" }),
 }));
 
-// Mock upsert Slack message
 mock.module("../gh-desktop-release-notification/upsertSlackMessage", () => ({
   upsertSlackMessage: async (msg: any) => {
-    mockUpsertSlackMessageCalls.push(msg);
+    mockState.upsertSlackMessageCalls.push(msg);
     return {
       text: msg.text,
       channel: msg.channel,
@@ -66,42 +80,20 @@ mock.module("../gh-desktop-release-notification/upsertSlackMessage", () => ({
   },
 }));
 
-// Import after mocks are set up
+// Import task after mocks are configured
 const { default: runGithubCoreTagNotificationTask } = await import("./index");
 
 describe("GithubCoreTagNotificationTask", () => {
   beforeEach(() => {
-    // Reset tracking arrays
-    mockUpsertSlackMessageCalls = [];
-    mockFindOneAndUpdateCalls = [];
-    mockFindOneCalls = [];
-    mockTagsData = [];
-    mockCommitData = {
-      commit: {
-        author: { date: new Date().toISOString() },
-        committer: { date: new Date().toISOString() },
-      },
-    };
-    mockGitTagData = null;
-
-    // Reset mock functions
-    mockCollection.findOne = async (filter: any) => {
-      mockFindOneCalls.push(filter);
-      return null;
-    };
-    mockCollection.findOneAndUpdate = async (filter: any, update: any, options: any) => {
-      const result = { ...filter, ...update.$set };
-      mockFindOneAndUpdateCalls.push({ filter, update, options, result });
-      return result;
-    };
+    mockState = createMockState();
   });
 
   afterEach(() => {
-    // Clean up
+    // Clean up if needed
   });
 
   it("should fetch tags from the ComfyUI repository", async () => {
-    const mockTags = [
+    mockState.tagsData = [
       {
         name: "v0.2.1",
         commit: {
@@ -114,16 +106,13 @@ describe("GithubCoreTagNotificationTask", () => {
       },
     ];
 
-    mockTagsData = mockTags;
-
     await runGithubCoreTagNotificationTask();
 
-    // Verify tags were processed
-    expect(mockFindOneAndUpdateCalls.length).toBeGreaterThan(0);
+    expect(mockState.findOneAndUpdateCalls.length).toBeGreaterThan(0);
   });
 
   it("should save new tags to the database", async () => {
-    const mockTags = [
+    mockState.tagsData = [
       {
         name: "v0.2.2",
         commit: {
@@ -133,8 +122,7 @@ describe("GithubCoreTagNotificationTask", () => {
       },
     ];
 
-    mockTagsData = mockTags;
-    mockGitTagData = {
+    mockState.gitTagData = {
       tag: "v0.2.2",
       tagger: {
         date: new Date().toISOString(),
@@ -146,11 +134,11 @@ describe("GithubCoreTagNotificationTask", () => {
 
     await runGithubCoreTagNotificationTask();
 
-    expect(mockFindOneAndUpdateCalls.length).toBeGreaterThan(0);
+    expect(mockState.findOneAndUpdateCalls.length).toBeGreaterThan(0);
   });
 
   it("should send Slack notifications for new tags", async () => {
-    const mockTags = [
+    mockState.tagsData = [
       {
         name: "v0.2.3",
         commit: {
@@ -160,17 +148,15 @@ describe("GithubCoreTagNotificationTask", () => {
       },
     ];
 
-    mockTagsData = mockTags;
-
     await runGithubCoreTagNotificationTask();
 
-    expect(mockUpsertSlackMessageCalls.length).toBeGreaterThan(0);
-    const messageCall = mockUpsertSlackMessageCalls.find((call) => call.text.includes("v0.2.3"));
+    expect(mockState.upsertSlackMessageCalls.length).toBeGreaterThan(0);
+    const messageCall = mockState.upsertSlackMessageCalls.find((call) => call.text.includes("v0.2.3"));
     expect(messageCall).toBeDefined();
   });
 
   it("should not send duplicate notifications for existing tags", async () => {
-    const mockTags = [
+    mockState.tagsData = [
       {
         name: "v0.2.0",
         commit: {
@@ -180,11 +166,7 @@ describe("GithubCoreTagNotificationTask", () => {
       },
     ];
 
-    mockTagsData = mockTags;
-
-    // Mock findOne to return existing task
-    mockCollection.findOne = async (filter: any) => {
-      mockFindOneCalls.push(filter);
+    mockState.findOneImpl = async (filter) => {
       if (filter.tagName === "v0.2.0") {
         return {
           tagName: "v0.2.0",
@@ -202,11 +184,13 @@ describe("GithubCoreTagNotificationTask", () => {
 
     await runGithubCoreTagNotificationTask();
 
-    expect(mockUpsertSlackMessageCalls.length).toBe(0);
+    expect(mockState.upsertSlackMessageCalls.length).toBe(0);
   });
 
   it("should handle annotated tags with messages", async () => {
-    const mockTags = [
+    const tagMessage = "Major release with breaking changes";
+
+    mockState.tagsData = [
       {
         name: "v0.3.0",
         commit: {
@@ -216,10 +200,7 @@ describe("GithubCoreTagNotificationTask", () => {
       },
     ];
 
-    const tagMessage = "Major release with breaking changes";
-
-    mockTagsData = mockTags;
-    mockGitTagData = {
+    mockState.gitTagData = {
       tag: "v0.3.0",
       tagger: {
         date: new Date().toISOString(),
@@ -231,13 +212,14 @@ describe("GithubCoreTagNotificationTask", () => {
 
     await runGithubCoreTagNotificationTask();
 
-    const messageCall = mockUpsertSlackMessageCalls.find((call) => call.text.includes(tagMessage));
+    const messageCall = mockState.upsertSlackMessageCalls.find((call) => call.text.includes(tagMessage));
     expect(messageCall).toBeDefined();
   });
 
   it("should respect sendSince configuration", async () => {
     const oldDate = new Date("2024-01-01T00:00:00Z");
-    const mockTags = [
+
+    mockState.tagsData = [
       {
         name: "v0.1.0",
         commit: {
@@ -247,14 +229,14 @@ describe("GithubCoreTagNotificationTask", () => {
       },
     ];
 
-    mockTagsData = mockTags;
-    mockCommitData = {
+    mockState.commitData = {
       commit: {
         author: { date: oldDate.toISOString() },
         committer: { date: oldDate.toISOString() },
       },
     };
-    mockGitTagData = {
+
+    mockState.gitTagData = {
       tag: "v0.1.0",
       tagger: {
         date: oldDate.toISOString(),
@@ -264,6 +246,6 @@ describe("GithubCoreTagNotificationTask", () => {
     await runGithubCoreTagNotificationTask();
 
     // Should save the tag but not send a message (old date)
-    expect(mockUpsertSlackMessageCalls.length).toBe(0);
+    expect(mockState.upsertSlackMessageCalls.length).toBe(0);
   });
 });
