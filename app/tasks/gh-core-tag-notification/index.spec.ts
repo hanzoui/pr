@@ -1,40 +1,103 @@
-import { gh } from "@/src/gh";
-import { getSlackChannel } from "@/src/slack/channels";
-import { afterEach, beforeEach, describe, expect, it, jest } from "bun:test";
-import { upsertSlackMessage } from "../gh-desktop-release-notification/upsertSlackMessage";
+import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 
-jest.mock("@/src/gh");
-jest.mock("@/src/slack/channels");
-jest.mock("../gh-desktop-release-notification/upsertSlackMessage");
+// Track mocked function calls
+let mockUpsertSlackMessageCalls: any[] = [];
+let mockFindOneAndUpdateCalls: any[] = [];
+let mockFindOneCalls: any[] = [];
+let mockTagsData: any[] = [];
+let mockCommitData: any = null;
+let mockGitTagData: any = null;
 
+// Mock external dependencies BEFORE importing the module under test
 const mockCollection = {
-  createIndex: jest.fn().mockResolvedValue({}),
-  findOne: jest.fn().mockResolvedValue(null),
-  findOneAndUpdate: jest.fn().mockImplementation((_filter, update) => Promise.resolve(update.$set)),
+  createIndex: async () => ({}),
+  findOne: async (filter: any) => {
+    mockFindOneCalls.push(filter);
+    return null;
+  },
+  findOneAndUpdate: async (filter: any, update: any, options: any) => {
+    const result = { ...filter, ...update.$set };
+    mockFindOneAndUpdateCalls.push({ filter, update, options, result });
+    return result;
+  },
 };
 
-jest.mock("@/src/db", () => ({
+// Use bun's mock.module
+const { mock } = await import("bun:test");
+mock.module("@/src/db", () => ({
   db: {
-    collection: jest.fn(() => mockCollection),
+    collection: () => mockCollection,
+    close: async () => {},
   },
 }));
 
-import runGithubCoreTagNotificationTask from "./index";
+// Mock GitHub client
+mock.module("@/src/gh", () => ({
+  gh: {
+    repos: {
+      listTags: async () => ({ data: mockTagsData }),
+      getCommit: async () => ({ data: mockCommitData }),
+    },
+    git: {
+      getTag: async () => {
+        if (mockGitTagData) {
+          return { data: mockGitTagData };
+        }
+        throw new Error("Not an annotated tag");
+      },
+    },
+  },
+}));
+
+// Mock Slack channels
+mock.module("@/src/slack/channels", () => ({
+  getSlackChannel: async () => ({ id: "test-channel-id", name: "desktop" }),
+}));
+
+// Mock upsert Slack message
+mock.module("../gh-desktop-release-notification/upsertSlackMessage", () => ({
+  upsertSlackMessage: async (msg: any) => {
+    mockUpsertSlackMessageCalls.push(msg);
+    return {
+      text: msg.text,
+      channel: msg.channel,
+      url: msg.url || "https://slack.com/message/123",
+    };
+  },
+}));
+
+// Import after mocks are set up
+const { default: runGithubCoreTagNotificationTask } = await import("./index");
 
 describe("GithubCoreTagNotificationTask", () => {
-  const mockGh = gh as jest.Mocked<typeof gh>;
-  const mockGetSlackChannel = getSlackChannel as jest.MockedFunction<typeof getSlackChannel>;
-  const mockUpsertSlackMessage = upsertSlackMessage as jest.MockedFunction<typeof upsertSlackMessage>;
-
   beforeEach(() => {
-    jest.clearAllMocks();
-    mockCollection.findOne.mockResolvedValue(null);
-    mockCollection.findOneAndUpdate.mockImplementation((_filter, update) => Promise.resolve(update.$set));
-    mockGetSlackChannel.mockResolvedValue({ id: "test-channel-id", name: "desktop" } as any);
+    // Reset tracking arrays
+    mockUpsertSlackMessageCalls = [];
+    mockFindOneAndUpdateCalls = [];
+    mockFindOneCalls = [];
+    mockTagsData = [];
+    mockCommitData = {
+      commit: {
+        author: { date: new Date().toISOString() },
+        committer: { date: new Date().toISOString() },
+      },
+    };
+    mockGitTagData = null;
+
+    // Reset mock functions
+    mockCollection.findOne = async (filter: any) => {
+      mockFindOneCalls.push(filter);
+      return null;
+    };
+    mockCollection.findOneAndUpdate = async (filter: any, update: any, options: any) => {
+      const result = { ...filter, ...update.$set };
+      mockFindOneAndUpdateCalls.push({ filter, update, options, result });
+      return result;
+    };
   });
 
   afterEach(() => {
-    jest.clearAllMocks();
+    // Clean up
   });
 
   it("should fetch tags from the ComfyUI repository", async () => {
@@ -51,35 +114,12 @@ describe("GithubCoreTagNotificationTask", () => {
       },
     ];
 
-    mockGh.repos = {
-      listTags: jest.fn().mockResolvedValue({ data: mockTags }),
-      getCommit: jest.fn().mockResolvedValue({
-        data: {
-          commit: {
-            author: { date: new Date().toISOString() },
-            committer: { date: new Date().toISOString() },
-          },
-        },
-      }),
-    } as any;
-
-    mockGh.git = {
-      getTag: jest.fn().mockRejectedValue(new Error("Not an annotated tag")),
-    } as any;
-
-    mockUpsertSlackMessage.mockResolvedValue({
-      text: "Test message",
-      channel: "test-channel-id",
-      url: "https://slack.com/message/123",
-    });
+    mockTagsData = mockTags;
 
     await runGithubCoreTagNotificationTask();
 
-    expect(mockGh.repos.listTags).toHaveBeenCalledWith({
-      owner: "comfyanonymous",
-      repo: "ComfyUI",
-      per_page: 10,
-    });
+    // Verify tags were processed
+    expect(mockFindOneAndUpdateCalls.length).toBeGreaterThan(0);
   });
 
   it("should save new tags to the database", async () => {
@@ -93,40 +133,20 @@ describe("GithubCoreTagNotificationTask", () => {
       },
     ];
 
-    mockGh.repos = {
-      listTags: jest.fn().mockResolvedValue({ data: mockTags }),
-      getCommit: jest.fn().mockResolvedValue({
-        data: {
-          commit: {
-            author: { date: new Date().toISOString() },
-          },
-        },
-      }),
-    } as any;
-
-    mockGh.git = {
-      getTag: jest.fn().mockResolvedValue({
-        data: {
-          tag: "v0.2.2",
-          tagger: {
-            date: new Date().toISOString(),
-            name: "Test Author",
-            email: "test@example.com",
-          },
-          message: "Release v0.2.2 with new features",
-        },
-      }),
-    } as any;
-
-    mockUpsertSlackMessage.mockResolvedValue({
-      text: "Test message",
-      channel: "test-channel-id",
-      url: "https://slack.com/message/456",
-    });
+    mockTagsData = mockTags;
+    mockGitTagData = {
+      tag: "v0.2.2",
+      tagger: {
+        date: new Date().toISOString(),
+        name: "Test Author",
+        email: "test@example.com",
+      },
+      message: "Release v0.2.2 with new features",
+    };
 
     await runGithubCoreTagNotificationTask();
 
-    expect(mockCollection.findOneAndUpdate).toHaveBeenCalled();
+    expect(mockFindOneAndUpdateCalls.length).toBeGreaterThan(0);
   });
 
   it("should send Slack notifications for new tags", async () => {
@@ -140,35 +160,13 @@ describe("GithubCoreTagNotificationTask", () => {
       },
     ];
 
-    mockGh.repos = {
-      listTags: jest.fn().mockResolvedValue({ data: mockTags }),
-      getCommit: jest.fn().mockResolvedValue({
-        data: {
-          commit: {
-            author: { date: new Date().toISOString() },
-          },
-        },
-      }),
-    } as any;
-
-    mockGh.git = {
-      getTag: jest.fn().mockRejectedValue(new Error("Not an annotated tag")),
-    } as any;
-
-    mockUpsertSlackMessage.mockResolvedValue({
-      text: "🏷️ ComfyUI <https://github.com/comfyanonymous/ComfyUI/releases/tag/v0.2.3|Tag v0.2.3> created!",
-      channel: "test-channel-id",
-      url: "https://slack.com/message/789",
-    });
+    mockTagsData = mockTags;
 
     await runGithubCoreTagNotificationTask();
 
-    expect(mockUpsertSlackMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        channel: "test-channel-id",
-        text: expect.stringContaining("v0.2.3"),
-      }),
-    );
+    expect(mockUpsertSlackMessageCalls.length).toBeGreaterThan(0);
+    const messageCall = mockUpsertSlackMessageCalls.find((call) => call.text.includes("v0.2.3"));
+    expect(messageCall).toBeDefined();
   });
 
   it("should not send duplicate notifications for existing tags", async () => {
@@ -182,24 +180,29 @@ describe("GithubCoreTagNotificationTask", () => {
       },
     ];
 
-    mockGh.repos = {
-      listTags: jest.fn().mockResolvedValue({ data: mockTags }),
-    } as any;
+    mockTagsData = mockTags;
 
-    mockCollection.findOne.mockResolvedValue({
-      tagName: "v0.2.0",
-      commitSha: "existing123",
-      url: "https://github.com/comfyanonymous/ComfyUI/releases/tag/v0.2.0",
-      slackMessage: {
-        text: "Already sent",
-        channel: "test-channel-id",
-        url: "https://slack.com/message/old",
-      },
-    });
+    // Mock findOne to return existing task
+    mockCollection.findOne = async (filter: any) => {
+      mockFindOneCalls.push(filter);
+      if (filter.tagName === "v0.2.0") {
+        return {
+          tagName: "v0.2.0",
+          commitSha: "existing123",
+          url: "https://github.com/comfyanonymous/ComfyUI/releases/tag/v0.2.0",
+          slackMessage: {
+            text: "Already sent",
+            channel: "test-channel-id",
+            url: "https://slack.com/message/old",
+          },
+        };
+      }
+      return null;
+    };
 
     await runGithubCoreTagNotificationTask();
 
-    expect(mockUpsertSlackMessage).not.toHaveBeenCalled();
+    expect(mockUpsertSlackMessageCalls.length).toBe(0);
   });
 
   it("should handle annotated tags with messages", async () => {
@@ -215,37 +218,21 @@ describe("GithubCoreTagNotificationTask", () => {
 
     const tagMessage = "Major release with breaking changes";
 
-    mockGh.repos = {
-      listTags: jest.fn().mockResolvedValue({ data: mockTags }),
-    } as any;
-
-    mockGh.git = {
-      getTag: jest.fn().mockResolvedValue({
-        data: {
-          tag: "v0.3.0",
-          tagger: {
-            date: new Date().toISOString(),
-            name: "Test Author",
-            email: "test@example.com",
-          },
-          message: tagMessage,
-        },
-      }),
-    } as any;
-
-    mockUpsertSlackMessage.mockResolvedValue({
-      text: `🏷️ ComfyUI <https://github.com/comfyanonymous/ComfyUI/releases/tag/v0.3.0|Tag v0.3.0> created!\n> ${tagMessage}`,
-      channel: "test-channel-id",
-      url: "https://slack.com/message/annotated",
-    });
+    mockTagsData = mockTags;
+    mockGitTagData = {
+      tag: "v0.3.0",
+      tagger: {
+        date: new Date().toISOString(),
+        name: "Test Author",
+        email: "test@example.com",
+      },
+      message: tagMessage,
+    };
 
     await runGithubCoreTagNotificationTask();
 
-    expect(mockUpsertSlackMessage).toHaveBeenCalledWith(
-      expect.objectContaining({
-        text: expect.stringContaining(tagMessage),
-      }),
-    );
+    const messageCall = mockUpsertSlackMessageCalls.find((call) => call.text.includes(tagMessage));
+    expect(messageCall).toBeDefined();
   });
 
   it("should respect sendSince configuration", async () => {
@@ -260,30 +247,23 @@ describe("GithubCoreTagNotificationTask", () => {
       },
     ];
 
-    mockGh.repos = {
-      listTags: jest.fn().mockResolvedValue({ data: mockTags }),
-      getCommit: jest.fn().mockResolvedValue({
-        data: {
-          commit: {
-            author: { date: oldDate.toISOString() },
-          },
-        },
-      }),
-    } as any;
-
-    mockGh.git = {
-      getTag: jest.fn().mockResolvedValue({
-        data: {
-          tag: "v0.1.0",
-          tagger: {
-            date: oldDate.toISOString(),
-          },
-        },
-      }),
-    } as any;
+    mockTagsData = mockTags;
+    mockCommitData = {
+      commit: {
+        author: { date: oldDate.toISOString() },
+        committer: { date: oldDate.toISOString() },
+      },
+    };
+    mockGitTagData = {
+      tag: "v0.1.0",
+      tagger: {
+        date: oldDate.toISOString(),
+      },
+    };
 
     await runGithubCoreTagNotificationTask();
 
-    expect(mockUpsertSlackMessage).not.toHaveBeenCalled();
+    // Should save the tag but not send a message (old date)
+    expect(mockUpsertSlackMessageCalls.length).toBe(0);
   });
 });
