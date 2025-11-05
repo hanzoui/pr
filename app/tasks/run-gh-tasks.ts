@@ -7,6 +7,7 @@ import runGithubBugcopTask from "../../run/gh-bugcop/gh-bugcop";
 import runGithubBountyTask from "./gh-bounty/gh-bounty";
 import runGithubCoreTagNotificationTask from "./gh-core-tag-notification/index";
 import { runGithubDesignTask } from "./gh-design/gh-design";
+import runGithubDesktopIssueTransferTask from "./gh-desktop-issue-transfer/index";
 import runGithubDesktopReleaseNotificationTask from "./gh-desktop-release-notification/index";
 import runGithubFrontendIssueTransferTask from "./gh-frontend-issue-transfer/index";
 import runGithubFrontendReleaseNotificationTask from "./gh-frontend-release-notification/index";
@@ -35,6 +36,10 @@ const TASKS = [
   {
     name: "GitHub Frontend Issue Transfer Task",
     run: runGithubFrontendIssueTransferTask,
+  },
+  {
+    name: "GitHub Desktop Issue Transfer Task",
+    run: runGithubDesktopIssueTransferTask,
   },
   {
     name: "GitHub Bugcop Task",
