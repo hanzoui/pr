@@ -83,7 +83,6 @@ async function runGithubFrontendToDesktopIssueTransferTask() {
     };
   })
     .flat()
-    .limit(1)
     .map(async (issue) => {
       // Skip pull requests (they come through the issues API too)
       if (issue.pull_request) {
