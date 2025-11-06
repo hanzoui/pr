@@ -28,6 +28,8 @@ const config = {
 };
 
 export type GithubFrontendToDesktopIssueTransferTask = {
+  sourceOwner: string;
+  sourceRepo: string;
   sourceIssueNumber: number;
   sourceIssueUrl: string;
   targetIssueNumber?: number;
@@ -42,11 +44,16 @@ export const GithubFrontendToDesktopIssueTransferTask = db.collection<GithubFron
   "GithubFrontendToDesktopIssueTransferTask",
 );
 
-await GithubFrontendToDesktopIssueTransferTask.createIndex({ sourceIssueNumber: 1 }, { unique: true });
+await GithubFrontendToDesktopIssueTransferTask.createIndex(
+  { sourceOwner: 1, sourceRepo: 1, sourceIssueNumber: 1 },
+  { unique: true }
+);
 
-const save = async (task: { sourceIssueNumber: number } & Partial<GithubFrontendToDesktopIssueTransferTask>) =>
+const save = async (
+  task: { sourceOwner: string; sourceRepo: string; sourceIssueNumber: number } & Partial<GithubFrontendToDesktopIssueTransferTask>
+) =>
   (await GithubFrontendToDesktopIssueTransferTask.findOneAndUpdate(
-    { sourceIssueNumber: task.sourceIssueNumber },
+    { sourceOwner: task.sourceOwner, sourceRepo: task.sourceRepo, sourceIssueNumber: task.sourceIssueNumber },
     { $set: task },
     { upsert: true, returnDocument: "after" },
   )) || DIE("never");
@@ -90,6 +97,8 @@ async function runGithubFrontendToDesktopIssueTransferTask() {
       }
 
       const existingTask = await GithubFrontendToDesktopIssueTransferTask.findOne({
+        sourceOwner: sourceRepo.owner,
+        sourceRepo: sourceRepo.repo,
         sourceIssueNumber: issue.number,
       });
 
@@ -101,6 +110,8 @@ async function runGithubFrontendToDesktopIssueTransferTask() {
 
       console.log(issue.html_url);
       let task = await save({
+        sourceOwner: sourceRepo.owner,
+        sourceRepo: sourceRepo.repo,
         sourceIssueNumber: issue.number,
         sourceIssueUrl: issue.html_url,
       });
@@ -154,6 +165,8 @@ ${comments.length ? `\n\n**Original Comments:**\n\n${comments.join("\n\n")}` : "
           await $`open ${newIssue.data.html_url}`;
         }
         task = await save({
+          sourceOwner: sourceRepo.owner,
+          sourceRepo: sourceRepo.repo,
           sourceIssueNumber: issue.number,
           targetIssueNumber: newIssue.data.number,
           targetIssueUrl: newIssue.data.html_url,
@@ -179,6 +192,8 @@ ${comments.length ? `\n\n**Original Comments:**\n\n${comments.join("\n\n")}` : "
           console.log(`Posted comment on original issue #${issue.number}`);
 
           task = await save({
+            sourceOwner: sourceRepo.owner,
+            sourceRepo: sourceRepo.repo,
             sourceIssueNumber: issue.number,
             commentPosted: true,
             commentUrl: comment.data.html_url,
@@ -186,6 +201,8 @@ ${comments.length ? `\n\n**Original Comments:**\n\n${comments.join("\n\n")}` : "
         } catch (commentError) {
           console.error(`Failed to post comment on issue #${issue.number}:`, commentError);
           task = await save({
+            sourceOwner: sourceRepo.owner,
+            sourceRepo: sourceRepo.repo,
             sourceIssueNumber: issue.number,
             commentPosted: false,
             error: String(commentError),
@@ -196,6 +213,8 @@ ${comments.length ? `\n\n**Original Comments:**\n\n${comments.join("\n\n")}` : "
       } catch (error) {
         console.error(`Failed to transfer issue #${issue.number}:`, error);
         task = await save({
+          sourceOwner: sourceRepo.owner,
+          sourceRepo: sourceRepo.repo,
           sourceIssueNumber: issue.number,
           error: String(error),
         });

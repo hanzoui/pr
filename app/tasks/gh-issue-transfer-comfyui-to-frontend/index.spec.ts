@@ -8,7 +8,12 @@ const trackingMockDb = {
   collection: () => ({
     createIndex: async () => ({}),
     findOne: async (filter: any) => {
-      const op = dbOperations.find((op) => op.filter?.sourceIssueNumber === filter?.sourceIssueNumber);
+      const op = dbOperations.find(
+        (op) =>
+          op.filter?.sourceOwner === filter?.sourceOwner &&
+          op.filter?.sourceRepo === filter?.sourceRepo &&
+          op.filter?.sourceIssueNumber === filter?.sourceIssueNumber,
+      );
       return op?.data || null;
     },
     findOneAndUpdate: async (filter: any, update: any) => {
@@ -205,8 +210,14 @@ describe("GithubFrontendIssueTransferTask", () => {
   it("should skip already transferred issues", async () => {
     // Add existing transfer to database
     dbOperations.push({
-      filter: { sourceIssueNumber: 999 },
+      filter: {
+        sourceOwner: "comfyanonymous",
+        sourceRepo: "ComfyUI",
+        sourceIssueNumber: 999,
+      },
       data: {
+        sourceOwner: "comfyanonymous",
+        sourceRepo: "ComfyUI",
         sourceIssueNumber: 999,
         sourceIssueUrl: "https://github.com/comfyanonymous/ComfyUI/issues/999",
         targetIssueNumber: 888,
