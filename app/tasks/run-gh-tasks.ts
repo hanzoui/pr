@@ -8,8 +8,11 @@ import runGithubBountyTask from "./gh-bounty/gh-bounty";
 import runGithubCoreTagNotificationTask from "./gh-core-tag-notification/index";
 import { runGithubDesignTask } from "./gh-design/gh-design";
 import runGithubDesktopReleaseNotificationTask from "./gh-desktop-release-notification/index";
-import runGithubFrontendIssueTransferTask from "./gh-frontend-issue-transfer/index";
 import runGithubFrontendReleaseNotificationTask from "./gh-frontend-release-notification/index";
+import runGithubComfyUIToDesktopIssueTransferTask from "./gh-issue-transfer-comfyui-to-desktop/index";
+import runGithubFrontendIssueTransferTask from "./gh-issue-transfer-comfyui-to-frontend/index";
+import runGithubDesktopIssueTransferTask from "./gh-issue-transfer-desktop-to-frontend/index";
+import runGithubFrontendToDesktopIssueTransferTask from "./gh-issue-transfer-frontend-to-desktop/index";
 
 const TASKS = [
   {
@@ -35,6 +38,18 @@ const TASKS = [
   {
     name: "GitHub Frontend Issue Transfer Task",
     run: runGithubFrontendIssueTransferTask,
+  },
+  {
+    name: "GitHub Desktop Issue Transfer Task",
+    run: runGithubDesktopIssueTransferTask,
+  },
+  {
+    name: "GitHub ComfyUI to Desktop Issue Transfer Task",
+    run: runGithubComfyUIToDesktopIssueTransferTask,
+  },
+  {
+    name: "GitHub Frontend to Desktop Issue Transfer Task",
+    run: runGithubFrontendToDesktopIssueTransferTask,
   },
   {
     name: "GitHub Bugcop Task",
