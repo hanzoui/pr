@@ -30,8 +30,13 @@ const cfg = {
     // "https://github.com/Comfy-Org/ComfyUI_frontend", // handled by webhook
     // "https://github.com/Comfy-Org/desktop", // handled by webhook
   ],
-  // allow all users to edit bugcop:*, area:*, Core-*, labels
-  allow: [/^(?:Core|Core-.*)$/i, /^(?:bug-cop|area):.*$/i, /frontend/i],
+  allow: [
+    // allow all users to edit bugcop:*, area:*, Core-*, labels
+    /^(?:Core|Core-.*)$/i,
+    /^(?:bug-cop|area):.*$/i,
+    // allow all users to edit issue transfer labels
+    /frontend|desktop/i,
+  ],
 };
 type GithubIssueLabelOps = {
   target_url: string; // can be comment or issue
