@@ -5,14 +5,14 @@ import isCI from "is-ci";
 // Import all the 5-minute tasks
 import runGithubBugcopTask from "../../run/gh-bugcop/gh-bugcop";
 import runGithubBountyTask from "./gh-bounty/gh-bounty";
-import runGithubComfyUIToDesktopIssueTransferTask from "./gh-comfyui-to-desktop-issue-transfer/index";
 import runGithubCoreTagNotificationTask from "./gh-core-tag-notification/index";
 import { runGithubDesignTask } from "./gh-design/gh-design";
-import runGithubDesktopIssueTransferTask from "./gh-desktop-issue-transfer/index";
 import runGithubDesktopReleaseNotificationTask from "./gh-desktop-release-notification/index";
-import runGithubFrontendIssueTransferTask from "./gh-frontend-issue-transfer/index";
 import runGithubFrontendReleaseNotificationTask from "./gh-frontend-release-notification/index";
-import runGithubFrontendToDesktopIssueTransferTask from "./gh-frontend-to-desktop-issue-transfer/index";
+import runGithubComfyUIToDesktopIssueTransferTask from "./gh-issue-transfer-comfyui-to-desktop/index";
+import runGithubFrontendIssueTransferTask from "./gh-issue-transfer-comfyui-to-frontend/index";
+import runGithubDesktopIssueTransferTask from "./gh-issue-transfer-desktop-to-frontend/index";
+import runGithubFrontendToDesktopIssueTransferTask from "./gh-issue-transfer-frontend-to-desktop/index";
 
 const TASKS = [
   {
