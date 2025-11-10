@@ -14,7 +14,10 @@ const MONGODB_URI = process.env.MONGODB_URI ?? "mongodb://PLEASE_SET_MONGODB_URI
 // Detect if we're in a build/compile phase (not runtime)
 const IS_BUILD_PHASE =
   process.env.NEXT_PHASE === "phase-production-build" ||
-  (process.env.NODE_ENV === "production" && !process.env.MONGODB_URI);
+  process.env.VERCEL_ENV === "preview" ||
+  (process.env.NODE_ENV === "production" && !process.env.MONGODB_URI) ||
+  // During GitHub Actions build
+  (process.env.CI && !process.env.MONGODB_URI);
 
 // Lazy initialization to avoid blocking during Next.js build
 let _mongo: Awaited<ReturnType<typeof hotResource<MongoClient>>> | null = null;
