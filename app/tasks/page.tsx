@@ -1,5 +1,20 @@
 import Link from "next/link";
 import { Suspense } from "react";
+<<<<<<< HEAD
+=======
+import { GithubBugcopTask } from "../../run/gh-bugcop/gh-bugcop";
+import { GithubBountyTask } from "./gh-bounty/gh-bounty";
+import { GithubDesignTask } from "./gh-design/gh-design";
+import {
+  GithubContributorAnalyzeTask,
+  GithubContributorAnalyzeTaskFilter,
+} from "./github-contributor-analyze/GithubContributorAnalyzeTask";
+
+// Prevent static generation since this page requires database access
+export const dynamic = "force-dynamic";
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+>>>>>>> 895249f (fix: mark tasks index page as dynamic)
 
 // Force dynamic rendering to avoid build-time database access
 export const dynamic = "force-dynamic";
