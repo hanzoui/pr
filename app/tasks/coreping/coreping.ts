@@ -255,6 +255,42 @@ async function determinePullRequestReviewStatus(pull_request: GH["pull-request-s
   }
 }
 
+/**
+ * Gets the timestamp of the last relevant activity on a PR.
+ * This includes commits, comments from the PR author, or Core label additions.
+ * Used to calculate waiting time for feedback.
+ */
+async function getLastRelevantActivityTimestamp(pr: GH["pull-request-simple"] | GH["pull-request"]): Promise<Date> {
+  const timeline = await ghPaged(ghc.issues.listEventsForTimeline)({
+    ...parseIssueUrl(pr.html_url),
+  }).toArray();
+
+  // Find the most recent relevant event
+  const relevantEvents = timeline
+    .map((e) => e as UnionToIntersection<typeof e>)
+    .filter((e) => {
+      // Include commits
+      if (e.event === "committed") return true;
+
+      // Include comments from the PR author
+      if (e.event === "commented" && e.user?.login === pr.user?.login) return true;
+
+      // Include Core label additions
+      if (e.event === "labeled" && e.label?.name && LABELS.includes(e.label.name)) return true;
+
+      return false;
+    })
+    .sort((a, b) => {
+      const aDate = new Date(a.created_at || 0);
+      const bDate = new Date(b.created_at || 0);
+      return bDate.getTime() - aDate.getTime();
+    });
+
+  // Return the most recent event timestamp, or PR creation if no relevant events
+  const lastEvent = relevantEvents[0];
+  return lastEvent?.created_at ? new Date(lastEvent.created_at) : new Date(pr.created_at);
+}
+
 async function runCorePingTaskFull() {
   console.log("start", import.meta.file);
   const processedTasks = await sflow(coreReviewTrackerConfig.REPOLIST)
@@ -470,9 +506,9 @@ async function processPullRequestCorePingTask(
   // 	url: pr.html_url,
   // 	last_labeled_at: new Date(lastLabelEvent.created_at),
   // });
-  const createdAt = new Date(pr.created_at);
+  const lastActivityTimestamp = await getLastRelevantActivityTimestamp(pr);
   const now = new Date();
-  const diff = now.getTime() - createdAt.getTime();
+  const diff = now.getTime() - lastActivityTimestamp.getTime();
   const isFresh = diff <= 24 * 60 * 60 * 1000;
   const hours = Math.floor(diff / (60 * 60 * 1000));
   const sanitizedTitle = pr.title.replace(/\W+/g, " ").trim();
