@@ -1,8 +1,6 @@
 import Link from "next/link";
 import { Suspense } from "react";
-<<<<<<< HEAD
-=======
-import { GithubBugcopTask } from "../../run/gh-bugcop/gh-bugcop";
+import { GithubBugcopTask } from "../../bot/gh-bugcop/gh-bugcop";
 import { GithubBountyTask } from "./gh-bounty/gh-bounty";
 import { GithubDesignTask } from "./gh-design/gh-design";
 import {
@@ -11,12 +9,6 @@ import {
 } from "./github-contributor-analyze/GithubContributorAnalyzeTask";
 
 // Prevent static generation since this page requires database access
-export const dynamic = "force-dynamic";
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
->>>>>>> 895249f (fix: mark tasks index page as dynamic)
-
-// Force dynamic rendering to avoid build-time database access
 export const dynamic = "force-dynamic";
 
 const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -29,11 +21,6 @@ export default async function TasksIndexPage() {
   // Dynamic imports to avoid build-time execution
   const { GithubActionUpdateTask } =
     await import("@/src/GithubActionUpdateTask/GithubActionUpdateTask");
-  const { GithubBugcopTask } = await import("../../run/gh-bugcop/gh-bugcop");
-  const { GithubBountyTask } = await import("./gh-bounty/gh-bounty");
-  const { GithubDesignTask } = await import("./gh-design/gh-design");
-  const { GithubContributorAnalyzeTask, GithubContributorAnalyzeTaskFilter } =
-    await import("./github-contributor-analyze/GithubContributorAnalyzeTask");
 
   const Counts = {
     GithubActionUpdateTask: () => (
