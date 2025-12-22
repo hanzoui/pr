@@ -2,20 +2,17 @@
 import { db } from "@/src/db";
 import { TaskMetaCollection } from "@/src/db/TaskMeta";
 import { gh } from "@/src/gh";
+import { ghPageFlow } from "@/src/ghPageFlow";
 import { parseIssueUrl } from "@/src/parseIssueUrl";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
-import { getSlack } from "@/src/slack";
-import { getSlackChannel } from "@/src/slack/channels";
 import DIE from "@snomiao/die";
 import isCI from "is-ci";
-import sflow, { pageFlow } from "sflow";
+import sflow from "sflow";
 import sha256 from "sha256";
 import { z } from "zod";
-import { createTimeLogger } from "./createTimeLogger";
-import { ghDesignDefaultConfig } from "./default-config";
-import { slackMessageUrlParse, slackMessageUrlStringify } from "./slackMessageUrlParse";
 import { upsertSlackMessage } from "../gh-desktop-release-notification/upsertSlackMessage";
-import { ghPaged } from "@/src/paged";
+import { createTimeLogger } from "./createTimeLogger";
+import { slackMessageUrlParse, slackMessageUrlStringify } from "./slackMessageUrlParse";
 const tlog = createTimeLogger();
 
 /**
@@ -30,19 +27,16 @@ const tlog = createTimeLogger();
  */
 
 // 1. scan these repos
-const REPOURLS = [
-  'https://github.com/Comfy-Org/ComfyUI_frontend',
-  'https://github.com/Comfy-Org/desktop',
-];
+const REPOURLS = ["https://github.com/Comfy-Org/ComfyUI_frontend", "https://github.com/Comfy-Org/desktop"];
 
 // 2. match these labels
-const MATCH_LABELS = ['Design'];
+const MATCH_LABELS = ["Design"];
 
 // 3.1 request review from these users
 const REQUEST_REVIEWERS = ["PabloWiedemann"];
 
 // 3.2 notify to this slack channel
-const CHANNEL_NAME = 'product-design'
+const CHANNEL_NAME = "product-design";
 const SLACK_MESSAGE_TEMPLATE = `🎨 *New Design {{ITEM_TYPE}}*: {{STATE}} <{{URL}}|{{TITLE}}> {{COMMENTS}} by {{GITHUBUSER}}`;
 
 // Schema for GithubDesignTaskMeta validation
@@ -147,11 +141,11 @@ export async function runGithubDesignTask() {
   // Start processing design items
   const designItemsFlow = await sflow(REPOURLS)
     .map((url) =>
-      ghPaged(gh.issues.listForRepo)({
+      ghPageFlow(gh.issues.listForRepo)({
         ...parseGithubRepoUrl(url),
-        labels: MATCH_LABELS.join(','), // comma-separated list of labels
+        labels: MATCH_LABELS.join(","), // comma-separated list of labels
         state: "open", // scan only opened issues/PRs
-      })
+      }),
     )
     .confluenceByParallel() // merge page flows
     // simplify issue items
@@ -217,7 +211,7 @@ export async function runGithubDesignTask() {
         if (!task.slackUrl) {
           tlog(`Sending Slack Notification for design task: ${task.url} (${task.type})`);
           if (!dryRun) {
-            const msg = await upsertSlackMessage({ channelName: CHANNEL_NAME, text, });
+            const msg = await upsertSlackMessage({ channelName: CHANNEL_NAME, text });
             if (!msg.ok) {
               await saveGithubDesignTask(url, {
                 error: `Failed to send Slack message: ${msg.error}`,
@@ -238,7 +232,8 @@ export async function runGithubDesignTask() {
             tlog(`Updating Slack message for task: ${task.url}`);
             if (!dryRun) {
               await upsertSlackMessage({
-                ...slackMessageUrlParse(task.slackUrl), text,
+                ...slackMessageUrlParse(task.slackUrl),
+                text,
               });
               task = await saveGithubDesignTask(url, { slackMsgHash });
               tlog(`Slack message updated: ${task.slackUrl}`);
@@ -265,5 +260,3 @@ export async function runGithubDesignTask() {
     lastError: "",
   });
 }
-
-
