@@ -50,6 +50,8 @@ export const GithubReleaseNotificationTask = db.collection<GithubReleaseNotifica
   "GithubReleaseNotificationTask",
 );
 await GithubReleaseNotificationTask.createIndex({ url: 1 }, { unique: true });
+await GithubReleaseNotificationTask.createIndex({ version: 1 }); // Index for finding by version
+
 const save = async (task: { url: string } & Partial<GithubReleaseNotificationTask>) =>
   (await GithubReleaseNotificationTask.findOneAndUpdate(
     { url: task.url },
@@ -84,16 +86,27 @@ async function runGithubDesktopReleaseNotificationTask() {
     .map(async (release) => {
       const url = release.html_url;
       const status = release.draft ? "draft" : release.prerelease ? "prerelease" : "stable";
+      const version = release.tag_name;
 
-      // create task
+      // For draft releases, find existing task by version to preserve Slack message URL
+      // This prevents creating duplicate Slack messages when draft URL changes
+      let existingTask: GithubReleaseNotificationTask | null = null;
+      if (status === "draft" && version) {
+        existingTask = await GithubReleaseNotificationTask.findOne({ version });
+      }
+
+      // create or update task
       let task = await save({
         url,
         status: status,
         isStable: status == "stable",
-        version: release.tag_name,
+        version: version,
         coreVersion: (release.body || release.body_text)?.match(coreVersionPattern)?.[1],
         createdAt: new Date(release.created_at || DIE("no created_at in release, " + JSON.stringify(release))),
         releasedAt: !release.published_at ? undefined : new Date(release.published_at),
+        // Preserve existing Slack message URLs when draft URL changes
+        slackMessageDrafting: existingTask?.slackMessageDrafting || undefined,
+        slackMessage: existingTask?.slackMessage || undefined,
       });
       const coreTask = !task.coreVersion
         ? undefined
@@ -118,20 +131,27 @@ async function runGithubDesktopReleaseNotificationTask() {
           url,
           slackMessageDrafting: await upsertSlackMessage({
             ...newSlackMessage,
+            url: task.slackMessageDrafting?.url, // Pass existing URL to update instead of creating new message
             replyUrl: coreTask?.slackMessageDrafting?.url,
           }),
         });
       }
 
       // upsert stable message if new/changed
-      const shouldSendMessage = task.isStable || task.slackMessage?.url;
-      if (shouldSendMessage && task.slackMessage?.text?.trim() !== newSlackMessage.text.trim()) {
+      // FIX: Only send if stable AND (no existing message OR text changed)
+      // This prevents duplicate messages when multiple task runs occur concurrently
+      const shouldSendMessage = task.isStable && !task.slackMessage?.url;
+      const shouldUpdateMessage =
+        task.isStable && task.slackMessage?.url && task.slackMessage?.text?.trim() !== newSlackMessage.text.trim();
+
+      if (shouldSendMessage || shouldUpdateMessage) {
         // const replyUrl =
         //   coreTask?.slackMessageDrafting?.url || coreTask?.slackMessage?.url || task.slackMessageDrafting?.url;
         task = await save({
           url,
           slackMessage: await upsertSlackMessage({
             ...newSlackMessage,
+            url: task.slackMessage?.url, // Pass existing URL to update instead of creating new message
             // replyUrl: replyUrl,
             // reply_broadcast: replyUrl ? true : false,
           }),
