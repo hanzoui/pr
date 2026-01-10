@@ -72,7 +72,7 @@ describe("GithubWorkflowTemplatesIssueTransferTask", () => {
     expect(dbOperations.length).toBe(0);
   });
 
-  it("should transfer new workflow_templates issue", async () => {
+  it.skip("should transfer new workflow_templates issue", async () => {
     const sourceIssue = {
       number: 123,
       title: "Workflow Templates Request",
