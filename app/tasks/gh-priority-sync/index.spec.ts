@@ -120,6 +120,16 @@ mock.module("keyv-nest", () => ({
   default: (...stores: unknown[]) => stores[stores.length - 1],
 }));
 
+// Mock KeyvSqlite to use in-memory Map instead of SQLite
+mock.module("@keyv/sqlite", () => ({
+  default: class KeyvSqlite extends Map {},
+}));
+
+// Mock KeyvNedbStore to use in-memory Map instead of NeDB
+mock.module("keyv-nedb-store", () => ({
+  default: class KeyvNedbStore extends Map {},
+}));
+
 // Set environment variables
 process.env.GH_TOKEN_COMFY_PR_BOT = "test-token";
 process.env.NOTION_TOKEN = "test-notion-token";
