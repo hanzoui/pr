@@ -347,10 +347,19 @@ describe("GitHub API Client (gh)", () => {
       // Mock a 404 response for lightweight tags
       server.use(
         http.get("https://api.github.com/repos/:owner/:repo/git/tags/:tag_sha", () => {
-          return new HttpResponse(null, {
-            status: 404,
-            statusText: "Not Found",
-          });
+          return new HttpResponse(
+            JSON.stringify({
+              message: "Not Found",
+              documentation_url: "https://docs.github.com/rest/reference/git#get-a-tag",
+            }),
+            {
+              status: 404,
+              statusText: "Not Found",
+              headers: {
+                "Content-Type": "application/json",
+              },
+            },
+          );
         }),
       );
 
