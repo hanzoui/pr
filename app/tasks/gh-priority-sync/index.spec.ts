@@ -122,12 +122,20 @@ mock.module("keyv-nest", () => ({
 
 // Mock KeyvSqlite to use in-memory Map instead of SQLite
 mock.module("@keyv/sqlite", () => ({
-  default: class KeyvSqlite extends Map {},
+  default: class KeyvSqlite {
+    constructor() {
+      return new Map();
+    }
+  },
 }));
 
 // Mock KeyvNedbStore to use in-memory Map instead of NeDB
 mock.module("keyv-nedb-store", () => ({
-  default: class KeyvNedbStore extends Map {},
+  default: class KeyvNedbStore {
+    constructor() {
+      return new Map();
+    }
+  },
 }));
 
 // Set environment variables
