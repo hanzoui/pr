@@ -41,6 +41,18 @@ mock.module("@/src/parseIssueUrl", () => ({
   },
 }));
 
+// Mock parseGithubRepoUrl
+mock.module("@/src/parseOwnerRepo", () => ({
+  parseGithubRepoUrl: (url: string) => {
+    const match = url.match(/github\.com\/([^/]+)\/([^/]+)/);
+    if (!match) throw new Error(`Invalid repo URL: ${url}`);
+    return {
+      owner: match[1],
+      repo: match[2],
+    };
+  },
+}));
+
 // Mock Notion client
 let mockNotionPages: unknown[] = [];
 let mockNotionDatabase: unknown = null;
