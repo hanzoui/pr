@@ -76,4 +76,7 @@ repos/
 codes/
 tmp/
 
+# ai planning docs
+/*.md
 TODO.md
+
