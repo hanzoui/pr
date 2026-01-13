@@ -1,5 +1,88 @@
 # Claude Development Notes
 
+## Bot Refactoring with Slack Bolt Patterns (2026-01-13)
+
+### Problem
+
+The bot/index.ts file was a monolithic 1368-line file, making it difficult to maintain, test, and understand. Event handlers, helper functions, and state management were all mixed together.
+
+### Solution
+
+Applied Slack Bolt best practices from the official assistant template to refactor the codebase into a modular, maintainable structure.
+
+### Changes Made
+
+#### Directory Structure
+
+```
+bot/
+├── utils/
+│   ├── helpers.ts (33 lines) - sleep, commonPrefix, sanitized
+│   └── working_tasks.ts (67 lines) - addWorkingTask, removeWorkingTask, getWorkingTasks
+├── listeners/
+│   ├── index.ts (12 lines) - registerListeners hub
+│   └── events/
+│       ├── index.ts (20 lines) - event registration
+│       ├── app_mention.ts (50 lines) - app mention handler
+│       └── message.ts (72 lines) - message handler
+└── middleware/ (directory created for future use)
+```
+
+#### Key Patterns Implemented
+
+1. **Listener-Based Architecture**: Event handlers extracted to separate files with single responsibilities
+2. **Dependency Injection**: Handlers receive dependencies (logger, State, functions) as parameters
+3. **Factory Pattern**: `createAppMentionCallback()` and `createMessageCallback()` create configured handlers
+4. **Type Safety**: Exported `AppMentionEvent` type for reuse across modules
+
+#### Results
+
+- **bot/index.ts**: Reduced from 1368 → 1265 lines (7.5% reduction)
+- **New modules**: 254 lines of well-organized, testable code
+- **Code quality**: Improved separation of concerns, reusability, testability
+
+### Key Files Modified
+
+- `bot/index.ts`: Updated imports, removed duplicates, used factory-created callbacks
+- Created: `bot/utils/helpers.ts`, `bot/utils/working_tasks.ts`
+- Created: `bot/listeners/index.ts`, `bot/listeners/events/*.ts`
+
+### What Was Preserved
+
+- RestartManager - smart restart functionality
+- Working tasks state management - resume functionality
+- Health check system - process coordination
+- Agent spawning logic - claude-yes CLI integration
+- Terminal output streaming - live Slack updates
+- All existing functionality
+
+### What Was Deferred
+
+- Breaking down spawnBotOnSlackMessageEvent (still 880+ lines)
+- Streaming responses with client.chatStream()
+- Assistant API migration (requires Bolt App class)
+- Comprehensive test suite
+- Error handling middleware
+
+### Documentation
+
+- `REFACTORING_SUMMARY.md`: Detailed summary of changes
+- `task_plan.md`, `findings.md`, `progress.md`: Planning documents
+- Used planning-with-files skill for systematic approach
+
+### Testing
+
+Manual testing recommended:
+
+- Test app mentions in channels
+- Test direct messages
+- Test --continue flag (resume crashed tasks)
+- Test RestartManager (smart restart when idle)
+- Verify working tasks state management
+- Verify Slack reactions and message updates
+
+---
+
 ## TypeScript Performance Optimization (2026-01-10)
 
 ### Problem
@@ -55,7 +138,7 @@ The TypeScript server was experiencing severe performance issues causing slowdow
 
 - **`src/`**: Core utilities and shared functionality
 - **`app/tasks/`**: Specific task implementations
-- **`bot/code/`**: GitHub integration tools including pr-bot for spawning AI agents on repositories
+- **`bot/github/`**: GitHub integration tools including pr-bot for spawning AI agents on repositories
 - **`gh-service/`**: GitHub webhook service components
 - **`run/`**: Executable scripts and services
 - **Tests**: Co-located with source files using `.spec.ts` suffix
@@ -277,7 +360,7 @@ The bot system uses a two-tier architecture:
    - Must delegate all coding tasks to PR-Bot sub-agents
 
 2. **Worker Agents (PR-Bot Sub-Agents)** - Code Modification
-   - Spawned by master agent via `bun bot/code/pr-bot.ts`
+   - Spawned by master agent via `bun bot/github/pr-bot.ts`
    - Clones repositories to isolated directories (`/repos/`)
    - Has full write access to make code changes
    - Creates commits, branches, and pull requests
@@ -314,8 +397,7 @@ The bot agent prompt (lines 390-396 in `bot/index.ts`) includes the following sk
    - Access internal documentation and knowledge base
 
 5. **Code Modification via PR-Bot (REQUIRED for GitHub changes)**
-   - To make any code changes to GitHub repositories, use: `bun ../bot/code/pr-bot.ts --repo=<owner/repo> [--base=<base-branch>] [--head=<head-branch>] --prompt="<detailed coding task>"`
-   - If `--head` is not provided, the branch name will be auto-generated based on the prompt
+   - To make any code changes to GitHub repositories, use: `bun ../bot/github/pr-bot.ts --repo=<owner/repo> [--branch=<branch>] --prompt="<detailed coding task>"`
    - Master bot is a RESEARCH and COORDINATION agent only
    - All actual coding work must be delegated to pr-bot sub-agents
    - Master bot CANNOT create commits, branches, or PRs directly
@@ -345,52 +427,43 @@ See `bot/README.md` for documentation on the individual skill scripts.
 
 ### Overview
 
-The coding sub-agent system (`bot/code/coding/`) allows you to spawn AI coding agents that work on specific GitHub repositories. The agent automatically clones repositories, manages branches for PRs, and runs in an interactive coding session.
+The coding sub-agent system (`bot/github/coding/`) allows you to spawn AI coding agents that work on specific GitHub repositories. The agent automatically clones repositories, checks out branches, and runs in an interactive coding session.
 
 ### Implementation
 
-- **Main Script**: `bot/code/pr-bot.ts`
-- **Core Logic**: `bot/code/coding/pr-agent.ts`
-- **Tests**: `bot/code/coding/pr-agent.spec.ts`
-- **Repository Storage**: `/repos/[owner]/[repo]/tree/[head]/`
+- **Main Script**: `bot/github/pr-bot.ts`
+- **Core Logic**: `bot/github/coding/pr-agent.ts`
+- **Tests**: `bot/github/coding/pr-agent.spec.ts`
+- **Repository Storage**: `/repos/[owner]/[repo]/tree/[branch]/`
 
 ### Usage
 
 ```bash
-bun bot/code/pr-bot.ts --repo=<owner/repo> [--base=<base-branch>] [--head=<head-branch>] --prompt="<your prompt>"
+bun bot/github/pr-bot.ts --repo=<owner/repo> [--branch=<branch>] --prompt="<your prompt>"
 ```
 
 **Arguments:**
 
 - `--repo` (required): GitHub repository in format `owner/repo`
-- `--base` (optional): Base branch to merge into (defaults to `main`)
-- `--head` (optional): Head branch to develop on (auto-generated if not provided)
+- `--branch` (optional): Branch to work on (defaults to `main`)
 - `--prompt` (required): The coding task for the agent
 
 **Examples:**
 
 ```bash
-# Auto-generate head branch name from prompt
-bun bot/code/pr-bot.ts --repo=Comfy-Org/ComfyUI --prompt="Fix authentication bug in login module"
+# Fix a bug in ComfyUI
+bun bot/github/pr-bot.ts --repo=Comfy-Org/ComfyUI --prompt="Fix authentication bug in login module"
 
-# Specify both base and head branches explicitly
-bun bot/code/pr-bot.ts --repo=Comfy-Org/ComfyUI --base=main --head=fix/auth-bug --prompt="Fix authentication bug"
-
-# Work on a feature branch to merge into develop
-bun bot/code/pr-bot.ts --repo=Comfy-Org/ComfyUI_frontend --base=develop --head=feature/dark-mode --prompt="Add dark mode support"
+# Add a feature to the frontend
+bun bot/github/pr-bot.ts --repo=Comfy-Org/ComfyUI_frontend --branch=develop --prompt="Add dark mode support"
 ```
 
 ### How It Works
 
-1. **Branch Name Generation**: If `--head` is not provided, uses AI (GPT-4o-mini) to generate an appropriate branch name following conventions (e.g., `feature/add-dark-mode`, `fix/auth-bug`)
-2. **Auto-Clone**: Clones the repository to `/repos/[owner]/[repo]/tree/[head]/` if not already present
-3. **Branch Setup**:
-   - Verifies base branch exists
-   - Checks if head branch exists remotely; creates it from base if not
-   - Ensures proper branch isolation for feature development
-4. **Update**: If repository exists, pulls latest changes
-5. **Spawn Agent**: Launches `claude-yes` agent with enhanced prompt including branch context
-6. **Interactive Session**: Agent has full access to read, edit, and create files, with clear instructions to create a PR merging `head` → `base`
+1. **Auto-Clone**: Clones the repository to `/repos/[owner]/[repo]/tree/[branch]/` if not already present
+2. **Update**: If repository exists, pulls latest changes from the specified branch
+3. **Spawn Agent**: Launches `claude-yes` agent in the repository directory with the specified prompt
+4. **Interactive Session**: Agent has full access to read, edit, and create files in the repository
 
 ### Key Features
 
