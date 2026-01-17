@@ -166,6 +166,7 @@
     "vercel": "^34.4.0",
     "winston": "^3.17.0",
     "yaml": "^2.5.0",
+    "z-chat-completion": "^0.1.8",
     "zod": "^4.3.2",
     "zod-deep-partial": "^1.0.0",
     "zx": "^8.5.3"
