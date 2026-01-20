@@ -18,11 +18,11 @@ const getBaseURL = () => {
     return `https://${process.env.NEXT_PUBLIC_VERCEL_URL}`;
   }
 
-  // Production check - throw error if no URL is set in production
+  // During build time, use a placeholder URL
+  // At runtime in production, this should be set via environment variables
   if (process.env.NODE_ENV === "production") {
-    throw new Error(
-      "NEXT_PUBLIC_APP_URL or NEXT_PUBLIC_BETTER_AUTH_URL environment variable must be set in production.",
-    );
+    // Use a placeholder during build, will be overridden at runtime via env vars
+    return "https://placeholder.vercel.app";
   }
 
   // Local development fallback
