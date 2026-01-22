@@ -20,7 +20,11 @@ const TEAM_MEMBERS: TeamMember[] = [
   { username: "christian-byrne", startDate: new Date("2020-01-01"), displayName: "Christian" },
   { username: "robinjhuang", startDate: new Date("2020-01-01"), displayName: "Robin" },
   { username: "pythongosssss", startDate: new Date("2020-01-01"), displayName: "Simon" },
-  { username: "bigcat88", startDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), displayName: "BigCat" }, // 2 months ago
+  {
+    username: "bigcat88",
+    startDate: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
+    displayName: "BigCat",
+  }, // 2 months ago
   { username: "ltdrdata", startDate: new Date("2020-01-01"), displayName: "Dr Lt Data" },
   { username: "guill", startDate: new Date("2024-06-01"), displayName: "Guill" },
   // Additional active contributors (temporarily limiting for performance)
@@ -493,8 +497,12 @@ async function generateReport() {
     console.log(`\n${stat.member}`);
     console.log("-".repeat(40));
     console.log(`Total PRs: ${stat.totalPRs}`);
-    console.log(`  - Merged: ${stat.mergedPRs} (${((stat.mergedPRs / stat.totalPRs) * 100).toFixed(1)}%)`);
-    console.log(`  - Open: ${stat.openPRs} (${((stat.openPRs / stat.totalPRs) * 100).toFixed(1)}%)`);
+    console.log(
+      `  - Merged: ${stat.mergedPRs} (${((stat.mergedPRs / stat.totalPRs) * 100).toFixed(1)}%)`,
+    );
+    console.log(
+      `  - Open: ${stat.openPRs} (${((stat.openPRs / stat.totalPRs) * 100).toFixed(1)}%)`,
+    );
     console.log(
       `  - Closed (not merged): ${stat.closedNotMerged} (${((stat.closedNotMerged / stat.totalPRs) * 100).toFixed(1)}%)`,
     );
@@ -550,7 +558,8 @@ async function generateReport() {
     allMergeTimes.sort((a, b) => a - b);
     avgTime = allMergeTimes.reduce((sum, time) => sum + time, 0) / allMergeTimes.length;
     if (allMergeTimes.length % 2 === 0) {
-      medianTime = (allMergeTimes[allMergeTimes.length / 2 - 1] + allMergeTimes[allMergeTimes.length / 2]) / 2;
+      medianTime =
+        (allMergeTimes[allMergeTimes.length / 2 - 1] + allMergeTimes[allMergeTimes.length / 2]) / 2;
     } else {
       medianTime = allMergeTimes[Math.floor(allMergeTimes.length / 2)];
     }
@@ -569,7 +578,9 @@ async function generateReport() {
     console.log(`  Total PRs: ${data.total}`);
     console.log(`    - Merged: ${data.merged} (${((data.merged / data.total) * 100).toFixed(1)}%)`);
     console.log(`    - Open: ${data.open} (${((data.open / data.total) * 100).toFixed(1)}%)`);
-    console.log(`    - Closed (not merged): ${data.closed} (${((data.closed / data.total) * 100).toFixed(1)}%)`);
+    console.log(
+      `    - Closed (not merged): ${data.closed} (${((data.closed / data.total) * 100).toFixed(1)}%)`,
+    );
 
     if (data.mergeTimes.length > 0) {
       const avg = data.mergeTimes.reduce((sum, t) => sum + t, 0) / data.mergeTimes.length;
@@ -640,7 +651,9 @@ async function generateReport() {
     console.log(`  Total PRs: ${data.total}`);
     console.log(`    - Merged: ${data.merged} (${((data.merged / data.total) * 100).toFixed(1)}%)`);
     console.log(`    - Open: ${data.open} (${((data.open / data.total) * 100).toFixed(1)}%)`);
-    console.log(`    - Closed (not merged): ${data.closed} (${((data.closed / data.total) * 100).toFixed(1)}%)`);
+    console.log(
+      `    - Closed (not merged): ${data.closed} (${((data.closed / data.total) * 100).toFixed(1)}%)`,
+    );
 
     if (data.mergeTimes.length > 0) {
       const avg = data.mergeTimes.reduce((sum, t) => sum + t, 0) / data.mergeTimes.length;
@@ -737,7 +750,10 @@ async function generateReport() {
       merged: data.merged,
       open: data.open,
       closed: data.closed,
-      avgTime: data.mergeTimes.length > 0 ? data.mergeTimes.reduce((sum, t) => sum + t, 0) / data.mergeTimes.length : 0,
+      avgTime:
+        data.mergeTimes.length > 0
+          ? data.mergeTimes.reduce((sum, t) => sum + t, 0) / data.mergeTimes.length
+          : 0,
     })),
   };
 }

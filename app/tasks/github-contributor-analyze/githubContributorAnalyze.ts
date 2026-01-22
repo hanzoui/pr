@@ -6,7 +6,10 @@ import isCI from "is-ci";
 import sflow from "sflow";
 import sha256 from "sha256";
 import { $ } from "zx";
-import { GithubContributorAnalyzeTask, GithubContributorAnalyzeTaskFilter } from "./GithubContributorAnalyzeTask";
+import {
+  GithubContributorAnalyzeTask,
+  GithubContributorAnalyzeTaskFilter,
+} from "./GithubContributorAnalyzeTask";
 import { parseGitShortLog } from "./parseGitShortLog";
 
 if (import.meta.main) {
@@ -16,11 +19,17 @@ if (import.meta.main) {
   await $pipeline(CNRepos)
     .project({ repoUrl: "$repository", _id: 0 })
     .match({ repoUrl: /^https:\/\/github\.com/ })
-    .merge({ into: GithubContributorAnalyzeTask.collectionName, on: "repoUrl", whenMatched: "merge" })
+    .merge({
+      into: GithubContributorAnalyzeTask.collectionName,
+      on: "repoUrl",
+      whenMatched: "merge",
+    })
     .aggregate()
     .next();
 
-  const remain = await GithubContributorAnalyzeTask.countDocuments(GithubContributorAnalyzeTaskFilter);
+  const remain = await GithubContributorAnalyzeTask.countDocuments(
+    GithubContributorAnalyzeTaskFilter,
+  );
   const total = await GithubContributorAnalyzeTask.countDocuments();
 
   const notRetryableErrors = [
@@ -57,7 +66,6 @@ if (import.meta.main) {
         ),
     )
     .filter((e) => !e.error?.match("Access to this repository has been disabled by GitHub staff.")) //filter out not retryable error
-
     .pMap(
       async ({ _id, repoUrl }, index) => {
         console.log(`Task githubContributorAnalyze ${index}/${remain}/${total}`, { repoUrl });
@@ -69,7 +77,11 @@ if (import.meta.main) {
           }
           const result = await githubContributorAnalyze(repoUrl);
 
-          await GithubContributorAnalyzeTask.updateOne({ repoUrl }, { $set: { ...result } }, { upsert: true });
+          await GithubContributorAnalyzeTask.updateOne(
+            { repoUrl },
+            { $set: { ...result } },
+            { upsert: true },
+          );
           return result;
         } catch (e) {
           console.error("githubContributorAnalyze error", e);

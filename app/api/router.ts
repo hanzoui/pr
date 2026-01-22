@@ -1,14 +1,8 @@
 import pkg from "@/package.json";
-import { CNRepos } from "@/src/CNRepos";
-import { getWorkerInstance } from "@/src/WorkerInstances";
-import { analyzePullsStatus } from "@/src/analyzePullsStatus";
 import DIE from "@snomiao/die";
 import { initTRPC } from "@trpc/server";
-import sflow from "sflow";
 import type { OpenApiMeta } from "trpc-to-openapi";
 import z from "zod/v3";
-import { GithubDesignTaskMeta } from "../tasks/gh-design/gh-design";
-import { GithubContributorAnalyzeTask } from "../tasks/github-contributor-analyze/GithubContributorAnalyzeTask";
 
 export const t = initTRPC.meta<OpenApiMeta>().create(); /* 👈 */
 export const router = t.router({
@@ -36,9 +30,14 @@ export const router = t.router({
     .meta({ openapi: { method: "GET", path: "/worker", description: "Get current worker" } })
     .input(z.object({}))
     .output(z.any())
-    .query(async () => await getWorkerInstance()),
+    .query(async () => {
+      const { getWorkerInstance } = await import("@/src/WorkerInstances");
+      return await getWorkerInstance();
+    }),
   analyzePullsStatus: t.procedure
-    .meta({ openapi: { method: "GET", path: "/analyze-pulls-status", description: "Get current worker" } })
+    .meta({
+      openapi: { method: "GET", path: "/analyze-pulls-status", description: "Get current worker" },
+    })
     .input(z.object({ skip: z.number(), limit: z.number() }).partial())
     .output(
       z.object({
@@ -56,18 +55,22 @@ export const router = t.router({
         author_email: z.string().optional(),
       }),
     )
-    .query(async ({ input: { limit = 0, skip = 0 } }) => (await analyzePullsStatus({ limit, skip })) as any),
+    .query(async ({ input: { limit = 0, skip = 0 } }) => {
+      const { analyzePullsStatus } = await import("@/src/analyzePullsStatus");
+      return (await analyzePullsStatus({ limit, skip })) as any;
+    }),
   getRepoUrls: t.procedure
     .meta({ openapi: { method: "GET", path: "/repo-urls", description: "Get repo urls" } })
     .input(z.object({}))
     .output(z.array(z.string()))
-    .query(
-      async () =>
-        await sflow(CNRepos.find({}, { projection: { repository: 1 } }))
-          .map((e) => (e as unknown as { repository: string }).repository)
-          .filter((repo) => typeof repo === "string" && repo.length > 0)
-          .toArray(),
-    ),
+    .query(async () => {
+      const sflow = (await import("sflow")).default;
+      const { CNRepos } = await import("@/src/CNRepos");
+      return await sflow(CNRepos.find({}, { projection: { repository: 1 } }))
+        .map((e) => (e as unknown as { repository: string }).repository)
+        .filter((repo) => typeof repo === "string" && repo.length > 0)
+        .toArray();
+    }),
   GithubContributorAnalyzeTask: t.procedure
     .meta({
       openapi: {
@@ -96,11 +99,20 @@ export const router = t.router({
         }),
       ),
     )
-    .query(async () => await GithubContributorAnalyzeTask.find({}).toArray()),
+    .query(async () => {
+      const { GithubContributorAnalyzeTask } = await import(
+        "../tasks/github-contributor-analyze/GithubContributorAnalyzeTask"
+      );
+      return await GithubContributorAnalyzeTask.find({}).toArray();
+    }),
 
   githubContributorAnalyze: t.procedure
     .meta({
-      openapi: { method: "GET", path: "/github-contributor-analyze", description: "Get github contributor analyze" },
+      openapi: {
+        method: "GET",
+        path: "/github-contributor-analyze",
+        description: "Get github contributor analyze",
+      },
     })
     .input(z.object({ url: z.string() }))
     .output(
@@ -118,14 +130,19 @@ export const router = t.router({
     )
     .query(async ({ input: { url } }) => {
       // await import { githubContributorAnalyze } from "../tasks/github-contributor-analyze/githubContributorAnalyze";
-      const { githubContributorAnalyze } = await import("../tasks/github-contributor-analyze/githubContributorAnalyze");
+      const { githubContributorAnalyze } =
+        await import("../tasks/github-contributor-analyze/githubContributorAnalyze");
       const result = await githubContributorAnalyze(url);
       return result;
     }),
 
   getGithubDesignTaskMeta: t.procedure
     .meta({
-      openapi: { method: "GET", path: "/tasks/gh-design/meta", description: "Get github design task metadata" },
+      openapi: {
+        method: "GET",
+        path: "/tasks/gh-design/meta",
+        description: "Get github design task metadata",
+      },
     })
     .input(z.object({}))
     .output(
@@ -149,6 +166,7 @@ export const router = t.router({
     )
     .query(async () => {
       try {
+        const { GithubDesignTaskMeta } = await import("../tasks/gh-design/gh-design");
         const meta = await GithubDesignTaskMeta.findOne({ coll: "GithubDesignTask" });
         return { meta };
       } catch (error) {
@@ -159,7 +177,11 @@ export const router = t.router({
 
   updateGithubDesignTaskMeta: t.procedure
     .meta({
-      openapi: { method: "PATCH", path: "/tasks/gh-design/meta", description: "Update github design task metadata" },
+      openapi: {
+        method: "PATCH",
+        path: "/tasks/gh-design/meta",
+        description: "Update github design task metadata",
+      },
     })
     .input(
       z.object({
@@ -170,13 +192,18 @@ export const router = t.router({
             (template) => template.includes("{{ITEM_TYPE}}"),
             "Slack message template must include {{ITEM_TYPE}} placeholder",
           )
-          .refine((template) => template.includes("{{URL}}"), "Slack message template must include {{URL}} placeholder")
+          .refine(
+            (template) => template.includes("{{URL}}"),
+            "Slack message template must include {{URL}} placeholder",
+          )
           .refine(
             (template) => template.includes("{{TITLE}}"),
             "Slack message template must include {{TITLE}} placeholder",
           )
           .optional(),
-        requestReviewers: z.array(z.string().min(1, "Reviewer username cannot be empty")).optional(),
+        requestReviewers: z
+          .array(z.string().min(1, "Reviewer username cannot be empty"))
+          .optional(),
         repoUrls: z
           .array(
             z
@@ -211,12 +238,17 @@ export const router = t.router({
       }),
     )
     .mutation(async ({ input }) => {
-      throw new Error("Meta editing functionality is temporarily disabled. This feature is under maintenance.");
+      throw new Error(
+        "Meta editing functionality is temporarily disabled. This feature is under maintenance.",
+      );
       // TODO: add back later
       try {
+        const { GithubDesignTaskMeta } = await import("../tasks/gh-design/gh-design");
         const updateData: any = {};
-        if (input.slackMessageTemplate !== undefined) updateData.slackMessageTemplate = input.slackMessageTemplate;
-        if (input.requestReviewers !== undefined) updateData.requestReviewers = input.requestReviewers;
+        if (input.slackMessageTemplate !== undefined)
+          updateData.slackMessageTemplate = input.slackMessageTemplate;
+        if (input.requestReviewers !== undefined)
+          updateData.requestReviewers = input.requestReviewers;
         if (input.repoUrls !== undefined) updateData.repoUrls = input.repoUrls;
 
         const meta = await GithubDesignTaskMeta.$upsert(updateData);
