@@ -15,6 +15,7 @@
     "esModuleInterop": true,
     "resolvePackageJsonImports": true,
     "resolvePackageJsonExports": true,
+    "noImplicitAny": true,
     // Best practices
     "strict": true,
     "strictNullChecks": true,
@@ -36,6 +37,31 @@
     },
     "resolveJsonModule": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules", "prs/*", ".cache", "dist", "scripts"]
+  "include": [
+    "next-env.d.ts",
+    "app/**/*.ts",
+    "app/**/*.tsx",
+    "components/**/*.ts",
+    "components/**/*.tsx",
+    "lib/**/*.ts",
+    "src/**/*.ts",
+    "run/**/*.ts",
+    "gh-service/**/*.ts",
+    "packages/**/*.ts",
+    "reports/**/*.ts",
+    "mocks/**/*.ts",
+    "index.ts",
+    "next.config.ts",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "prs/*",
+    ".cache",
+    "dist",
+    "scripts",
+    "**/*.spec.ts",
+    "**/*.test.ts",
+    "**/node_modules"
+  ]
 }

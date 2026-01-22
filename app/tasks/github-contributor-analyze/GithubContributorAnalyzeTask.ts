@@ -14,9 +14,10 @@ export type GithubContributorAnalyzeTask = {
   errorAt?: Date;
 };
 
-export const GithubContributorAnalyzeTask = db.collection<GithubContributorAnalyzeTask>("GithubContributorAnalzyeTask"); // git shortlog --summary --numbered --email
+export const GithubContributorAnalyzeTask = db.collection<GithubContributorAnalyzeTask>(
+  "GithubContributorAnalzyeTask",
+); // git shortlog --summary --numbered --email
 export const GithubContributorAnalyzeTaskFilter = {
   updatedAt: { $not: { $gt: new Date(Date.now() - 1000 * 60 * 60 * 24) } },
 };
 // todo: rename GithubContributorAnalzyeTask => GithubContributorAnalyzeTask
-

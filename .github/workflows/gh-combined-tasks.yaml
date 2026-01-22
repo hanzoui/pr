@@ -4,13 +4,10 @@ on:
     # Runs every 5 minutes
     - cron: "*/5 * * * *"
   workflow_dispatch:
-  push:
+
+  pull_request:
     branches:
       - main
-      - sno-desktop-release-notification
-      - sno-bounty
-      - sno-design-label-track
-      - sno-bug-cop
     paths:
       - ".github/workflows/gh-combined-tasks.yaml"
       - "app/tasks/run-gh-tasks.ts"
@@ -19,6 +16,8 @@ on:
       - "app/tasks/gh-desktop-release-notification/**"
       - "app/tasks/gh-core-tag-notification/**"
       - "app/tasks/gh-bugcop/**"
+      - "app/tasks/gh-issue-transfer-*/**"
+      - "app/tasks/gh-priority-sync/**"
 
 jobs:
   run_combined_github_tasks:
@@ -43,9 +42,11 @@ jobs:
           FORK_OWNER: "ComfyNodePRs"
           FORK_PREFIX: "PR-"
 
-          # Common environment variables for all tasks
-          GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR_BOT }}
+          # DB, Integrations
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR_BOT }}
+          GH_TOKEN_COMFY_PR_BOT: ${{ secrets.GH_TOKEN_COMFY_PR_BOT }}
           OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
           SLACK_BOT_CHANNEL: ${{ secrets.SLACK_BOT_CHANNEL }}
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}

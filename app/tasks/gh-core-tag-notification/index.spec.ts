@@ -1,5 +1,5 @@
-import { gh } from "@/src/gh";
-import { getSlackChannel } from "@/src/slack/channels";
+import { gh } from "@/lib/github";
+import { getSlackChannel } from "@/lib/slack/channels";
 import { afterEach, beforeEach, describe, expect, it, jest } from "bun:test";
 import { upsertSlackMessage } from "../gh-desktop-release-notification/upsertSlackMessage";
 
@@ -24,13 +24,22 @@ import runGithubCoreTagNotificationTask from "./index";
 describe("GithubCoreTagNotificationTask", () => {
   const mockGh = gh as jest.Mocked<typeof gh>;
   const mockGetSlackChannel = getSlackChannel as jest.MockedFunction<typeof getSlackChannel>;
-  const mockUpsertSlackMessage = upsertSlackMessage as jest.MockedFunction<typeof upsertSlackMessage>;
+  const mockUpsertSlackMessage = upsertSlackMessage as jest.MockedFunction<
+    typeof upsertSlackMessage
+  >;
 
   beforeEach(() => {
     jest.clearAllMocks();
     mockCollection.findOne.mockResolvedValue(null);
-    mockCollection.findOneAndUpdate.mockImplementation((_filter, update) => Promise.resolve(update.$set));
-    mockGetSlackChannel.mockResolvedValue({ id: "test-channel-id", name: "desktop" } as any);
+    mockCollection.findOneAndUpdate.mockImplementation((_filter, update) =>
+      Promise.resolve(update.$set),
+    );
+    mockGetSlackChannel.mockImplementation((channelName: string) =>
+      Promise.resolve({
+        id: channelName === "desktop" ? "test-channel-desktop" : "test-channel-live-ops",
+        name: channelName,
+      } as any),
+    );
   });
 
   afterEach(() => {
@@ -129,7 +138,7 @@ describe("GithubCoreTagNotificationTask", () => {
     expect(mockCollection.findOneAndUpdate).toHaveBeenCalled();
   });
 
-  it("should send Slack notifications for new tags", async () => {
+  it("should send Slack notifications for new tags to multiple channels", async () => {
     const mockTags = [
       {
         name: "v0.2.3",
@@ -157,15 +166,23 @@ describe("GithubCoreTagNotificationTask", () => {
 
     mockUpsertSlackMessage.mockResolvedValue({
       text: "🏷️ ComfyUI <https://github.com/comfyanonymous/ComfyUI/releases/tag/v0.2.3|Tag v0.2.3> created!",
-      channel: "test-channel-id",
+      channel: "test-channel-desktop",
       url: "https://slack.com/message/789",
     });
 
     await runGithubCoreTagNotificationTask();
 
+    // Should be called twice - once for each channel
+    expect(mockUpsertSlackMessage).toHaveBeenCalledTimes(2);
     expect(mockUpsertSlackMessage).toHaveBeenCalledWith(
       expect.objectContaining({
-        channel: "test-channel-id",
+        channel: "test-channel-desktop",
+        text: expect.stringContaining("v0.2.3"),
+      }),
+    );
+    expect(mockUpsertSlackMessage).toHaveBeenCalledWith(
+      expect.objectContaining({
+        channel: "test-channel-live-ops",
         text: expect.stringContaining("v0.2.3"),
       }),
     );
@@ -190,11 +207,18 @@ describe("GithubCoreTagNotificationTask", () => {
       tagName: "v0.2.0",
       commitSha: "existing123",
       url: "https://github.com/comfyanonymous/ComfyUI/releases/tag/v0.2.0",
-      slackMessage: {
-        text: "Already sent",
-        channel: "test-channel-id",
-        url: "https://slack.com/message/old",
-      },
+      slackMessages: [
+        {
+          text: "Already sent",
+          channel: "test-channel-desktop",
+          url: "https://slack.com/message/old1",
+        },
+        {
+          text: "Already sent",
+          channel: "test-channel-live-ops",
+          url: "https://slack.com/message/old2",
+        },
+      ],
     });
 
     await runGithubCoreTagNotificationTask();

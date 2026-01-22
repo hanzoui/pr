@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { trpc } from "@/lib/trpc";
 import { zodResolver } from "@hookform/resolvers/zod";
-import React, { Suspense, useState } from "react";
+import React, { useState } from "react";
 import { useFieldArray, useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
@@ -30,12 +30,20 @@ function GithubDesignTaskMetaEditorComponent() {
     resolver: zodResolver(zGithubDesignTaskMeta),
   });
 
-  const { fields: reviewerFields, append: appendReviewer, remove: removeReviewer } = useFieldArray({
+  const {
+    fields: reviewerFields,
+    append: appendReviewer,
+    remove: removeReviewer,
+  } = useFieldArray({
     control: form.control,
     name: "requestReviewers",
   });
 
-  const { fields: repoFields, append: appendRepo, remove: removeRepo } = useFieldArray({
+  const {
+    fields: repoFields,
+    append: appendRepo,
+    remove: removeRepo,
+  } = useFieldArray({
     control: form.control,
     name: "repoUrls",
   });
@@ -48,20 +56,22 @@ function GithubDesignTaskMetaEditorComponent() {
     if (data?.meta) {
       const metaData = data.meta;
       form.reset({
-        slackMessageTemplate: metaData.slackMessageTemplate ?? "🎨 *New Design {{ITEM_TYPE}}*: <{{URL}}|{{TITLE}}>",
-        requestReviewers: (metaData.requestReviewers ?? []).map((reviewer: string) => ({ value: reviewer })),
+        slackMessageTemplate:
+          metaData.slackMessageTemplate ?? "🎨 *New Design {{ITEM_TYPE}}*: <{{URL}}|{{TITLE}}>",
+        requestReviewers: (metaData.requestReviewers ?? []).map((reviewer: string) => ({
+          value: reviewer,
+        })),
         repoUrls: (metaData.repoUrls ?? []).map((repo: string) => ({ value: repo })),
       });
     }
   }, [data, form]);
 
-
   const onSubmit = async (data: FormData) => {
     try {
       const payload = {
         slackMessageTemplate: data.slackMessageTemplate,
-        requestReviewers: data.requestReviewers.map(r => r.value),
-        repoUrls: data.repoUrls.map(r => r.value),
+        requestReviewers: data.requestReviewers.map((r) => r.value),
+        repoUrls: data.repoUrls.map((r) => r.value),
       };
 
       await updateMutation.mutateAsync(payload);
@@ -107,17 +117,11 @@ function GithubDesignTaskMetaEditorComponent() {
       <CardHeader>
         <CardTitle className="flex items-center justify-between">
           Task Configuration
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => setIsExpanded(!isExpanded)}
-          >
+          <Button variant="outline" size="sm" onClick={() => setIsExpanded(!isExpanded)}>
             {isExpanded ? "Hide" : "Show"} Config
           </Button>
         </CardTitle>
-        <CardDescription>
-          Configure the GitHub Design Task automation settings
-        </CardDescription>
+        <CardDescription>Configure the GitHub Design Task automation settings</CardDescription>
       </CardHeader>
 
       {isExpanded && (
@@ -138,7 +142,8 @@ function GithubDesignTaskMetaEditorComponent() {
                 </p>
               )}
               <p className="text-sm text-muted-foreground">
-                Use {`{{USERNAME}}`}, {`{{ITEM_TYPE}}`}, {`{{URL}}`}, and {`{{TITLE}}`} as placeholders
+                Use {`{{USERNAME}}`}, {`{{ITEM_TYPE}}`}, {`{{URL}}`}, and {`{{TITLE}}`} as
+                placeholders
               </p>
             </div>
 
@@ -208,9 +213,7 @@ function GithubDesignTaskMetaEditorComponent() {
                 ))}
               </div>
               {form.formState.errors.repoUrls && (
-                <p className="text-sm text-red-500">
-                  {form.formState.errors.repoUrls.message}
-                </p>
+                <p className="text-sm text-red-500">{form.formState.errors.repoUrls.message}</p>
               )}
             </div>
 
@@ -220,7 +223,9 @@ function GithubDesignTaskMetaEditorComponent() {
               disabled={form.formState.isSubmitting || updateMutation.isPending}
               className="w-full"
             >
-              {form.formState.isSubmitting || updateMutation.isPending ? "Saving..." : "Save Configuration"}
+              {form.formState.isSubmitting || updateMutation.isPending
+                ? "Saving..."
+                : "Save Configuration"}
             </Button>
           </form>
         </CardContent>

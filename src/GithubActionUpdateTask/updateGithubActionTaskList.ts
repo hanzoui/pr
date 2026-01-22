@@ -49,7 +49,7 @@ if (import.meta.main) {
     }),
     GithubActionUpdateTask.find({
       pullRequestMessage: new RegExp(
-        "- ## Add your own personal access token to your Github Repository secrets and reference it here\.",
+        "- ## Add your own personal access token to your Github Repository secrets and reference it here.",
       ),
     }),
   )
@@ -58,9 +58,11 @@ if (import.meta.main) {
     .forEach(async (e) => await GithubActionUpdateTask.deleteMany({ _id: e._id }))
     .toArray();
 
-  await writeFile("./.cache/" + import.meta.file + "-silly-log.yaml", yaml.stringify(silly)).catch(() => {
-    console.error("Error writing silly-log file");
-  });
+  await writeFile("./.cache/" + import.meta.file + "-silly-log.yaml", yaml.stringify(silly)).catch(
+    () => {
+      console.error("Error writing silly-log file");
+    },
+  );
 
   await updateGithubActionTaskList();
 
@@ -93,7 +95,11 @@ async function updateGithubActionTaskList() {
       return await updateGithubActionTask(repo).catch(async (err) => {
         console.error(err);
         const error = String(err);
-        await GithubActionUpdateTask.updateOne({ repo }, { $set: { error, updatedAt: new Date() } }, { upsert: true });
+        await GithubActionUpdateTask.updateOne(
+          { repo },
+          { $set: { error, updatedAt: new Date() } },
+          { upsert: true },
+        );
         // throw err;
       });
     })

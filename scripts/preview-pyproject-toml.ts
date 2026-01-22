@@ -17,7 +17,9 @@ async function previewPyprojectToml() {
   const outputIndex = args.indexOf("--output");
 
   const repoUrl =
-    repoIndex >= 0 && args[repoIndex + 1] ? args[repoIndex + 1] : "https://github.com/snomiao/ComfyNode-Registry-test"; // default test repo
+    repoIndex >= 0 && args[repoIndex + 1]
+      ? args[repoIndex + 1]
+      : "https://github.com/snomiao/ComfyNode-Registry-test"; // default test repo
 
   const outputFile = outputIndex >= 0 && args[outputIndex + 1] ? args[outputIndex + 1] : null;
 
@@ -38,7 +40,9 @@ async function previewPyprojectToml() {
     // Check if pyproject.toml already exists
     const existingToml = `${repoDir}/pyproject.toml`;
     if (existsSync(existingToml)) {
-      console.log("⚠️  Repository already has a pyproject.toml file. Backing it up and generating fresh one.\n");
+      console.log(
+        "⚠️  Repository already has a pyproject.toml file. Backing it up and generating fresh one.\n",
+      );
       await $`cd ${repoDir} && mv pyproject.toml pyproject.toml.backup`;
     }
 
@@ -58,12 +62,14 @@ async function previewPyprojectToml() {
     try {
       const { fetchRepoDescriptionMap } = await import("../src/fetchRepoDescriptionMap");
       const repoDescriptionMap = await fetchRepoDescriptionMap();
-      const urlParts = repoUrl.match(/github\.com\/([^\/]+)\/([^\/]+)/);
+      const urlParts = repoUrl.match(/github\.com\/([^/]+)\/([^/]+)/);
       if (urlParts) {
         const referenceUrl = `https://github.com/${urlParts[1]}/${urlParts[2]}`;
         const description = repoDescriptionMap[referenceUrl];
         if (description) {
-          console.log(`\n💡 Note: The actual PR would replace the description with:\n   "${description}"\n`);
+          console.log(
+            `\n💡 Note: The actual PR would replace the description with:\n   "${description}"\n`,
+          );
         }
       }
     } catch (e) {

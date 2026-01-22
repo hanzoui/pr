@@ -1,9 +1,9 @@
-import { Octokit } from "octokit";
 import sflow from "sflow";
+import { createOctokit } from "@/lib/github/createOctokit";
 import { parseGithubRepoUrl } from "./parseOwnerRepo";
 
 const tokens = process.env.GH_SUBSCRIBER_TOKENS?.split(",") || [];
-const gh = (token: string) => new Octokit({ auth: token }).rest;
+const gh = (token: string) => createOctokit({ auth: token }).rest;
 
 // dont await
 showSubscriberUsers();
@@ -53,7 +53,10 @@ export async function watchRepo(repoUrl: string) {
   await sflow(tokens)
     .map((token) => gh(token))
     .map(async (gh) => {
-      const result = await gh.activity.setRepoSubscription({ ...parseGithubRepoUrl(repoUrl), subscribed: true });
+      const result = await gh.activity.setRepoSubscription({
+        ...parseGithubRepoUrl(repoUrl),
+        subscribed: true,
+      });
 
       console.log(result);
     })
@@ -63,7 +66,10 @@ export async function unwatchRepo(repoUrl: string) {
   await sflow(tokens)
     .map((token) => gh(token))
     .map(async (gh) => {
-      const result = await gh.activity.setRepoSubscription({ ...parseGithubRepoUrl(repoUrl), subscribed: false });
+      const result = await gh.activity.setRepoSubscription({
+        ...parseGithubRepoUrl(repoUrl),
+        subscribed: false,
+      });
       console.log(result);
     })
     .run();

@@ -7,7 +7,7 @@ import { FcGoogle } from "react-icons/fc";
 /**
  * Login page for Comfy PR
  * Provides Google and GitHub OAuth authentication
- * 
+ *
  * Authorization Requirements:
  * - Google OAuth: Must have @comfy.org email to access admin pages
  * - GitHub OAuth: Must be member of github.com/Comfy-Org
@@ -39,17 +39,13 @@ export default function LoginPage() {
             className="flex items-center justify-center w-full py-3 px-4 border-2 border-gray-800 bg-gray-900 hover:bg-gray-800 rounded-lg transition-all duration-200 shadow-sm hover:shadow-md group"
           >
             <FaGithub className="w-6 h-6 mr-3 text-white" />
-            <span className="font-medium text-white">
-              Continue with GitHub
-            </span>
+            <span className="font-medium text-white">Continue with GitHub</span>
           </button>
         </div>
 
         {/* Authorization Notice */}
         <div className="mt-8 p-4 bg-amber-50 border border-amber-200 rounded-lg">
-          <h3 className="text-sm font-semibold text-amber-800 mb-2">
-            Pre-authorized users only
-          </h3>
+          <h3 className="text-sm font-semibold text-amber-800 mb-2">Pre-authorized users only</h3>
           <div className="text-xs text-amber-700 space-y-1">
             <p>
               <strong>Google:</strong> Requires @comfy.org email for admin access

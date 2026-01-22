@@ -8,8 +8,15 @@ import runGithubBountyTask from "./gh-bounty/gh-bounty";
 import runGithubCoreTagNotificationTask from "./gh-core-tag-notification/index";
 import { runGithubDesignTask } from "./gh-design/gh-design";
 import runGithubDesktopReleaseNotificationTask from "./gh-desktop-release-notification/index";
-import runGithubFrontendIssueTransferTask from "./gh-frontend-issue-transfer/index";
+import runGithubFrontendBackportCheckerTask from "./gh-frontend-backport-checker/index";
 import runGithubFrontendReleaseNotificationTask from "./gh-frontend-release-notification/index";
+import runGithubComfyUIToDesktopIssueTransferTask from "./gh-issue-transfer-comfyui-to-desktop/index";
+import runGithubFrontendIssueTransferTask from "./gh-issue-transfer-comfyui-to-frontend/index";
+import runGithubWorkflowTemplatesIssueTransferTask from "./gh-issue-transfer-comfyui-to-workflow_templates/index";
+import runGithubDesktopIssueTransferTask from "./gh-issue-transfer-desktop-to-frontend/index";
+import runGithubFrontendToComfyuiIssueTransferTask from "./gh-issue-transfer-frontend-to-comfyui/index";
+import runGithubFrontendToDesktopIssueTransferTask from "./gh-issue-transfer-frontend-to-desktop/index";
+import runGithubIssuePrioritiesLabelerTask from "./gh-priority-sync/index";
 import runGhTestEvidenceTask from "./gh-test-evidence/gh-test-evidence";
 
 const TASKS = [
@@ -30,13 +37,44 @@ const TASKS = [
     run: runGithubFrontendReleaseNotificationTask,
   },
   {
+    name: "GitHub Frontend Backport Checker Task",
+    run: runGithubFrontendBackportCheckerTask,
+  },
+  {
     name: "GitHub Core Tag Notification Task",
     run: runGithubCoreTagNotificationTask,
   },
+  // issue transfer between repos: ComfyUI, Frontend, Desktop
   {
     name: "GitHub Frontend Issue Transfer Task",
     run: runGithubFrontendIssueTransferTask,
   },
+  {
+    name: "GitHub Desktop Issue Transfer Task",
+    run: runGithubDesktopIssueTransferTask,
+  },
+  {
+    name: "GitHub ComfyUI to Desktop Issue Transfer Task",
+    run: runGithubComfyUIToDesktopIssueTransferTask,
+  },
+  {
+    name: "GitHub Frontend to Desktop Issue Transfer Task",
+    run: runGithubFrontendToDesktopIssueTransferTask,
+  },
+  {
+    name: "GitHub Frontend to ComfyUI Issue Transfer Task",
+    run: runGithubFrontendToComfyuiIssueTransferTask,
+  },
+  {
+    name: "GitHub Workflow Templates Issue Transfer Task",
+    run: runGithubWorkflowTemplatesIssueTransferTask,
+  },
+  // priorities labeler
+  {
+    name: "GitHub Issue Priorities Labeler Task",
+    run: runGithubIssuePrioritiesLabelerTask,
+  },
+  // bugcop
   {
     name: "GitHub Bugcop Task",
     run: runGithubBugcopTask,
@@ -56,8 +94,13 @@ async function runAllTasks() {
       console.log(`� Starting: ${task.name}`);
       const startTime = Date.now();
 
+      const id = setInterval(() => {
+        // ping per 10s
+        console.log(`[debug] ping: ${task.name} still running`);
+      }, 10e3);
       try {
         await task.run();
+
         const duration = Date.now() - startTime;
         console.log(` Completed: ${task.name} (${duration}ms)`);
         return { name: task.name, status: "success", duration };
@@ -65,6 +108,8 @@ async function runAllTasks() {
         const duration = Date.now() - startTime;
         console.error(`L Failed: ${task.name} (${duration}ms)`, error);
         throw { name: task.name, status: "error", duration, error };
+      } finally {
+        clearInterval(id);
       }
     }),
   );
@@ -89,17 +134,28 @@ async function runAllTasks() {
   failed.forEach((result) => {
     if (result.status === "rejected") {
       const error = result.reason;
-      console.error(`  L ${error.name}: ${error.duration}ms - ${error.error?.message || error.error}`);
+      console.error(
+        `  L ${error.name}: ${error.duration}ms - ${error.error?.message || error.error}`,
+      );
     }
   });
 
   // If any task failed, exit with error code
   if (failed.length > 0) {
     console.error(`\n=� ${failed.length} task(s) failed. Exiting with error code 1.`);
+    // show failed tasks details
+    failed.forEach((result) => {
+      if (result.status === "rejected") {
+        const error = result.reason;
+        console.error(
+          `  L ${error.name}: ${error.duration}ms - ${error.error?.message || error.error}`,
+        );
+      }
+    });
     if (isCI) {
       await db.close();
+      process.exit(1);
     }
-    process.exit(1);
   }
 
   console.log("\n<� All tasks completed successfully!");

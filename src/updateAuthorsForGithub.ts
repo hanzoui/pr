@@ -5,7 +5,7 @@ import { peekYaml } from "peek-log";
 import { sflow } from "sflow";
 import { Authors, GithubUsers } from "./Authors";
 import { $stale } from "./db";
-import { gh } from "./gh";
+import { gh } from "@/lib/github";
 
 if (import.meta.main) {
   await updateAuthorsForGithub();
@@ -40,7 +40,11 @@ export async function updateAuthorsForGithub() {
       Authors.findOneAndUpdate(
         { githubId: login },
         {
-          $set: { githubMtime: new Date(), ...(email && { email }), ...(null != hireable && { hireable }) },
+          $set: {
+            githubMtime: new Date(),
+            ...(email && { email }),
+            ...(null != hireable && { hireable }),
+          },
           $addToSet: {
             ...(bio && { bios: bio }),
             avatars: avatar_url,
