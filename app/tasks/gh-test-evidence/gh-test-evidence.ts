@@ -1,6 +1,6 @@
 import { db } from "@/src/db";
-import { gh } from "@/src/gh";
-import { ghc } from "@/src/ghc";
+import { gh } from "@/lib/github";
+import { ghc } from "@/lib/github/githubCached";
 import { ghUser } from "@/src/ghUser";
 import { parseIssueUrl } from "@/src/parseIssueUrl";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
