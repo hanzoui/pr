@@ -9,7 +9,13 @@ import { gh, type GH } from "../src/gh/index.js";
 import { ghc } from "../src/ghc.js";
 import { parseGithubRepoUrl } from "../src/parseOwnerRepo.js";
 import { processIssueCommentForLableops } from "./easylabel";
-import type { WEBHOOK_EVENT } from "./github-webhook-event-type";
+
+// Simple webhook event type to replace the deprecated github-webhook-event-type
+// TODO: Consider migrating to @octokit/webhooks-types for better type safety
+type WEBHOOK_EVENT = {
+  type: string;
+  payload: any;
+};
 export const REPOLIST = [
   "https://github.com/Comfy-Org/Comfy-PR",
   "https://github.com/comfyanonymous/ComfyUI",
