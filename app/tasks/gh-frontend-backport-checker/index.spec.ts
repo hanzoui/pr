@@ -41,29 +41,85 @@ describe("GithubFrontendBackportCheckerTask", () => {
   });
 
   describe("backport status determination", () => {
-    it("should mark as completed when has completed label", () => {
-      const labels = ["backport-completed", "bug"];
-      const hasCompleted = labels.some((l) => l.toLowerCase().includes("completed"));
+    const backportLabels = {
+      needed: "⚠️ Might need backport",
+      inProgress: "🔄 Backport in progress",
+      completed: "✅ Backport completed",
+    };
+
+    it("should mark as completed when has completed label (new emoji format)", () => {
+      const labels = [backportLabels.completed, "bug"];
+      const hasCompleted = labels.some(
+        (l) =>
+          l === backportLabels.completed ||
+          l.toLowerCase().includes("completed") ||
+          l.includes("✅"),
+      );
       expect(hasCompleted).toBe(true);
     });
 
-    it("should mark as in-progress when has in-progress label", () => {
-      const labels = ["backport-in-progress", "bug"];
-      const hasInProgress = labels.some((l) => l.toLowerCase().includes("in-progress"));
+    it("should mark as completed when has completed label (old format)", () => {
+      const labels = ["backport-completed", "bug"];
+      const hasCompleted = labels.some(
+        (l) =>
+          l === backportLabels.completed ||
+          l.toLowerCase().includes("completed") ||
+          l.includes("✅"),
+      );
+      expect(hasCompleted).toBe(true);
+    });
+
+    it("should mark as in-progress when has in-progress label (new emoji format)", () => {
+      const labels = [backportLabels.inProgress, "bug"];
+      const hasInProgress = labels.some(
+        (l) =>
+          l === backportLabels.inProgress ||
+          l.toLowerCase().includes("in-progress") ||
+          l.includes("🔄"),
+      );
       expect(hasInProgress).toBe(true);
     });
 
-    it("should mark as needed when has needs backport label", () => {
+    it("should mark as in-progress when has in-progress label (old format)", () => {
+      const labels = ["backport-in-progress", "bug"];
+      const hasInProgress = labels.some(
+        (l) =>
+          l === backportLabels.inProgress ||
+          l.toLowerCase().includes("in-progress") ||
+          l.includes("🔄"),
+      );
+      expect(hasInProgress).toBe(true);
+    });
+
+    it("should mark as needed when has needs backport label (new emoji format)", () => {
+      const labels = [backportLabels.needed, "bug"];
+      const hasNeeds = labels.some(
+        (l) =>
+          l === backportLabels.needed ||
+          l.toLowerCase().includes("needs") ||
+          l.toLowerCase().includes("might need") ||
+          l.includes("⚠️"),
+      );
+      expect(hasNeeds).toBe(true);
+    });
+
+    it("should mark as needed when has needs backport label (old format)", () => {
       const labels = ["needs-backport", "bug"];
-      const hasNeeds = labels.some((l) => l.toLowerCase().includes("needs"));
+      const hasNeeds = labels.some(
+        (l) =>
+          l === backportLabels.needed ||
+          l.toLowerCase().includes("needs") ||
+          l.toLowerCase().includes("might need") ||
+          l.includes("⚠️"),
+      );
       expect(hasNeeds).toBe(true);
     });
 
     it("should mark as needed when has backport label", () => {
       const labels = ["backport", "stable"];
-      const backportLabels = ["backport", "backport-stable", "needs-backport", "stable"];
+      const validBackportLabels = ["backport", "backport-stable", "needs-backport", "stable"];
       const hasBackportLabel = labels.some((l) =>
-        backportLabels.some((bl) => l.toLowerCase().includes(bl.toLowerCase())),
+        validBackportLabels.some((bl) => l.toLowerCase().includes(bl.toLowerCase())),
       );
       expect(hasBackportLabel).toBe(true);
     });
@@ -167,19 +223,31 @@ describe("GithubFrontendBackportCheckerTask", () => {
       const summary = generateTestSlackSummary(bugfixes);
       const lines = summary.split("\n");
 
-      // Find the order of status emojis
+      // Find the order of status emojis - only look at lines with PR links (filter out title/header)
       const emojiOrder = lines
+        .filter((line) => line.includes("<") && line.includes("#")) // Lines with PR links
         .filter(
           (line) =>
             line.trim().startsWith("❌") ||
             line.trim().startsWith("🔄") ||
-            line.trim().startsWith("✅"),
+            line.trim().startsWith("✅") ||
+            line.trim().startsWith("❓") ||
+            line.trim().startsWith("➖"),
         )
-        .map((line) => line.trim()[0]);
+        .map((line) => {
+          // Extract the emoji properly (emojis can be multi-byte)
+          const trimmed = line.trim();
+          if (trimmed.startsWith("❌")) return "❌";
+          if (trimmed.startsWith("🔄")) return "🔄";
+          if (trimmed.startsWith("✅")) return "✅";
+          if (trimmed.startsWith("❓")) return "❓";
+          if (trimmed.startsWith("➖")) return "➖";
+          return trimmed.match(/^(\p{Emoji})/u)?.[0] || "";
+        });
 
-      // Should be ordered: needed (❌), in-progress (🔄), completed (✅)
-      const expectedOrder = ["❌", "🔄", "✅"];
-      expect(emojiOrder.slice(0, 3)).toEqual(expectedOrder);
+      // Should be ordered: needed (❌), in-progress (🔄), completed (✅), unknown (❓), not-needed (➖)
+      const expectedOrder = ["❌", "🔄", "✅", "❓", "➖"];
+      expect(emojiOrder).toEqual(expectedOrder);
     });
   });
 
@@ -235,14 +303,21 @@ describe("GithubFrontendBackportCheckerTask", () => {
         repo: "https://github.com/Comfy-Org/ComfyUI_frontend",
         slackChannel: "frontend",
         bugfixPatterns: /\b(fix|bugfix|hotfix|patch|bug)\b/i,
-        backportLabels: ["backport", "backport-stable", "needs-backport", "stable"],
+        backportLabels: {
+          needed: "⚠️ Might need backport",
+          inProgress: "🔄 Backport in progress",
+          completed: "✅ Backport completed",
+        },
         processSince: new Date("2025-01-01T00:00:00Z").toISOString(),
         maxReleasesToCheck: 5,
       };
 
       expect(config.repo).toContain("github.com");
       expect(config.slackChannel).toBe("frontend");
-      expect(config.backportLabels.length).toBeGreaterThan(0);
+      expect(Object.keys(config.backportLabels).length).toBeGreaterThan(0);
+      expect(config.backportLabels.needed).toContain("⚠️");
+      expect(config.backportLabels.inProgress).toContain("🔄");
+      expect(config.backportLabels.completed).toContain("✅");
       expect(config.maxReleasesToCheck).toBeGreaterThan(0);
     });
   });
@@ -250,6 +325,21 @@ describe("GithubFrontendBackportCheckerTask", () => {
 
 // Helper functions for testing
 function createTestBugfix(releaseTag: string, status: BackportStatus) {
+  const emojiLabels = {
+    needed: "⚠️ Might need backport",
+    inProgress: "🔄 Backport in progress",
+    completed: "✅ Backport completed",
+  };
+
+  let backportLabels: string[] = [];
+  if (status === "needed") {
+    backportLabels = [emojiLabels.needed];
+  } else if (status === "in-progress") {
+    backportLabels = [emojiLabels.inProgress];
+  } else if (status === "completed") {
+    backportLabels = [emojiLabels.completed];
+  }
+
   return {
     releaseTag,
     releaseUrl: `https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/${releaseTag}`,
@@ -259,7 +349,7 @@ function createTestBugfix(releaseTag: string, status: BackportStatus) {
     prUrl: `https://github.com/Comfy-Org/ComfyUI_frontend/pull/${Math.floor(Math.random() * 1000)}`,
     prTitle: `Test PR ${status}`,
     backportStatus: status,
-    backportLabels: status === "needed" ? ["needs-backport"] : [],
+    backportLabels,
     backportMentioned: false,
     releaseCreatedAt: new Date("2025-01-01"),
     checkedAt: new Date(),

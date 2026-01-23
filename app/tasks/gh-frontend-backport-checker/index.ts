@@ -43,8 +43,12 @@ const config = {
   // 4. backport target branches
   reBackportTargets: /^(core|cloud)\/1\..*$/,
 
-  // 3. backport labels on PRs
-  backportLabels: ["needs-backport"],
+  // 3. backport labels on PRs (with emoji indicators)
+  backportLabels: {
+    needed: "⚠️ Might need backport",
+    inProgress: "🔄 Backport in progress",
+    completed: "✅ Backport completed",
+  },
 
   // 5. detect backport mentions
   reBackportMentionPatterns: /\b(backports?|stable)\b/i,
@@ -290,14 +294,37 @@ async function processTask(
             bodyText + "\n" + commentTexts,
           );
 
-          // Determine status
+          // Determine status - support both old format (needs-backport) and new format (emoji labels)
           let backportStatusRaw: BackportStatus = "unknown";
           if (backportLabels.length > 0) {
-            if (backportLabels.some((l) => l.toLowerCase().includes("completed"))) {
+            // Check for new emoji-based labels
+            if (
+              backportLabels.some(
+                (l) =>
+                  l === config.backportLabels.completed ||
+                  l.toLowerCase().includes("completed") ||
+                  l.includes("✅"),
+              )
+            ) {
               backportStatusRaw = "completed";
-            } else if (backportLabels.some((l) => l.toLowerCase().includes("in-progress"))) {
+            } else if (
+              backportLabels.some(
+                (l) =>
+                  l === config.backportLabels.inProgress ||
+                  l.toLowerCase().includes("in-progress") ||
+                  l.includes("🔄"),
+              )
+            ) {
               backportStatusRaw = "in-progress";
-            } else if (backportLabels.some((l) => l.toLowerCase().includes("needs"))) {
+            } else if (
+              backportLabels.some(
+                (l) =>
+                  l === config.backportLabels.needed ||
+                  l.toLowerCase().includes("needs") ||
+                  l.toLowerCase().includes("might need") ||
+                  l.includes("⚠️"),
+              )
+            ) {
               backportStatusRaw = "needed";
             } else {
               backportStatusRaw = "needed";
