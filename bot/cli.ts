@@ -183,7 +183,7 @@ async function main() {
         }
 
         const { $ } = await import("bun");
-        const result = await $`comfy-codesearch ${{ raw: query }}`.quiet();
+        const result = await $`comfy-codesearch ${query}`.quiet();
         console.log(result.stdout.toString());
       },
     )

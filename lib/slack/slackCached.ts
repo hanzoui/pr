@@ -58,12 +58,8 @@ async function getKeyv() {
         ttl: DEFAULT_TTL,
       });
     } catch (error: unknown) {
-      // If SQLite fails, fall back to in-memory cache
-      const err = error as { message?: string };
-      console.warn(
-        `Warning: Could not initialize SQLite cache, using in-memory cache:`,
-        err.message,
-      );
+      // If SQLite fails, silently fall back to in-memory cache
+      // This is expected when running from directories without write access
       keyv = new Keyv({
         ttl: DEFAULT_TTL,
       });
