@@ -4,11 +4,11 @@ import { truncateFromMiddle } from "../utils";
 /**
  * Slack message length limits
  * - Text in messages: 40,000 characters
- * - Text in markdown blocks: 12,000 characters cumulative
+ * - Text in section blocks with mrkdwn: 3,000 characters (Slack's actual limit)
  * - We use conservative limits to be safe
  */
 const SLACK_TEXT_LIMIT = 35000; // Conservative limit for text parameter
-const SLACK_MARKDOWN_BLOCK_LIMIT = 11000; // Conservative limit for markdown blocks
+const SLACK_MARKDOWN_BLOCK_LIMIT = 2900; // Conservative limit for markdown blocks (Slack's actual limit is 3,000)
 
 /**
  * Safely post a message to Slack with automatic truncation on msg_too_long error
