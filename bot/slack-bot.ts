@@ -1308,7 +1308,7 @@ function sanitized(name: string) {
   return name.replace(/[^a-zA-Z0-9-_]/g, "_").slice(0, 50);
 }
 
-async function spawnBotOnSlackMessageUrl(url: string) {
+export async function spawnBotOnSlackMessageUrl(url: string) {
   const { team, channel, ts } = await slackMessageUrlParse(url);
   const event = await slack.conversations
     .replies({
