@@ -48,8 +48,9 @@ async function ensureCacheDir() {
   } catch (error: unknown) {
     // Ignore errors if directory already exists or can't be created
     // This prevents crashes when running from different working directories
-    if (error.code !== "EEXIST") {
-      console.warn(`Warning: Could not create cache directory ${CACHE_DIR}:`, error.message);
+    const err = error as Error & { code?: string };
+    if (err.code !== "EEXIST") {
+      console.warn(`Warning: Could not create cache directory ${CACHE_DIR}:`, err.message);
     }
   }
 }
@@ -65,11 +66,8 @@ async function getKeyv() {
         ttl: DEFAULT_TTL,
       });
     } catch (error: unknown) {
-      // If SQLite fails, fall back to in-memory cache
-      console.warn(
-        `Warning: Could not initialize SQLite cache, using in-memory cache:`,
-        error.message,
-      );
+      // If SQLite fails, silently fall back to in-memory cache
+      // This is expected when running from directories without write access
       keyv = new Keyv({
         ttl: DEFAULT_TTL,
       });

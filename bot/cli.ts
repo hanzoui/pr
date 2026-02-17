@@ -183,7 +183,7 @@ async function main() {
         }
 
         const { $ } = await import("bun");
-        const result = await $`comfy-codesearch ${{ raw: query }}`.quiet();
+        const result = await $`comfy-codesearch ${query}`.quiet();
         console.log(result.stdout.toString());
       },
     )
@@ -868,6 +868,26 @@ async function main() {
         }
       },
     )
+    .command("agent", "Agent control commands", (yargs) => {
+      return yargs.command(
+        "respond-slack-msg <url>",
+        "Process a Slack message URL as if it was an app_mention event",
+        (y) =>
+          y.positional("url", {
+            type: "string",
+            describe: "Slack message URL to process",
+            demandOption: true,
+          }),
+        async (args) => {
+          await loadEnvLocal();
+          const { spawnBotOnSlackMessageUrl } = await import("./slack-bot");
+          const url = args.url as string;
+          console.log(`Processing Slack message: ${url}`);
+          await spawnBotOnSlackMessageUrl(url);
+          console.log("✓ Message processing initiated");
+        },
+      );
+    })
     .demandCommand(1, "Please specify a command")
     .strict()
     .help()
@@ -880,6 +900,7 @@ async function main() {
         "  prbot github-issue search -q 'authentication bug' -l 5",
         "  prbot registry search -q 'video' -l 5",
         "  prbot pr -r Comfy-Org/desktop -p 'Add spellcheck to editor'",
+        "  prbot agent respond-slack-msg 'https://workspace.slack.com/archives/C123/p1234567890'",
         "  prbot slack update -c C123 -t 1234567890.123456 -m 'Working on it'",
         "  prbot slack read-thread -c C123 -t 1234567890.123456",
         "  prbot slack read-thread -u 'https://workspace.slack.com/archives/C123/p1234567890'",
