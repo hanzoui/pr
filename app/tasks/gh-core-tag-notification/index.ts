@@ -2,6 +2,7 @@
 import { db } from "@/src/db";
 import { gh } from "@/lib/github";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
+import { normalizeGithubUrl } from "@/src/normalizeGithubUrl";
 import { getSlackChannel } from "@/lib/slack/channels";
 import DIE from "@snomiao/die";
 import isCI from "is-ci";
@@ -18,7 +19,7 @@ import { upsertSlackMessage } from "../gh-desktop-release-notification/upsertSla
  */
 
 const config = {
-  repo: "https://github.com/comfyanonymous/ComfyUI",
+  repo: "https://github.com/Comfy-Org/ComfyUI",
   slackChannels: ["desktop", "live-ops"],
   slackMessage: "🏷️ ComfyUI <{url}|Tag {tagName}> created!",
   sendSince: new Date("2025-11-19T00:00:00Z").toISOString(),
@@ -55,12 +56,25 @@ export const GithubCoreTagNotificationTask = db.collection<GithubCoreTagNotifica
 
 await GithubCoreTagNotificationTask.createIndex({ tagName: 1 }, { unique: true });
 
-const save = async (task: { tagName: string } & Partial<GithubCoreTagNotificationTask>) =>
-  (await GithubCoreTagNotificationTask.findOneAndUpdate(
-    { tagName: task.tagName },
-    { $set: task },
+const save = async (task: { tagName: string } & Partial<GithubCoreTagNotificationTask>) => {
+  // Normalize URLs to handle both comfyanonymous and Comfy-Org formats
+  const normalizedTask = {
+    ...task,
+    url: task.url ? normalizeGithubUrl(task.url) : undefined,
+  };
+
+  // Incremental migration: Check both tagName (unique key) and old URL format
+  // Tag name is the unique identifier, but we normalize URLs for consistency
+  const existing = await GithubCoreTagNotificationTask.findOne({
+    tagName: normalizedTask.tagName,
+  });
+
+  return (await GithubCoreTagNotificationTask.findOneAndUpdate(
+    existing ? { _id: existing._id } : { tagName: normalizedTask.tagName },
+    { $set: normalizedTask },
     { upsert: true, returnDocument: "after" },
   )) || DIE("never");
+};
 
 if (import.meta.main) {
   await runGithubCoreTagNotificationTask();

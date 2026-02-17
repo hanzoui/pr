@@ -4,6 +4,7 @@ import { gh } from "@/lib/github";
 import { ghc } from "@/lib/github/githubCached";
 import { ghPageFlow } from "@/src/ghPageFlow";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
+import { normalizeGithubUrl } from "@/src/normalizeGithubUrl";
 import DIE from "@snomiao/die";
 import isCI from "is-ci";
 
@@ -13,7 +14,7 @@ import isCI from "is-ci";
  * Workflow:
  * 1. Fetch new/unseen issues from the ComfyUI_frontend repository with label "comfyui-core"
  * 2. For each issue:
- *    1. Create corresponding issues in the comfyanonymous/ComfyUI repository, copying title, body (+meta and backlinks), labels, assignees
+ *    1. Create corresponding issues in the Comfy-Org/ComfyUI repository, copying title, body (+meta and backlinks), labels, assignees
  *    2. Comment on original issue that it's been transferred
  *    3. Close original issue in the frontend repository
  *    4. Track transferred issues to avoid duplicates
@@ -21,7 +22,7 @@ import isCI from "is-ci";
 
 const config = {
   srcRepoUrl: "https://github.com/Comfy-Org/ComfyUI_frontend",
-  dstRepoUrl: "https://github.com/comfyanonymous/ComfyUI",
+  dstRepoUrl: "https://github.com/Comfy-Org/ComfyUI",
   comfyuiCoreLabel: "comfyui-core",
   transferComment: (newIssueUrl: string) =>
     `This issue has been transferred to the ComfyUI core repository: ${newIssueUrl}\n\nPlease continue the discussion there.`,
@@ -50,12 +51,34 @@ await GithubFrontendToComfyuiIssueTransferTask.createIndex(
 
 const save = async (
   task: { sourceIssueNumber: number } & Partial<GithubFrontendToComfyuiIssueTransferTask>,
-) =>
-  (await GithubFrontendToComfyuiIssueTransferTask.findOneAndUpdate(
-    { sourceIssueNumber: task.sourceIssueNumber },
-    { $set: task },
+) => {
+  // Normalize URLs to handle both comfyanonymous and Comfy-Org formats
+  const normalizedTask = {
+    ...task,
+    sourceIssueUrl: task.sourceIssueUrl ? normalizeGithubUrl(task.sourceIssueUrl) : undefined,
+    targetIssueUrl: task.targetIssueUrl ? normalizeGithubUrl(task.targetIssueUrl) : undefined,
+    commentUrl: task.commentUrl ? normalizeGithubUrl(task.commentUrl) : undefined,
+  };
+
+  // Incremental migration: Check both normalized and old URL formats
+  const existing = await GithubFrontendToComfyuiIssueTransferTask.findOne({
+    $or: [
+      { sourceIssueNumber: normalizedTask.sourceIssueNumber },
+      ...(normalizedTask.sourceIssueUrl
+        ? [
+            { sourceIssueUrl: normalizedTask.sourceIssueUrl },
+            { sourceIssueUrl: normalizedTask.sourceIssueUrl.replace(/Comfy-Org/i, "comfyanonymous") },
+          ]
+        : []),
+    ],
+  });
+
+  return (await GithubFrontendToComfyuiIssueTransferTask.findOneAndUpdate(
+    existing ? { _id: existing._id } : { sourceIssueNumber: normalizedTask.sourceIssueNumber },
+    { $set: normalizedTask },
     { upsert: true, returnDocument: "after" },
   )) || DIE("never");
+};
 
 if (import.meta.main) {
   await runGithubFrontendToComfyuiIssueTransferTask();

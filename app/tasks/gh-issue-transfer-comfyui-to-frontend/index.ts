@@ -2,6 +2,7 @@
 import { db } from "@/src/db";
 import { gh } from "@/lib/github";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
+import { normalizeGithubUrl } from "@/src/normalizeGithubUrl";
 import DIE from "@snomiao/die";
 import { $ } from "bun";
 import isCI from "is-ci";
@@ -11,16 +12,16 @@ import { pageFlow } from "sflow";
  * GitHub Frontend Issue Transfer Task
  *
  * Workflow:
- * 1. Fetch new/unseen issues from comfyanonymous/ComfyUI with label "frontend"
+ * 1. Fetch new/unseen issues from Comfy-Org/ComfyUI with label "frontend"
  * 2. For each issue:
  *    1. Create corresponding issues in Comfy-Org/ComfyUI_frontend, copying title, body (+meta and backlinks), labels, assignees
  *    2. Comment on original issue that it's been transferred
- *    3. Close original issue in comfyanonymous/ComfyUI
+ *    3. Close original issue in Comfy-Org/ComfyUI
  *    4. Track transferred issues to avoid duplicates
  */
 
 const config = {
-  srcRepoUrl: "https://github.com/comfyanonymous/ComfyUI",
+  srcRepoUrl: "https://github.com/Comfy-Org/ComfyUI",
   dstRepoUrl: "https://github.com/Comfy-Org/ComfyUI_frontend",
   frontendLabel: "frontend",
   transferComment: (newIssueUrl: string) =>
@@ -46,12 +47,35 @@ await GithubFrontendIssueTransferTask.createIndex({ sourceIssueNumber: 1 }, { un
 
 const save = async (
   task: { sourceIssueNumber: number } & Partial<GithubFrontendIssueTransferTask>,
-) =>
-  (await GithubFrontendIssueTransferTask.findOneAndUpdate(
-    { sourceIssueNumber: task.sourceIssueNumber },
-    { $set: task },
+) => {
+  // Normalize URLs to handle both comfyanonymous and Comfy-Org formats
+  const normalizedTask = {
+    ...task,
+    sourceIssueUrl: task.sourceIssueUrl ? normalizeGithubUrl(task.sourceIssueUrl) : undefined,
+    targetIssueUrl: task.targetIssueUrl ? normalizeGithubUrl(task.targetIssueUrl) : undefined,
+    commentUrl: task.commentUrl ? normalizeGithubUrl(task.commentUrl) : undefined,
+  };
+
+  // Incremental migration: Check both normalized and old URL formats
+  // This allows gradual migration as tasks are processed
+  const existing = await GithubFrontendIssueTransferTask.findOne({
+    $or: [
+      { sourceIssueNumber: normalizedTask.sourceIssueNumber },
+      ...(normalizedTask.sourceIssueUrl
+        ? [
+            { sourceIssueUrl: normalizedTask.sourceIssueUrl },
+            { sourceIssueUrl: normalizedTask.sourceIssueUrl.replace(/Comfy-Org/i, "comfyanonymous") },
+          ]
+        : []),
+    ],
+  });
+
+  return (await GithubFrontendIssueTransferTask.findOneAndUpdate(
+    existing ? { _id: existing._id } : { sourceIssueNumber: normalizedTask.sourceIssueNumber },
+    { $set: normalizedTask },
     { upsert: true, returnDocument: "after" },
   )) || DIE("never");
+};
 
 if (import.meta.main) {
   await runGithubFrontendIssueTransferTask();
@@ -104,9 +128,10 @@ async function runGithubFrontendIssueTransferTask() {
       }
 
       console.log(issue.html_url);
+      // Normalize URL before saving to handle both comfyanonymous and Comfy-Org formats
       let task = await save({
         sourceIssueNumber: issue.number,
-        sourceIssueUrl: issue.html_url,
+        sourceIssueUrl: normalizeGithubUrl(issue.html_url),
       });
 
       try {
