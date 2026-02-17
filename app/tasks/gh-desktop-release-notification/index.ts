@@ -1,6 +1,7 @@
 import { db } from "@/src/db";
 import { gh } from "@/lib/github";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
+import { normalizeGithubUrl } from "@/src/normalizeGithubUrl";
 import { getSlackChannel } from "@/lib/slack/channels";
 import DIE from "@snomiao/die";
 import isCI from "is-ci";
@@ -15,7 +16,7 @@ import { upsertSlackMessage } from "./upsertSlackMessage";
  * 4. if it's a pre-release, do nothing
  */
 const config = {
-  repos: ["https://github.com/comfyanonymous/ComfyUI", "https://github.com/Comfy-Org/desktop"],
+  repos: ["https://github.com/Comfy-Org/ComfyUI", "https://github.com/Comfy-Org/desktop"],
   slackChannel: "desktop",
   slackMessage: "🔮 {repo} <{url}|Release {version}> is {status}!",
   sendSince: new Date("2025-08-02T00:00:00Z").toISOString(), // only send notifications for releases after this date (UTC)
@@ -50,12 +51,25 @@ export const GithubReleaseNotificationTask = db.collection<GithubReleaseNotifica
   "GithubReleaseNotificationTask",
 );
 await GithubReleaseNotificationTask.createIndex({ url: 1 }, { unique: true });
-const save = async (task: { url: string } & Partial<GithubReleaseNotificationTask>) =>
-  (await GithubReleaseNotificationTask.findOneAndUpdate(
-    { url: task.url },
-    { $set: task },
+const save = async (task: { url: string } & Partial<GithubReleaseNotificationTask>) => {
+  // Normalize URLs to handle both comfyanonymous and Comfy-Org formats
+  const normalizedTask = {
+    ...task,
+    url: normalizeGithubUrl(task.url),
+  };
+
+  // Incremental migration: Check both normalized and old URL formats
+  const oldUrl = normalizedTask.url.replace(/Comfy-Org/i, "comfyanonymous");
+  const existing = await GithubReleaseNotificationTask.findOne({
+    $or: [{ url: normalizedTask.url }, { url: oldUrl }],
+  });
+
+  return (await GithubReleaseNotificationTask.findOneAndUpdate(
+    existing ? { _id: existing._id } : { url: normalizedTask.url },
+    { $set: normalizedTask },
     { upsert: true, returnDocument: "after" },
   )) || DIE("never");
+};
 
 if (import.meta.main) {
   await runGithubDesktopReleaseNotificationTask();

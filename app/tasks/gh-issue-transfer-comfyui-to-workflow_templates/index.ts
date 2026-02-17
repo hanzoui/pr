@@ -2,6 +2,7 @@
 import { db } from "@/src/db";
 import { gh } from "@/lib/github";
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
+import { normalizeGithubUrl } from "@/src/normalizeGithubUrl";
 import DIE from "@snomiao/die";
 import { $ } from "bun";
 import isCI from "is-ci";
@@ -11,16 +12,16 @@ import { pageFlow } from "sflow";
  * GitHub Workflow Templates Issue Transfer Task
  *
  * Workflow:
- * 1. Fetch new/unseen issues from comfyanonymous/ComfyUI with label "workflow_templates"
+ * 1. Fetch new/unseen issues from Comfy-Org/ComfyUI with label "workflow_templates"
  * 2. For each issue:
  *    1. Create corresponding issues in Comfy-Org/workflow_templates, copying title, body (+meta and backlinks), labels, assignees
  *    2. Comment on original issue that it's been transferred
- *    3. Close original issue in comfyanonymous/ComfyUI
+ *    3. Close original issue in Comfy-Org/ComfyUI
  *    4. Track transferred issues to avoid duplicates
  */
 
 const config = {
-  srcRepoUrl: "https://github.com/comfyanonymous/ComfyUI",
+  srcRepoUrl: "https://github.com/Comfy-Org/ComfyUI",
   dstRepoUrl: "https://github.com/Comfy-Org/workflow_templates",
   workflowTemplatesLabel: "workflow_templates",
   transferComment: (newIssueUrl: string) =>
@@ -50,12 +51,34 @@ await GithubWorkflowTemplatesIssueTransferTask.createIndex(
 
 const save = async (
   task: { sourceIssueNumber: number } & Partial<GithubWorkflowTemplatesIssueTransferTask>,
-) =>
-  (await GithubWorkflowTemplatesIssueTransferTask.findOneAndUpdate(
-    { sourceIssueNumber: task.sourceIssueNumber },
-    { $set: task },
+) => {
+  // Normalize URLs to handle both comfyanonymous and Comfy-Org formats
+  const normalizedTask = {
+    ...task,
+    sourceIssueUrl: task.sourceIssueUrl ? normalizeGithubUrl(task.sourceIssueUrl) : undefined,
+    targetIssueUrl: task.targetIssueUrl ? normalizeGithubUrl(task.targetIssueUrl) : undefined,
+    commentUrl: task.commentUrl ? normalizeGithubUrl(task.commentUrl) : undefined,
+  };
+
+  // Incremental migration: Check both normalized and old URL formats
+  const existing = await GithubWorkflowTemplatesIssueTransferTask.findOne({
+    $or: [
+      { sourceIssueNumber: normalizedTask.sourceIssueNumber },
+      ...(normalizedTask.sourceIssueUrl
+        ? [
+            { sourceIssueUrl: normalizedTask.sourceIssueUrl },
+            { sourceIssueUrl: normalizedTask.sourceIssueUrl.replace(/Comfy-Org/i, "comfyanonymous") },
+          ]
+        : []),
+    ],
+  });
+
+  return (await GithubWorkflowTemplatesIssueTransferTask.findOneAndUpdate(
+    existing ? { _id: existing._id } : { sourceIssueNumber: normalizedTask.sourceIssueNumber },
+    { $set: normalizedTask },
     { upsert: true, returnDocument: "after" },
   )) || DIE("never");
+};
 
 if (import.meta.main) {
   await runGithubWorkflowTemplatesIssueTransferTask();
