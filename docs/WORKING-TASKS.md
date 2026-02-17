@@ -125,7 +125,7 @@ Check the state:
 
 ```bash
 # In bot working directory
-cat ./.cache/ComfyPRBotState.nedb.yaml | grep current-working-tasks
+cat ./.cache/ComfyPRBotState.jsonl | grep current-working-tasks
 ```
 
 ### Tasks stuck in working list
@@ -139,7 +139,7 @@ await State.set("current-working-tasks", { workingMessageEvents: [] });
 Or delete the state file:
 
 ```bash
-rm ./.cache/ComfyPRBotState.nedb.yaml
+rm ./.cache/ComfyPRBotState.jsonl
 ```
 
 ## Future Improvements

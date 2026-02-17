@@ -13,7 +13,7 @@ import { logger } from "@/src/logger";
 export const github = KeyvCacheProxy({
   store: globalThisCached(
     "github",
-    () => new Keyv(KeyvNest(new Map(), new KeyvNedbStore("./.cache/github.nedb.yaml"))),
+    () => new Keyv(KeyvNest(new Map(), new KeyvNedbStore("./.cache/github.jsonl"))),
   ),
   prefix: "github.",
   onFetched: (key, val) => {
@@ -54,7 +54,7 @@ export const slack = lazyInstantiate(
 export const slackCached = KeyvCacheProxy({
   store: globalThisCached(
     "slack",
-    () => new Keyv(KeyvNest(new Map(), new KeyvNedbStore("./.cache/slack.nedb.yaml"))),
+    () => new Keyv(KeyvNest(new Map(), new KeyvNedbStore("./.cache/slack.jsonl"))),
   ),
   prefix: "slack.",
   onFetched: (key, val) => {
