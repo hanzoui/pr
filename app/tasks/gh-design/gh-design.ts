@@ -108,7 +108,9 @@ async function saveGithubDesignTask(url: string, $set: Partial<GithubDesignTask>
   const normalizedSet = {
     ...$set,
     url: normalizedUrl,
-    slackUrl: $set.slackUrl ? normalizeGithubUrl($set.slackUrl) : undefined,
+    ...($set.slackUrl !== undefined && {
+      slackUrl: normalizeGithubUrl($set.slackUrl),
+    }),
   };
 
   // Incremental migration: Check both normalized and old URL formats
