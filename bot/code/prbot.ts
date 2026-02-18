@@ -4,8 +4,9 @@ import { spawnSubAgent } from "./pr-agent";
 import zChatCompletion from "z-chat-completion";
 import z from "zod";
 
-const PRBOT_PREFIX_RE = /^prbot-(feat|fix|refactor|docs|test|chore)-(.+)$/;
-const TYPE_PREFIX_RE = /^(feat|fix|refactor|docs|test|chore)[/\-](.+)$/;
+const CC_TYPES = "feat|fix|build|chore|ci|docs|style|refactor|perf|test|revert";
+const PRBOT_PREFIX_RE = new RegExp(`^prbot-(${CC_TYPES})-(.+)$`);
+const TYPE_PREFIX_RE = new RegExp(`^(${CC_TYPES})[/\\-](.+)$`);
 
 /** Normalize any branch name to prbot-[type]-[name] convention. */
 function normalizeProbotBranch(name: string): string {
@@ -72,11 +73,11 @@ async function main() {
         head: z
           .string()
           .regex(
-            /^prbot-(feat|fix|refactor|docs|test|chore)-[a-z0-9][a-z0-9-]*$/,
+            /^prbot-(feat|fix|build|chore|ci|docs|style|refactor|perf|test|revert)-[a-z0-9][a-z0-9-]*$/,
             "Must follow format: prbot-<type>-<description> (e.g. prbot-feat-add-dark-mode)",
           )
           .describe(
-            "Branch name strictly following format: prbot-<type>-<description> where type is one of: feat, fix, refactor, docs, test, chore",
+            "Branch name strictly following format: prbot-<type>-<description> where type is any conventional commit type: feat, fix, build, chore, ci, docs, style, refactor, perf, test, revert",
           ),
       }),
       {
@@ -87,7 +88,7 @@ Given a task description and base branch, generate an appropriate head branch na
 
 REQUIRED FORMAT: prbot-<type>-<description>
 - Prefix: always "prbot-"
-- Types (pick one): feat, fix, refactor, docs, test, chore
+- Types (pick one): feat, fix, build, chore, ci, docs, style, refactor, perf, test, revert
 - Description: kebab-case, short and descriptive, lowercase, no slashes
 - Examples: "prbot-feat-add-dark-mode", "prbot-fix-login-timeout", "prbot-refactor-simplify-api", "prbot-docs-update-readme"
 
