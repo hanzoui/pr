@@ -4,6 +4,27 @@ import { spawnSubAgent } from "./pr-agent";
 import zChatCompletion from "z-chat-completion";
 import z from "zod";
 
+const PRBOT_PREFIX_RE = /^prbot-(feat|fix|refactor|docs|test|chore)-(.+)$/;
+const TYPE_PREFIX_RE = /^(feat|fix|refactor|docs|test|chore)[/\-](.+)$/;
+
+/** Normalize any branch name to prbot-[type]-[name] convention. */
+function normalizeProbotBranch(name: string): string {
+  const clean = name.trim().toLowerCase().replace(/[^a-z0-9-/]/g, "-");
+
+  // Already correct: prbot-feat-xxx
+  if (PRBOT_PREFIX_RE.test(clean)) return clean;
+
+  // Has type prefix: feat/xxx or fix-xxx → prbot-feat-xxx
+  const typeMatch = clean.match(TYPE_PREFIX_RE);
+  if (typeMatch) {
+    const [, type, rest] = typeMatch;
+    return `prbot-${type}-${rest.replace(/\//g, "-")}`;
+  }
+
+  // No type prefix — default to feat
+  return `prbot-feat-${clean.replace(/\//g, "-")}`;
+}
+
 async function main() {
   const args = minimist(process.argv.slice(2), {
     string: ["repo", "base", "head", "prompt"],
@@ -50,29 +71,40 @@ async function main() {
           .describe("The base branch to make draft PR into (should match the specified base)"),
         head: z
           .string()
+          .regex(
+            /^prbot-(feat|fix|refactor|docs|test|chore)-[a-z0-9][a-z0-9-]*$/,
+            "Must follow format: prbot-<type>-<description> (e.g. prbot-feat-add-dark-mode)",
+          )
           .describe(
-            "A descriptive branch name for the feat/fix (e.g., 'prbot-fix-auth-bug', 'prbot-fix-update-deps')",
+            "Branch name strictly following format: prbot-<type>-<description> where type is one of: feat, fix, refactor, docs, test, chore",
           ),
       }),
       {
         model: "gpt-4o-mini",
       },
     )`You are a helpful assistant that generates git branch names.
-Given a task description and base branch, generate an appropriate head branch name following these conventions:
-- Use format: prbot-<type>-<description>
-- Types: feature-, fix-, refactor-, docs-, test-, chore-
-- Description: kebab-case, super short and descriptive
-- Example: "prbot-feat-add-dark-mode", "prbot-fix-login-timeout", "prbot-refactor-simplify-api"
+Given a task description and base branch, generate an appropriate head branch name.
+
+REQUIRED FORMAT: prbot-<type>-<description>
+- Prefix: always "prbot-"
+- Types (pick one): feat, fix, refactor, docs, test, chore
+- Description: kebab-case, short and descriptive, lowercase, no slashes
+- Examples: "prbot-feat-add-dark-mode", "prbot-fix-login-timeout", "prbot-refactor-simplify-api", "prbot-docs-update-readme"
 
 Base branch: ${base}
-Task: ${prompt}
-
-Generate an appropriate head branch name, starts with.`) as { base: string; head: string };
+Task: ${prompt}`) as { base: string; head: string };
 
     base = branchInfo.base;
     head = branchInfo.head;
     console.log(`Generated head branch: ${head}`);
   }
+
+  // Enforce prbot-[type]-[name] convention regardless of how head was provided
+  const normalizedHead = normalizeProbotBranch(head);
+  if (normalizedHead !== head) {
+    console.log(`Normalized head branch: ${head} → ${normalizedHead}`);
+  }
+  head = normalizedHead;
 
   console.log(`Starting coding session for ${repo}...`);
   console.log(`Base branch: ${base}`);
