@@ -639,6 +639,18 @@ const { owner: _owner, repo: _repo, pull_number } = params;
     },
   ),
 
+  // POST /repos/:owner/:repo/issues - Create an issue
+  http.post(`${GITHUB_API_BASE}/repos/:owner/:repo/issues`, async ({ params, request }) => {
+    const { owner, repo } = params;
+    const body = (await request.json()) as Record<string, unknown>;
+    return HttpResponse.json({
+      number: 456,
+      state: "open",
+      html_url: `https://github.com/${owner}/${repo}/issues/456`,
+      ...body,
+    });
+  }),
+
   // POST /repos/:owner/:repo/issues/:issue_number/comments - Create a comment
   http.post(
     `${GITHUB_API_BASE}/repos/:owner/:repo/issues/:issue_number/comments`,
