@@ -10,8 +10,13 @@ export const githubHandlers = [
   // ==================== REPOS ====================
 
   // GET /repos/:owner/:repo - Get a repository
+  // Use owner="error-404" to simulate 404, owner="rate-limited" to simulate 403 rate limit
   http.get(`${GITHUB_API_BASE}/repos/:owner/:repo`, ({ params }) => {
     const { owner, repo } = params;
+    if (owner === "error-404")
+      return HttpResponse.json({ message: "Not Found", documentation_url: "https://docs.github.com/rest" }, { status: 404 });
+    if (owner === "rate-limited")
+      return HttpResponse.json({ message: "API rate limit exceeded" }, { status: 403 });
     return HttpResponse.json({
       id: 123456,
       name: repo,
@@ -426,7 +431,7 @@ export const githubHandlers = [
   http.post(
     `${GITHUB_API_BASE}/repos/:owner/:repo/pulls/:pull_number/requested_reviewers`,
     async ({ params, request }) => {
-      const { owner: _owner, repo: _repo, pull_number } = params;
+const { owner: _owner, repo: _repo, pull_number } = params;
       const body = (await request.json()) as Record<string, unknown>;
 
       return HttpResponse.json({
@@ -694,8 +699,7 @@ export const githubHandlers = [
   // POST /repos/:owner/:repo/issues/:issue_number/labels - Add labels
   http.post(
     `${GITHUB_API_BASE}/repos/:owner/:repo/issues/:issue_number/labels`,
-    async ({ params, request }) => {
-      const { owner, repo, issue_number } = params;
+    async ({ request }) => {
       const body = (await request.json()) as Record<string, unknown>;
 
       return HttpResponse.json(
@@ -710,8 +714,7 @@ export const githubHandlers = [
   // GET /repos/:owner/:repo/issues/:issue_number/timeline - List timeline events
   http.get(
     `${GITHUB_API_BASE}/repos/:owner/:repo/issues/:issue_number/timeline`,
-    ({ params, request }) => {
-      const { owner, repo, issue_number } = params;
+    ({ request }) => {
       const url = new URL(request.url);
       const page = parseInt(url.searchParams.get("page") || "1");
       const perPage = parseInt(url.searchParams.get("per_page") || "100");
@@ -760,8 +763,11 @@ export const githubHandlers = [
   // ==================== GIT ====================
 
   // GET /repos/:owner/:repo/git/tags/:tag_sha - Get a tag (annotated)
+  // Use tag_sha="lightweight-tag" to simulate a non-annotated (lightweight) tag returning 404
   http.get(`${GITHUB_API_BASE}/repos/:owner/:repo/git/tags/:tag_sha`, ({ params }) => {
     const { owner, repo, tag_sha } = params;
+    if (tag_sha === "lightweight-tag")
+      return HttpResponse.json({ message: "Not Found" }, { status: 404 });
     return HttpResponse.json({
       node_id: "MDM6VGFn",
       tag: "v1.0.0",
