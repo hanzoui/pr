@@ -17,6 +17,7 @@ import runGithubDesktopIssueTransferTask from "./gh-issue-transfer-desktop-to-fr
 import runGithubFrontendToComfyuiIssueTransferTask from "./gh-issue-transfer-frontend-to-comfyui/index";
 import runGithubFrontendToDesktopIssueTransferTask from "./gh-issue-transfer-frontend-to-desktop/index";
 import runGithubIssuePrioritiesLabelerTask from "./gh-priority-sync/index";
+import runGithubPRReleaseTaggerTask from "./gh-pr-release-tagger/index";
 
 const TASKS = [
   {
@@ -77,6 +78,10 @@ const TASKS = [
   {
     name: "GitHub Bugcop Task",
     run: runGithubBugcopTask,
+  },
+  {
+    name: "GitHub PR Release Tagger Task",
+    run: runGithubPRReleaseTaggerTask,
   },
 ];
 
