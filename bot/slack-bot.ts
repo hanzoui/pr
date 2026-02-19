@@ -1066,7 +1066,10 @@ IMPORTANT WORKSPACE CONVENTIONS:
   })();
 
   // Write initial status
-  await Bun.write(statusLogPath, `Started: ${new Date().toISOString()}\nPID: ${sh.pid}\nStatus: Running\nLog: ${stdoutLogPath}\n`);
+  await Bun.write(
+    statusLogPath,
+    `Started: ${new Date().toISOString()}\nPID: ${sh.pid}\nStatus: Running\nLog: ${stdoutLogPath}\n`,
+  );
 
   const isDebugMode = process.env.DEBUG === "true" || process.env.DEBUG === "1";
 
@@ -1082,10 +1085,12 @@ IMPORTANT WORKSPACE CONVENTIONS:
   const errorCollector = new ErrorCollector({
     workspaceDir: botWorkingDir,
     outputLogPath: errorLogPath,
-    onError: isDebugMode ? (errorPath, content) => {
-      logger.warn(`⚠️  Error detected in workspace: ${errorPath}`);
-      logger.warn(`Error content preview: ${content.substring(0, 500)}...`);
-    } : undefined,
+    onError: isDebugMode
+      ? (errorPath, content) => {
+          logger.warn(`⚠️  Error detected in workspace: ${errorPath}`);
+          logger.warn(`Error content preview: ${content.substring(0, 500)}...`);
+        }
+      : undefined,
     checkInterval: 10000, // Check every 10 seconds
   });
   await errorCollector.start();
@@ -1333,7 +1338,10 @@ ${yaml.stringify(contexts)}
 
   // Update final status
   const finalStatus = exitCode === 0 ? "Completed Successfully" : `Failed (exit code ${exitCode})`;
-  await Bun.write(statusLogPath, `Started: ${new Date().toISOString()}\nPID: ${sh.pid}\nStatus: ${finalStatus}\nExit Code: ${exitCode}\nEnded: ${new Date().toISOString()}\nLogs: ${stdoutLogPath}\nErrors: ${errorLogPath}\n`).catch(() => {});
+  await Bun.write(
+    statusLogPath,
+    `Started: ${new Date().toISOString()}\nPID: ${sh.pid}\nStatus: ${finalStatus}\nExit Code: ${exitCode}\nEnded: ${new Date().toISOString()}\nLogs: ${stdoutLogPath}\nErrors: ${errorLogPath}\n`,
+  ).catch(() => {});
 
   if (exitCode !== 0) {
     logger.error(`claude-yes process for task ${workspaceId} exited with code ${exitCode}`);

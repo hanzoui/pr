@@ -85,11 +85,13 @@ const saveTask = async (task: Partial<GithubIssueLabelOps> & { target_url: strin
     $or: [{ target_url: normalizedTask.target_url }, { target_url: oldUrl }],
   });
 
-  return (await GithubIssueLabelOps.findOneAndUpdate(
-    existing ? { _id: existing._id } : { target_url: normalizedTask.target_url },
-    { $set: normalizedTask },
-    { upsert: true, returnDocument: "after" },
-  )) || DIE("fail to save task");
+  return (
+    (await GithubIssueLabelOps.findOneAndUpdate(
+      existing ? { _id: existing._id } : { target_url: normalizedTask.target_url },
+      { $set: normalizedTask },
+      { upsert: true, returnDocument: "after" },
+    )) || DIE("fail to save task")
+  );
 };
 
 if (import.meta.main) {
