@@ -45,9 +45,23 @@ export const router = t.router({
       return await analyzePullsStatus({ limit, skip });
     }),
   getRepoUrls: t.procedure
-    .meta({ openapi: { method: "GET", path: "/repo-urls", description: "Get repo urls with pagination" } })
-    .input(z.object({ skip: z.number().min(0).default(0), limit: z.number().min(1).max(5000).default(1000) }))
-    .output(z.object({ repos: z.array(z.string()), total: z.number(), skip: z.number(), limit: z.number() }))
+    .meta({
+      openapi: { method: "GET", path: "/repo-urls", description: "Get repo urls with pagination" },
+    })
+    .input(
+      z.object({
+        skip: z.number().min(0).default(0),
+        limit: z.number().min(1).max(5000).default(1000),
+      }),
+    )
+    .output(
+      z.object({
+        repos: z.array(z.string()),
+        total: z.number(),
+        skip: z.number(),
+        limit: z.number(),
+      }),
+    )
     .query(async ({ input: { skip, limit } }) => {
       const sflow = (await import("sflow")).default;
       const { CNRepos } = await import("@/src/CNRepos");
