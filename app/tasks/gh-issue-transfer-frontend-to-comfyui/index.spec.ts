@@ -2,7 +2,6 @@ import { server } from "@/src/test/msw-setup";
 import { afterEach, beforeEach, describe, expect, it } from "bun:test";
 import { http, HttpResponse } from "msw";
 
-
 // Track database operations
 let dbOperations: unknown[] = [];
 const trackingMockDb = {
@@ -21,6 +20,9 @@ const trackingMockDb = {
     },
   }),
 };
+
+// Set GH_TOKEN before any imports to prevent @/lib/github from throwing in CI
+process.env.GH_TOKEN = process.env.GH_TOKEN || "test-token-for-ci";
 
 // Use bun's mock.module
 const { mock } = await import("bun:test");
@@ -126,17 +128,14 @@ describe("GithubFrontendToComfyuiIssueTransferTask", () => {
         },
       ),
       // Mock creating issue in target repo
-      http.post(
-        "https://api.github.com/repos/Comfy-Org/ComfyUI/issues",
-        async ({ request }) => {
-          createdIssue = await request.json();
-          return HttpResponse.json({
-            number: 456,
-            html_url: "https://github.com/Comfy-Org/ComfyUI/issues/456",
-            ...createdIssue,
-          });
-        },
-      ),
+      http.post("https://api.github.com/repos/Comfy-Org/ComfyUI/issues", async ({ request }) => {
+        createdIssue = await request.json();
+        return HttpResponse.json({
+          number: 456,
+          html_url: "https://github.com/Comfy-Org/ComfyUI/issues/456",
+          ...createdIssue,
+        });
+      }),
       // Mock creating comment on source issue
       http.post(
         "https://api.github.com/repos/Comfy-Org/ComfyUI_frontend/issues/123/comments",
@@ -407,18 +406,15 @@ describe("GithubFrontendToComfyuiIssueTransferTask", () => {
           return HttpResponse.json([]);
         },
       ),
-      http.post(
-        "https://api.github.com/repos/Comfy-Org/ComfyUI/issues",
-        async ({ request }) => {
-          const body: unknown = await request.json();
-          issuesCreated++;
-          const issueNumber = parseInt(body.title.split(" ")[1]);
-          return HttpResponse.json({
-            number: issueNumber + 10000,
-            html_url: `https://github.com/Comfy-Org/ComfyUI/issues/${issueNumber + 10000}`,
-          });
-        },
-      ),
+      http.post("https://api.github.com/repos/Comfy-Org/ComfyUI/issues", async ({ request }) => {
+        const body: unknown = await request.json();
+        issuesCreated++;
+        const issueNumber = parseInt(body.title.split(" ")[1]);
+        return HttpResponse.json({
+          number: issueNumber + 10000,
+          html_url: `https://github.com/Comfy-Org/ComfyUI/issues/${issueNumber + 10000}`,
+        });
+      }),
       http.post(
         "https://api.github.com/repos/Comfy-Org/ComfyUI_frontend/issues/:issue_number/comments",
         () => {
