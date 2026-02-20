@@ -4,6 +4,9 @@ on:
   pull_request:
     branches:
       - main
+  push:
+    branches:
+      - sno-fix-repolist-endpoint
 jobs:
   run_comfy_pr:
     runs-on: ubuntu-latest
