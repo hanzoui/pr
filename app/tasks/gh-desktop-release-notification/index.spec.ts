@@ -1,7 +1,7 @@
-import { gh } from "@/lib/github";
-import { getSlackChannel } from "@/lib/slack/channels";
+// Set GH_TOKEN before any imports to prevent @/lib/github from throwing in CI
+process.env.GH_TOKEN = process.env.GH_TOKEN || "test-token-for-ci";
+
 import { afterEach, beforeEach, describe, expect, it, jest } from "bun:test";
-import { upsertSlackMessage } from "./upsertSlackMessage";
 
 // Type definitions for mocked objects
 type MockGhRepos = {
@@ -13,9 +13,16 @@ type MockSlackChannel = {
   name: string;
 };
 
-jest.mock("@/src/gh");
-jest.mock("@/src/slack/channels");
-jest.mock("./upsertSlackMessage");
+// Create mock gh object
+const mockGh = {
+  repos: {
+    listReleases: jest.fn(),
+  } as MockGhRepos,
+};
+
+// Create mock functions
+const mockGetSlackChannel = jest.fn();
+const mockUpsertSlackMessage = jest.fn();
 
 const mockCollection = {
   createIndex: jest.fn().mockResolvedValue({}),
@@ -23,23 +30,35 @@ const mockCollection = {
   findOneAndUpdate: jest.fn().mockImplementation((_filter, update) => Promise.resolve(update.$set)),
 };
 
-jest.mock("@/src/db", () => ({
+// Use bun's mock.module with dynamic import pattern
+const { mock } = await import("bun:test");
+
+mock.module("@/lib/github", () => ({
+  gh: mockGh,
+}));
+
+mock.module("@/lib/slack/channels", () => ({
+  getSlackChannel: mockGetSlackChannel,
+}));
+
+mock.module("./upsertSlackMessage", () => ({
+  upsertSlackMessage: mockUpsertSlackMessage,
+}));
+
+mock.module("@/src/db", () => ({
   db: {
     collection: jest.fn(() => mockCollection),
   },
 }));
 
-import runGithubDesktopReleaseNotificationTask from "./index";
+// Dynamic import AFTER mocks are set up
+const { default: runGithubDesktopReleaseNotificationTask } = await import("./index");
 
 describe("GithubDesktopReleaseNotificationTask", () => {
-  const mockGh = gh as jest.Mocked<typeof gh>;
-  const mockGetSlackChannel = getSlackChannel as jest.MockedFunction<typeof getSlackChannel>;
-  const mockUpsertSlackMessage = upsertSlackMessage as jest.MockedFunction<
-    typeof upsertSlackMessage
-  >;
-
   beforeEach(async () => {
     jest.clearAllMocks();
+    // Reset mock implementations
+    mockGh.repos.listReleases = jest.fn();
     mockCollection.findOne.mockResolvedValue(null);
     mockCollection.findOneAndUpdate.mockImplementation((_filter, update) =>
       Promise.resolve(update.$set),
@@ -115,9 +134,9 @@ describe("GithubDesktopReleaseNotificationTask", () => {
           $set: expect.objectContaining({
             url: mockDraftRelease.html_url,
             slackMessageDrafting: expect.objectContaining({
-              text: expect.unknown(String),
+              text: expect.any(String),
               channel: "test-channel-id",
-              url: expect.unknown(String),
+              url: expect.any(String),
             }),
           }),
         },
@@ -294,9 +313,9 @@ describe("GithubDesktopReleaseNotificationTask", () => {
           $set: expect.objectContaining({
             url: mockStableRelease.html_url,
             slackMessage: expect.objectContaining({
-              text: expect.unknown(String),
+              text: expect.any(String),
               channel: "test-channel-id",
-              url: expect.unknown(String),
+              url: expect.any(String),
             }),
           }),
         },
@@ -403,9 +422,9 @@ describe("GithubDesktopReleaseNotificationTask", () => {
           $set: expect.objectContaining({
             url: mockPrerelease.html_url,
             slackMessageDrafting: expect.objectContaining({
-              text: expect.unknown(String),
+              text: expect.any(String),
               channel: "test-channel-id",
-              url: expect.unknown(String),
+              url: expect.any(String),
             }),
           }),
         },

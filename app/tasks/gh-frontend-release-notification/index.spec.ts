@@ -1,9 +1,8 @@
-import { db } from "@/src/db";
-import { gh } from "@/lib/github";
+// Set GH_TOKEN before any imports to prevent @/lib/github from throwing in CI
+process.env.GH_TOKEN = process.env.GH_TOKEN || "test-token-for-ci";
+
 import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
-import { getSlackChannel } from "@/lib/slack/channels";
-import { afterEach, beforeEach, describe, expect, it, jest } from "@jest/globals";
-import runGithubFrontendReleaseNotificationTask from "./index";
+import { afterEach, beforeEach, describe, expect, it, jest } from "bun:test";
 
 // Type definitions for mocked objects
 type MockGhRepos = {
@@ -15,40 +14,63 @@ type MockSlackChannel = {
   name: string;
 };
 
-jest.mock("@/src/gh");
-jest.mock("@/src/slack/channels");
-jest.mock("../gh-desktop-release-notification/upsertSlackMessage");
+// Create mock gh object
+const mockGh = {
+  repos: {
+    listReleases: jest.fn(),
+  } as MockGhRepos,
+};
 
-const mockGh = gh as jest.Mocked<typeof gh>;
-const mockGetSlackChannel = getSlackChannel as jest.MockedFunction<typeof getSlackChannel>;
-const { upsertSlackMessage } = jest.requireMock(
-  "../gh-desktop-release-notification/upsertSlackMessage",
-);
+// Create mock functions
+const mockGetSlackChannel = jest.fn();
+const mockUpsertSlackMessage = jest.fn();
+
+const mockCollection = {
+  findOne: jest.fn(),
+  findOneAndUpdate: jest.fn(),
+  createIndex: jest.fn(),
+};
+
+// Use bun's mock.module with dynamic import pattern
+const { mock } = await import("bun:test");
+
+mock.module("@/lib/github", () => ({
+  gh: mockGh,
+}));
+
+mock.module("@/lib/slack/channels", () => ({
+  getSlackChannel: mockGetSlackChannel,
+}));
+
+mock.module("../gh-desktop-release-notification/upsertSlackMessage", () => ({
+  upsertSlackMessage: mockUpsertSlackMessage,
+}));
+
+mock.module("@/src/db", () => ({
+  db: {
+    collection: jest.fn(() => mockCollection),
+  },
+}));
+
+// Dynamic import AFTER mocks are set up
+const { default: runGithubFrontendReleaseNotificationTask } = await import("./index");
+
+// Alias for compatibility with existing test code
+const upsertSlackMessage = mockUpsertSlackMessage;
+const collection = mockCollection;
 
 describe("GithubFrontendReleaseNotificationTask", () => {
-  let collection: {
-    findOne: jest.Mock;
-    findOneAndUpdate: jest.Mock;
-    createIndex: jest.Mock;
-  };
-
   beforeEach(async () => {
     jest.clearAllMocks();
-
-    collection = {
-      findOne: jest.fn(),
-      findOneAndUpdate: jest.fn(),
-      createIndex: jest.fn(),
-    };
-
-    jest.spyOn(db, "collection").mockReturnValue(collection);
+    // Reset mock gh
+    mockGh.repos.listReleases = jest.fn();
 
     mockGetSlackChannel.mockResolvedValue({
       id: "test-channel-id",
       name: "frontend",
     } as MockSlackChannel);
 
-    upsertSlackMessage.mockResolvedValue({
+    mockUpsertSlackMessage.mockResolvedValue({
       text: "mocked message",
       channel: "test-channel-id",
       url: "https://slack.com/message/123",
