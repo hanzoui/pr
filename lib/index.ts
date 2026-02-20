@@ -32,12 +32,10 @@ export const github = KeyvCacheProxy({
 );
 
 export const notion = KeyvCacheProxy({
-  store: globalThisCached(
-    "notion",
-    () =>
-      isTestEnv
-        ? new Keyv()
-        : new Keyv(KeyvNest(new Map(), new KeyvSqlite("./.cache/notion.sqlite"))),
+  store: globalThisCached("notion", () =>
+    isTestEnv
+      ? new Keyv()
+      : new Keyv(KeyvNest(new Map(), new KeyvSqlite("./.cache/notion.sqlite"))),
   ),
   prefix: "notion.",
   onFetched: (key, val) => {
