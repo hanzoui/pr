@@ -57,7 +57,7 @@ async function ensureCacheDir() {
 
 let keyv: Keyv | null = null;
 
-// Detect test environment - use in-memory cache to avoid SQLite issues
+// Detect test/CI environment - use in-memory cache to avoid SQLite async errors
 const isTestEnv = process.env.NODE_ENV === "test" || process.env.CI === "true" || !!process.env.CI;
 
 async function getKeyv() {
