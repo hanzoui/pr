@@ -61,9 +61,17 @@ async function getKeyv() {
   if (!keyv) {
     await ensureCacheDir();
     try {
+      const store = new KeyvSqlite(CACHE_FILE);
       keyv = new Keyv({
-        store: new KeyvSqlite(CACHE_FILE),
+        store,
         ttl: DEFAULT_TTL,
+      });
+// Handle async errors from SQLite to prevent unhandled rejections
+      keyv.on("error", (err) => {
+        // Silently ignore SQLite errors - fall back to in-memory behavior
+        if (process.env.DEBUG) {
+          console.warn("Keyv SQLite error (ignored):", err.message);
+        }
       });
     } catch (_error: unknown) {
       // If SQLite fails, silently fall back to in-memory cache
