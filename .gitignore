@@ -1,0 +1,81 @@
+.venv*
+node_modules
+prs/
+*.log
+logs/
+cache
+.cache
+secrets
+dist
+.next
+cache
+build
+
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+# ignore .env to prevent ai mistakes, lets use .env.dev for public env conf, and .env.local for private local overrides
+.env
+.env*.local
+.env.gcp
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+bun.lockb
+package-lock.json
+
+# script reports
+report
+
+# bun crash dump
+core
+
+# gh-service sqlite cache
+gh-service/state.sqlite
+
+**/*.sqlite
+**/*.sqlite-journal
+
+# running data
+data/
+
+# cloned repositories for sub-agent coding (backward compatibility)
+repos/
+
+# temporary working directories
+codes/
+tmp/
+
+TODO.md
+REPORT.md
+.data

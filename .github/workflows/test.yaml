@@ -1,0 +1,38 @@
+name: Run Comfy-PR Tests.
+
+on:
+  pull_request:
+    branches:
+      - main
+jobs:
+  run_comfy_pr:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      # setup comfy-cli
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.13"
+      - run: python -m pip install --upgrade pip
+      - run: python -m venv .venv
+      - run: source .venv/bin/activate
+      - run: pip install comfy-cli
+      # Setup SSH Key for git push
+      - uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      # Setup Bun
+      - run: pip install setuptools
+      - uses: oven-sh/setup-bun@v2
+      # setup test db
+      - run: docker compose -f docker-compose.test.yml up comfy-pr-db -d
+      # setup comfy-pr
+      # Run Comfy-PR Tests
+      - run: bun i
+      - run: bun test
+        timeout-minutes: 8
+        env:
+          MONGODB_URI: mongodb://localhost:27017
+      # shutdown test-db
+      # - run: docker compose -f docker-compose.test.yml down comfy-pr-db
