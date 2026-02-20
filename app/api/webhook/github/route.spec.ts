@@ -5,6 +5,9 @@ import { NextRequest } from "next/server";
 // In-memory storage for mock db
 let mockStorage: Map<string, unknown[]> = new Map();
 const trackingMockDb = {
+  admin: () => ({
+    ping: async () => ({ ok: 1 }),
+  }),
   collection: (name: string) => {
     if (!mockStorage.has(name)) {
       mockStorage.set(name, []);
