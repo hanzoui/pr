@@ -51,7 +51,7 @@ import { getRepositoryEvents } from "./app/api/webhook/github/webhook-events";
 
 const events = await getRepositoryEvents("hanzoui/studio_frontend", 100);
 
-console.log(`Found ${events.length} events for Hanzo Studio_frontend`);
+console.log(`Found ${events.length} events for HanzoStudio_frontend`);
 
 // Group by event type
 const byType = events.reduce(

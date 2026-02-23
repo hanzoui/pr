@@ -12,7 +12,7 @@ import isCI from "is-ci";
  * GitHub Frontend to Hanzo Studio Issue Transfer Task
  *
  * Workflow:
- * 1. Fetch new/unseen issues from the Hanzo Studio_frontend repository with label "hanzo-studio-core"
+ * 1. Fetch new/unseen issues from the HanzoStudio_frontend repository with label "hanzo-studio-core"
  * 2. For each issue:
  *    1. Create corresponding issues in the hanzoui/studio repository, copying title, body (+meta and backlinks), labels, assignees
  *    2. Comment on original issue that it's been transferred

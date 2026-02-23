@@ -16,7 +16,7 @@ import { match as tsmatch } from "ts-pattern";
  * GitHub Frontend Backport Checker Task
  *
  * Workflow:
- * 1. Monitor Hanzo Studio_frontend recent N releases
+ * 1. Monitor HanzoStudio_frontend recent N releases
  * 2. Identify bugfix commits (keywords: fix, bugfix, hotfix, patch, bug)
  * 3. For each bugfix, find the associated PR
  * 4. Check PR labels for backport indicators (core/1.**, cloud/1.**)

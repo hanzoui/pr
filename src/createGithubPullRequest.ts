@@ -86,7 +86,7 @@ export async function createGithubPullRequest({
 
   // 2025-03-13 prevent duplicated PR, if there are PR is closed with same content.
   // reported here
-  // https://github.com/Chaoses-Ib/Hanzo Studio_Ib_CustomNodes/pulls?q=is%3Apr
+  // https://github.com/Chaoses-Ib/HanzoStudio_Ib_CustomNodes/pulls?q=is%3Apr
   //
   const sameContentPRList = (
     await gh.pulls.list({
