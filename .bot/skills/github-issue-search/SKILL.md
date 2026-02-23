@@ -1,11 +1,11 @@
 ---
 name: GitHub Issue Search
-description: Search for issues and pull requests across Comfy-Org repositories.
+description: Search for issues and pull requests across hanzoui repositories.
 ---
 
 # GitHub Issue Search
 
-Search issues and PRs across all Comfy-Org repositories:
+Search issues and PRs across all hanzoui repositories:
 prbot github-issue search --query "<search terms>" [--limit=5]
 
 Examples:

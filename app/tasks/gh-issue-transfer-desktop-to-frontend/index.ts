@@ -12,17 +12,17 @@ import { pageFlow } from "sflow";
  * GitHub Desktop Issue Transfer Task
  *
  * Workflow:
- * 1. Fetch new/unseen issues from Comfy-Org/desktop with label "frontend"
+ * 1. Fetch new/unseen issues from hanzoui/desktop with label "frontend"
  * 2. For each issue:
- *    1. Create corresponding issues in Comfy-Org/ComfyUI_frontend, copying title, body (+meta and backlinks), labels, assignees
+ *    1. Create corresponding issues in hanzoui/studio_frontend, copying title, body (+meta and backlinks), labels, assignees
  *    2. Comment on original issue that it's been transferred
- *    3. Close original issue in Comfy-Org/desktop
+ *    3. Close original issue in hanzoui/desktop
  *    4. Track transferred issues to avoid duplicates
  */
 
 const config = {
-  srcRepoUrl: "https://github.com/Comfy-Org/desktop",
-  dstRepoUrl: "https://github.com/Comfy-Org/ComfyUI_frontend",
+  srcRepoUrl: "https://github.com/hanzoui/desktop",
+  dstRepoUrl: "https://github.com/hanzoui/studio_frontend",
   frontendLabel: "frontend",
   transferComment: (newIssueUrl: string) =>
     `This issue has been transferred to the frontend repository: ${newIssueUrl}\n\nPlease continue the discussion there.`,
@@ -48,7 +48,7 @@ await GithubDesktopIssueTransferTask.createIndex({ sourceIssueNumber: 1 }, { uni
 const save = async (
   task: { sourceIssueNumber: number } & Partial<GithubDesktopIssueTransferTask>,
 ) => {
-  // Normalize URLs to handle both comfyanonymous and Comfy-Org formats
+  // Normalize URLs to handle both hanzoai and hanzoui formats
   const normalizedTask = {
     ...task,
     sourceIssueUrl: task.sourceIssueUrl ? normalizeGithubUrl(task.sourceIssueUrl) : undefined,
@@ -64,7 +64,7 @@ const save = async (
         ? [
             { sourceIssueUrl: normalizedTask.sourceIssueUrl },
             {
-              sourceIssueUrl: normalizedTask.sourceIssueUrl.replace(/Comfy-Org/i, "comfyanonymous"),
+              sourceIssueUrl: normalizedTask.sourceIssueUrl.replace(/hanzoui/i, "hanzoai"),
             },
           ]
         : []),

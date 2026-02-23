@@ -3,7 +3,7 @@ import { slack } from "@/lib";
 async function postSummary() {
   const message = `✅ *Files uploaded successfully!*
 
-I've uploaded all 4 analysis documents for <https://github.com/Comfy-Org/ComfyUI_frontend/pull/7738|PR #7738>:
+I've uploaded all 4 analysis documents for <https://github.com/hanzoui/studio_frontend/pull/7738|PR #7738>:
 
 📄 *PR_ANALYSIS.md* - Detailed breakdown of issues (command errors, Node version, doc consolidation)
 📄 *PR_7738_REVIEW_SUMMARY.md* - Complete review with exact fixes and commit message

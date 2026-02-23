@@ -9,10 +9,10 @@ The main benefits are that authors can
 
 Action Required:
 
-- [ ] Go to the [registry](https://registry.comfy.org). Login and create a publisher id (everything after the `@` sign on your registry profile).
+- [ ] Go to the [registry](https://registry.hanzo.ai). Login and create a publisher id (everything after the `@` sign on your registry profile).
 - [ ] Add the publisher id into the pyproject.toml file.
 - [ ] Merge the separate Github Actions PR, then merge this PR.
 
-If you want to publish the node manually, [install the cli](https://docs.comfy.org/comfy-cli/getting-started#install-cli) by running `pip install comfy-cli`, then run `comfy node publish`
+If you want to publish the node manually, [install the cli](https://docs.hanzo.ai/hanzo-cli/getting-started#install-cli) by running `pip install hanzo-cli`, then run `comfy node publish`
 
-Check out our [docs](https://docs.comfy.org/registry/overview#introduction) if you want to know more about the registry. Otherwise, feel free to message me on discord at robinken or join our [server](https://discord.com/invite/comfyorg) if you have any questions!
+Check out our [docs](https://docs.hanzo.ai/registry/overview#introduction) if you want to know more about the registry. Otherwise, feel free to message me on discord at robinken or join our [server](https://discord.com/invite/hanzoai) if you have any questions!

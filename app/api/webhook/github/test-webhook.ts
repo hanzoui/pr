@@ -24,19 +24,19 @@ const payload = {
     body: "This is a test PR",
     created_at: new Date().toISOString(),
     updated_at: new Date().toISOString(),
-    html_url: "https://github.com/Comfy-Org/test-repo/pull/123",
+    html_url: "https://github.com/hanzoui/test-repo/pull/123",
     state: "open",
     draft: false,
   },
   repository: {
     id: 1,
     name: "test-repo",
-    full_name: "Comfy-Org/test-repo",
+    full_name: "hanzoui/test-repo",
     owner: {
-      login: "Comfy-Org",
+      login: "hanzoui",
       id: 1,
     },
-    html_url: "https://github.com/Comfy-Org/test-repo",
+    html_url: "https://github.com/hanzoui/test-repo",
   },
   sender: {
     login: "testuser",

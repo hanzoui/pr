@@ -3,7 +3,7 @@ import { CMNodes } from "./CMNodes";
 import { CNRepos } from "./CNRepos";
 import { tLog } from "./utils/tLog";
 if (import.meta.main) {
-  await tLog("Update Repos from ComfyUI Manager", updateCMRepos);
+  await tLog("Update Repos from Hanzo Manager", updateCMRepos);
   console.log(await CMNodes.estimatedDocumentCount());
 }
 export async function updateCMRepos() {

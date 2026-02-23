@@ -12,7 +12,7 @@ export async function getAuthUser() {
   };
 
   // TODO: move this into .env file, it's public anyway
-  user.admin ||= user.email.endsWith("@comfy.org");
+  user.admin ||= user.email.endsWith("@hanzo.ai");
   user.admin ||= user.email.endsWith("@drip.art"); // legacy domain
 
   return user;

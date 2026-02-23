@@ -23,7 +23,7 @@ export async function analyzeTotals() {
   const totals = await promiseAllProperties({
     // Now: new Date().toISOString(),
     "Total Nodes": promiseAllProperties({
-      "on ComfyUI Manager": CMNodes.estimatedDocumentCount(),
+      "on Hanzo Manager": CMNodes.estimatedDocumentCount(),
       "on Registry": CRNodes.estimatedDocumentCount(),
       "on Registry (exclude unclaimed)": CRNodes.countDocuments({
         "publisher.id": { $ne: UNCLAIMED_ADMIN_PUBLISHER_ID },

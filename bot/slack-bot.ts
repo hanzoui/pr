@@ -695,16 +695,16 @@ For context, Recent messages from this thread are as follows:
 ${nearbyMessages.map((m) => `- User ${m.username} said: ${JSON.stringify(m.markdown)}`).join("\n\n")}
 
 Possible Context Repos:
-- https://github.com/comfyanonymous/ComfyUI: The main ComfyUI repository containing the core application logic and features. Its a python backend to run unknown machine learning models and solves various machine learning tasks.
-- https://github.com/Comfy-Org/ComfyUI_frontend: The frontend codebase for ComfyuUI, built with Vue and TypeScript.
-- https://github.com/Comfy-Org/docs: Documentation for ComfyUI, including setup guides, tutorials, and API references.
-- https://github.com/Comfy-Org/desktop: The desktop application for ComfyUI, providing a user-friendly interface and additional functionalities.
-- https://github.com/Comfy-Org/registry: The registry.comfy.org, where users can share and discover ComfyUI custom-nodes, and extensions.
-- https://github.com/Comfy-Org/workflow_templates: A collection of official shared workflow templates for ComfyUI to help users get started quickly.
+- https://github.com/hanzoai/studio: The main Hanzo Studio repository containing the core application logic and features. Its a python backend to run unknown machine learning models and solves various machine learning tasks.
+- https://github.com/hanzoui/studio_frontend: The frontend codebase for ComfyuUI, built with Vue and TypeScript.
+- https://github.com/hanzoui/docs: Documentation for Hanzo Studio, including setup guides, tutorials, and API references.
+- https://github.com/hanzoui/desktop: The desktop application for Hanzo Studio, providing a user-friendly interface and additional functionalities.
+- https://github.com/hanzoui/registry: The registry.hanzo.ai, where users can share and discover Hanzo Studio custom-nodes, and extensions.
+- https://github.com/hanzoui/workflow-templates: A collection of official shared workflow templates for Hanzo Studio to help users get started quickly.
 
-- https://github.com/Comfy-Org/comfy-api: A RESTful API service for comfy-registry, it stores custom-node metadatas and user profile/billings informations.
+- https://github.com/hanzoui/comfy-api: A RESTful API service for comfy-registry, it stores custom-node metadatas and user profile/billings informations.
 
-- And also other repos under Comfy-Org organization on GitHub.
+- And also other repos under hanzoui organization on GitHub.
 
 Respond in JSON format with the following fields:
 - user_intent: A brief description of the user's intent. e.g. "The user is asking for help with setting up a CI/CD pipeline."
@@ -882,10 +882,10 @@ Respond in JSON format with the following fields:
 
   await Bun.write(`${botWorkingDir}/CLAUDE.md`, CLAUDEMD);
 
-  // clone https://github.com/Comfy-Org/Comfy-PR/tree/sno-bot to ./repos/prbot (branch: sno-bot)
-  const prBotRepoDir = `${botWorkingDir}/codes/Comfy-Org/pr-bot/tree/main`;
+  // clone https://github.com/hanzoui/pr/tree/sno-bot to ./repos/prbot (branch: sno-bot)
+  const prBotRepoDir = `${botWorkingDir}/codes/hanzoui/pr-bot/tree/main`;
   await mkdir(prBotRepoDir, { recursive: true });
-  await Bun.$`git clone --branch main https://github.com/Comfy-Org/Comfy-PR ${prBotRepoDir}`.catch(
+  await Bun.$`git clone --branch main https://github.com/hanzoui/pr ${prBotRepoDir}`.catch(
     () => null,
   );
 
@@ -915,11 +915,11 @@ Available Skills (.claude/skills):
 - slack-messaging: Communicate in Slack threads using prbot slack commands.
 - slack-file-sharing: Upload and download files, share deliverables with users.
 - github-pr-bot: Delegate all code changes via prbot pr command.
-- code-search: Search ComfyUI code using prbot code search.
+- code-search: Search Hanzo Studio code using prbot code search.
 - github-issue-search: Search issues and PRs using prbot github-issue search.
 - notion-search: Discover and cite internal Notion pages using prbot notion search.
 - registry-search: Search custom nodes using prbot registry search.
-- repo-reading: Clone and inspect Comfy-Org repos read-only, or use prbot code search.
+- repo-reading: Clone and inspect hanzoui repos read-only, or use prbot code search.
 - web-research: Pull in external context and cite sources.
 
 Open the corresponding SKILL.md under .claude/skills/<name>/ for details.
@@ -958,8 +958,8 @@ Open the corresponding SKILL.md under .claude/skills/<name>/ for details.
 ## Tool Error Recovery
 When a prbot CLI command fails:
 1. Record error to ./TOOLS_ERRORS.md (command, error, context)
-2. Read the failing tool's source in ./codes/Comfy-Org/Comfy-PR/tree/sno-bot to diagnose
-3. Spawn a fix via: prbot pr --repo=Comfy-Org/Comfy-PR --prompt="Fix <tool>: <error>. Root cause: <analysis>. Fix: <change>"
+2. Read the failing tool's source in ./codes/hanzoui/pr/tree/sno-bot to diagnose
+3. Spawn a fix via: prbot pr --repo=hanzoui/pr --prompt="Fix <tool>: <error>. Root cause: <analysis>. Fix: <change>"
 4. Workaround to complete the user's task while the fix PR is open
 
 `,

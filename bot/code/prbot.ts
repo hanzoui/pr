@@ -47,7 +47,7 @@ async function main() {
     );
     console.log("\nExample:");
     console.log(
-      '  bun bot/code/prbot.ts --repo=Comfy-Org/ComfyUI --base=main --head=prbot-fix-auth --prompt="Fix the authentication bug"',
+      '  bun bot/code/prbot.ts --repo=hanzoui/studio --base=main --head=prbot-fix-auth --prompt="Fix the authentication bug"',
     );
     console.log("\nIf --head is not provided, it will be auto-generated based on the prompt.");
     process.exit(1);
@@ -60,7 +60,7 @@ async function main() {
     );
     console.log("\nExample:");
     console.log(
-      '  bun bot/code/prbot.ts --repo=Comfy-Org/ComfyUI --base=main --head=prbot-fix-auth --prompt="Fix the authentication bug"',
+      '  bun bot/code/prbot.ts --repo=hanzoui/studio --base=main --head=prbot-fix-auth --prompt="Fix the authentication bug"',
     );
     console.log("\nIf --head is not provided, it will be auto-generated based on the prompt.");
     process.exit(1);

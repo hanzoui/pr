@@ -33,7 +33,7 @@ const TEAM_MEMBERS: TeamMember[] = [
   { username: "Kosinkadink", startDate: new Date("2020-01-01"), displayName: "Kosinkadink" },
   { username: "yoland68", startDate: new Date("2020-01-01"), displayName: "Yoland" },
   { username: "KohakuBlueleaf", startDate: new Date("2020-01-01"), displayName: "KohakuBlueleaf" },
-  { username: "comfyanonymous", startDate: new Date("2020-01-01"), displayName: "Comfy" },
+  { username: "hanzoai", startDate: new Date("2020-01-01"), displayName: "Comfy" },
   { username: "snomiao", startDate: new Date("2020-01-01"), displayName: "Sno" },
 ];
 
@@ -41,46 +41,46 @@ const TEAM_MEMBERS: TeamMember[] = [
 let REPOSITORIES: Repository[] = [];
 
 async function fetchAllComfyOrgRepos(): Promise<Repository[]> {
-  console.log("Using expanded list of Comfy-Org repositories...");
+  console.log("Using expanded list of hanzoui repositories...");
 
-  // Hardcoded list of all important Comfy-Org repositories
+  // Hardcoded list of all important hanzoui repositories
   // This avoids rate limits and allows us to control exactly which repos to analyze
   const repos: Repository[] = [
     // Main repo
-    { owner: "comfyanonymous", repo: "ComfyUI", displayName: "ComfyUI" },
+    { owner: "hanzoai", repo: "Hanzo Studio", displayName: "Hanzo Studio" },
 
     // Core frontend and desktop
-    { owner: "Comfy-Org", repo: "ComfyUI_frontend", displayName: "Frontend" },
-    { owner: "Comfy-Org", repo: "desktop", displayName: "Desktop" },
+    { owner: "hanzoui", repo: "Hanzo Studio_frontend", displayName: "Frontend" },
+    { owner: "hanzoui", repo: "desktop", displayName: "Desktop" },
 
     // Infrastructure and tools
-    { owner: "Comfy-Org", repo: "comfy-cli", displayName: "CLI" },
-    { owner: "Comfy-Org", repo: "registry-web", displayName: "Registry Web" },
-    { owner: "Comfy-Org", repo: "registry-backend", displayName: "Registry Backend" },
-    { owner: "Comfy-Org", repo: "ComfyUI-Manager", displayName: "Manager" },
+    { owner: "hanzoui", repo: "hanzo-cli", displayName: "CLI" },
+    { owner: "hanzoui", repo: "registry-web", displayName: "Registry Web" },
+    { owner: "hanzoui", repo: "registry-backend", displayName: "Registry Backend" },
+    { owner: "hanzoui", repo: "Hanzo Manager", displayName: "Manager" },
 
     // Documentation and resources
-    { owner: "Comfy-Org", repo: "docs", displayName: "Docs" },
-    { owner: "Comfy-Org", repo: "workflow_templates", displayName: "Workflow Templates" },
-    { owner: "Comfy-Org", repo: "example_workflows", displayName: "Example Workflows" },
+    { owner: "hanzoui", repo: "docs", displayName: "Docs" },
+    { owner: "hanzoui", repo: "workflow_templates", displayName: "Workflow Templates" },
+    { owner: "hanzoui", repo: "example_workflows", displayName: "Example Workflows" },
 
     // Libraries and APIs
-    { owner: "Comfy-Org", repo: "litegraph.js", displayName: "Litegraph" },
-    { owner: "Comfy-Org", repo: "comfy-api", displayName: "API" },
+    { owner: "hanzoui", repo: "litegraph.js", displayName: "Litegraph" },
+    { owner: "hanzoui", repo: "comfy-api", displayName: "API" },
 
     // Development tools
-    { owner: "Comfy-Org", repo: "ComfyUI_devtools", displayName: "DevTools" },
-    { owner: "Comfy-Org", repo: "security-scanner", displayName: "Security Scanner" },
+    { owner: "hanzoui", repo: "Hanzo Studio_devtools", displayName: "DevTools" },
+    { owner: "hanzoui", repo: "security-scanner", displayName: "Security Scanner" },
 
     // Cloud and services
-    { owner: "Comfy-Org", repo: "cloud", displayName: "Cloud" },
+    { owner: "hanzoui", repo: "cloud", displayName: "Cloud" },
 
     // Additional active repos
-    { owner: "Comfy-Org", repo: "Comfy-PR", displayName: "PR Tools" },
-    { owner: "Comfy-Org", repo: "ComfyUI_TensorRT", displayName: "TensorRT" },
-    { owner: "Comfy-Org", repo: "homepage", displayName: "Homepage" },
-    { owner: "Comfy-Org", repo: "rfcs", displayName: "RFCs" },
-    { owner: "Comfy-Org", repo: "translations", displayName: "Translations" },
+    { owner: "hanzoui", repo: "Comfy-PR", displayName: "PR Tools" },
+    { owner: "hanzoui", repo: "Hanzo Studio_TensorRT", displayName: "TensorRT" },
+    { owner: "hanzoui", repo: "homepage", displayName: "Homepage" },
+    { owner: "hanzoui", repo: "rfcs", displayName: "RFCs" },
+    { owner: "hanzoui", repo: "translations", displayName: "Translations" },
   ];
 
   console.log(`Analyzing ${repos.length} repositories`);
@@ -388,7 +388,7 @@ function generateRepoStats(prs: PRData[]): RepoStats[] {
 }
 
 async function generateReport() {
-  // Fetch all Comfy-Org repos first
+  // Fetch all hanzoui repos first
   REPOSITORIES = await fetchAllComfyOrgRepos();
 
   console.log("=".repeat(80));

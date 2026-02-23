@@ -9,8 +9,8 @@ import { FcGoogle } from "react-icons/fc";
  * Provides Google and GitHub OAuth authentication
  *
  * Authorization Requirements:
- * - Google OAuth: Must have @comfy.org email to access admin pages
- * - GitHub OAuth: Must be member of github.com/Comfy-Org
+ * - Google OAuth: Must have @hanzo.ai email to access admin pages
+ * - GitHub OAuth: Must be member of github.com/hanzoui
  */
 export default function LoginPage() {
   return (
@@ -48,10 +48,10 @@ export default function LoginPage() {
           <h3 className="text-sm font-semibold text-amber-800 mb-2">Pre-authorized users only</h3>
           <div className="text-xs text-amber-700 space-y-1">
             <p>
-              <strong>Google:</strong> Requires @comfy.org email for admin access
+              <strong>Google:</strong> Requires @hanzo.ai email for admin access
             </p>
             <p>
-              <strong>GitHub:</strong> Must be member of Comfy-Org organization
+              <strong>GitHub:</strong> Must be member of hanzoui organization
             </p>
           </div>
         </div>

@@ -1,13 +1,13 @@
 ---
 name: registry-search
-description: Search the ComfyUI custom nodes registry for plugins and extensions. Use when the user wants to find specific custom nodes, ComfyUI extensions, or plugins by name, functionality, or description.
+description: Search the Hanzo Studio custom nodes registry for plugins and extensions. Use when the user wants to find specific custom nodes, Hanzo Studio extensions, or plugins by name, functionality, or description.
 allowed-tools: Bash
 model: haiku
 ---
 
-# ComfyUI Registry Search
+# Hanzo Registry Search
 
-This skill searches the official ComfyUI custom nodes registry (api.comfy.org) for available plugins and extensions.
+This skill searches the official Hanzo Studio custom nodes registry (api.hanzo.ai) for available plugins and extensions.
 
 ## Usage
 
@@ -70,7 +70,7 @@ Returns results with:
    Can be applied to images and videos...
    Publisher: Salvador Eduardo Tropea
    Version: 1.0.0
-   Repository: https://github.com/set-soft/ComfyUI-RemoveBackground_SET
+   Repository: https://github.com/set-soft/Hanzo Studio-RemoveBackground_SET
    Downloads: 462 | Stars: 12
    Tags: image, video
 ---
@@ -78,7 +78,7 @@ Returns results with:
 
 ## Notes
 
-- Searches across **all** nodes in the ComfyUI registry (3000+ custom nodes)
+- Searches across **all** nodes in the Hanzo Studio registry (3000+ custom nodes)
 - Results exclude deprecated nodes by default
 - No authentication required
 - Search is case-insensitive

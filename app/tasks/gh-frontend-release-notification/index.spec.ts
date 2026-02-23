@@ -60,11 +60,11 @@ describe("GithubFrontendReleaseNotificationTask", () => {
   });
 
   describe("parseGithubRepoUrl", () => {
-    it("should correctly parse ComfyUI_frontend repo URL", () => {
-      const result = parseGithubRepoUrl("https://github.com/Comfy-Org/ComfyUI_frontend");
+    it("should correctly parse Hanzo Studio_frontend repo URL", () => {
+      const result = parseGithubRepoUrl("https://github.com/hanzoui/studio_frontend");
       expect(result).toEqual({
-        owner: "Comfy-Org",
-        repo: "ComfyUI_frontend",
+        owner: "hanzoui",
+        repo: "Hanzo Studio_frontend",
       });
     });
   });
@@ -72,7 +72,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
   describe("Release Processing", () => {
     it("should process stable releases and send message only on first occurrence", async () => {
       const mockRelease = {
-        html_url: "https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0",
+        html_url: "https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0",
         tag_name: "v1.0.0",
         draft: false,
         prerelease: false,
@@ -108,7 +108,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         createdAt: new Date(mockRelease.created_at),
         releasedAt: new Date(mockRelease.published_at),
         slackMessage: {
-          text: "🎨 ComfyUI_frontend <https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0|Release v1.0.0> is stable!\n\n*Release Notes:*\nRelease notes",
+          text: "🎨 Hanzo Studio_frontend <https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0|Release v1.0.0> is stable!\n\n*Release Notes:*\nRelease notes",
           channel: "test-channel-id",
           url: "https://slack.com/message/123",
         },
@@ -117,8 +117,8 @@ describe("GithubFrontendReleaseNotificationTask", () => {
       await runGithubFrontendReleaseNotificationTask();
 
       expect(mockGh.repos.listReleases).toHaveBeenCalledWith({
-        owner: "Comfy-Org",
-        repo: "ComfyUI_frontend",
+        owner: "hanzoui",
+        repo: "Hanzo Studio_frontend",
         per_page: 3,
       });
 
@@ -132,7 +132,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
 
     it("should not send duplicate messages for unchanged releases", async () => {
       const mockRelease = {
-        html_url: "https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0",
+        html_url: "https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0",
         tag_name: "v1.0.0",
         draft: false,
         prerelease: false,
@@ -157,7 +157,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         createdAt: new Date(mockRelease.created_at),
         releasedAt: new Date(mockRelease.published_at),
         slackMessage: {
-          text: "🎨 ComfyUI_frontend <https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0|Release v1.0.0> is stable!\n\n*Release Notes:*\nRelease notes",
+          text: "🎨 Hanzo Studio_frontend <https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0|Release v1.0.0> is stable!\n\n*Release Notes:*\nRelease notes",
           channel: "test-channel-id",
           url: "https://slack.com/message/123",
         },
@@ -171,7 +171,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
 
     it("should process prerelease and send drafting message", async () => {
       const mockPrerelease = {
-        html_url: "https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0-beta.1",
+        html_url: "https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0-beta.1",
         tag_name: "v1.0.0-beta.1",
         draft: false,
         prerelease: true,
@@ -207,7 +207,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         createdAt: new Date(mockPrerelease.created_at),
         releasedAt: new Date(mockPrerelease.published_at),
         slackMessageDrafting: {
-          text: "🎨 ComfyUI_frontend <https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0-beta.1|Release v1.0.0-beta.1> is prerelease!\n\n*Release Notes:*\nBeta release notes",
+          text: "🎨 Hanzo Studio_frontend <https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0-beta.1|Release v1.0.0-beta.1> is prerelease!\n\n*Release Notes:*\nBeta release notes",
           channel: "test-channel-id",
           url: "https://slack.com/message/456",
         },
@@ -225,7 +225,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
 
     it("should process draft releases", async () => {
       const mockDraft = {
-        html_url: "https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v2.0.0",
+        html_url: "https://github.com/hanzoui/studio_frontend/releases/tag/v2.0.0",
         tag_name: "v2.0.0",
         draft: true,
         prerelease: false,
@@ -267,7 +267,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
 
     it("should skip old releases before sendSince date", async () => {
       const oldRelease = {
-        html_url: "https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v0.1.0",
+        html_url: "https://github.com/hanzoui/studio_frontend/releases/tag/v0.1.0",
         tag_name: "v0.1.0",
         draft: false,
         prerelease: false,
@@ -301,7 +301,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
 
     it("should update message when release text changes", async () => {
       const mockRelease = {
-        html_url: "https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0",
+        html_url: "https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0",
         tag_name: "v1.0.1", // Changed version
         draft: false,
         prerelease: false,
@@ -326,7 +326,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         createdAt: new Date(mockRelease.created_at),
         releasedAt: new Date(mockRelease.published_at),
         slackMessage: {
-          text: "🎨 ComfyUI_frontend <https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0|Release v1.0.0> is stable!",
+          text: "🎨 Hanzo Studio_frontend <https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0|Release v1.0.0> is stable!",
           channel: "test-channel-id",
           url: "https://slack.com/message/123",
         },
@@ -340,7 +340,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         isStable: true,
         releaseNotes: mockRelease.body,
         slackMessage: {
-          text: "🎨 ComfyUI_frontend <https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0|Release v1.0.1> is stable!\n\n*Release Notes:*\nUpdated release notes",
+          text: "🎨 Hanzo Studio_frontend <https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0|Release v1.0.1> is stable!\n\n*Release Notes:*\nUpdated release notes",
           channel: "test-channel-id",
           url: "https://slack.com/message/123",
         },
@@ -360,7 +360,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
     it("should truncate long release notes in Slack message", async () => {
       const longReleaseNotes = "x".repeat(600); // Create a 600 character string
       const mockRelease = {
-        html_url: "https://github.com/Comfy-Org/ComfyUI_frontend/releases/tag/v1.0.0",
+        html_url: "https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0",
         tag_name: "v1.0.0",
         draft: false,
         prerelease: false,

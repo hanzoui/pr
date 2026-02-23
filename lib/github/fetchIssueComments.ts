@@ -3,8 +3,8 @@ import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
 import { yaml } from "@/src/utils/yaml";
 import { fetchGithubPulls } from "./fetchGithubPulls";
 if (import.meta.main) {
-  // const repo = "https://github.com/ltdrdata/ComfyUI-Manager";
-  // const repo = "https://github.com/WASasquatch/PPF_Noise_ComfyUI";
+  // const repo = "https://github.com/ltdrdata/Hanzo Manager";
+  // const repo = "https://github.com/WASasquatch/PPF_Noise_Hanzo Studio";
   const repo = "https://github.com/LEv145/images-grid-comfy-plugin";
   const pulls = await fetchGithubPulls(repo);
   console.log(pulls.length);

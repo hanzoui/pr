@@ -1,6 +1,6 @@
 ---
 name: github-pr-bot
-description: Spawn an AI coding sub-agent to make code changes, fix bugs, or add features to GitHub repositories. Use when the user wants to modify code in Comfy-Org repositories, create pull requests, or implement new functionality.
+description: Spawn an AI coding sub-agent to make code changes, fix bugs, or add features to GitHub repositories. Use when the user wants to modify code in hanzoui repositories, create pull requests, or implement new functionality.
 allowed-tools: Bash
 ---
 
@@ -19,7 +19,7 @@ prbot pr -r <OWNER/REPO> [-b <BRANCH>] -p "<TASK_DESCRIPTION>"
 
 ## Parameters
 
-- `-r, --repo` (required): GitHub repository in format `owner/repo` (e.g., `Comfy-Org/ComfyUI`)
+- `-r, --repo` (required): GitHub repository in format `owner/repo` (e.g., `hanzoui/studio`)
 - `-b, --branch` (optional): Target branch to work on (default: `main`)
 - `-p, --prompt` (required): Detailed description of the coding task for the agent
 
@@ -33,24 +33,24 @@ prbot pr -r <OWNER/REPO> [-b <BRANCH>] -p "<TASK_DESCRIPTION>"
 ## Examples
 
 ```bash
-# Fix a bug in ComfyUI
-prbot pr -r Comfy-Org/ComfyUI -p "Fix authentication bug in login module - users can't login with special characters in password"
+# Fix a bug in Hanzo Studio
+prbot pr -r hanzoui/studio -p "Fix authentication bug in login module - users can't login with special characters in password"
 
 # Add feature to frontend
-prbot github pr -r Comfy-Org/ComfyUI_frontend -b develop -p "Add dark mode toggle to settings page with persistent user preference"
+prbot github pr -r hanzoui/studio_frontend -b develop -p "Add dark mode toggle to settings page with persistent user preference"
 
 # Update documentation
-prbot pr -r Comfy-Org/docs -p "Add troubleshooting section for common installation errors on Windows"
+prbot pr -r hanzoui/docs -p "Add troubleshooting section for common installation errors on Windows"
 ```
 
 ## Available Repositories
 
-- `Comfy-Org/ComfyUI` - Main ComfyUI backend (Python)
-- `Comfy-Org/ComfyUI_frontend` - Frontend codebase (Vue + TypeScript)
-- `Comfy-Org/docs` - Documentation and guides
-- `Comfy-Org/desktop` - Desktop application
-- `Comfy-Org/registry` - Custom nodes registry
-- `Comfy-Org/workflow_templates` - Workflow templates
+- `hanzoui/studio` - Main Hanzo Studio backend (Python)
+- `hanzoui/studio_frontend` - Frontend codebase (Vue + TypeScript)
+- `hanzoui/docs` - Documentation and guides
+- `hanzoui/desktop` - Desktop application
+- `hanzoui/registry` - Custom nodes registry
+- `hanzoui/workflow-templates` - Workflow templates
 
 ## Notes
 

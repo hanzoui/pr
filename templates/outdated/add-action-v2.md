@@ -9,4 +9,4 @@ Action Required:
 - [ ] Add it to your Github Repository Secrets as `REGISTRY_ACCESS_TOKEN`.
 
 More info on the [registry](https://comfyregistry.org/).
-Please message me on [Discord](https://discord.com/invite/comfyorg) if you have any questions!
+Please message me on [Discord](https://discord.com/invite/hanzoai) if you have any questions!

@@ -9,23 +9,23 @@ import DIE from "@snomiao/die";
 import isCI from "is-ci";
 
 /**
- * GitHub Frontend to ComfyUI Issue Transfer Task
+ * GitHub Frontend to Hanzo Studio Issue Transfer Task
  *
  * Workflow:
- * 1. Fetch new/unseen issues from the ComfyUI_frontend repository with label "comfyui-core"
+ * 1. Fetch new/unseen issues from the Hanzo Studio_frontend repository with label "hanzo-studio-core"
  * 2. For each issue:
- *    1. Create corresponding issues in the Comfy-Org/ComfyUI repository, copying title, body (+meta and backlinks), labels, assignees
+ *    1. Create corresponding issues in the hanzoui/studio repository, copying title, body (+meta and backlinks), labels, assignees
  *    2. Comment on original issue that it's been transferred
  *    3. Close original issue in the frontend repository
  *    4. Track transferred issues to avoid duplicates
  */
 
 const config = {
-  srcRepoUrl: "https://github.com/Comfy-Org/ComfyUI_frontend",
-  dstRepoUrl: "https://github.com/Comfy-Org/ComfyUI",
-  comfyuiCoreLabel: "comfyui-core",
+  srcRepoUrl: "https://github.com/hanzoui/studio_frontend",
+  dstRepoUrl: "https://github.com/hanzoui/studio",
+  comfyuiCoreLabel: "hanzo-studio-core",
   transferComment: (newIssueUrl: string) =>
-    `This issue has been transferred to the ComfyUI core repository: ${newIssueUrl}\n\nPlease continue the discussion there.`,
+    `This issue has been transferred to the Hanzo Studio core repository: ${newIssueUrl}\n\nPlease continue the discussion there.`,
 };
 
 export type GithubFrontendToComfyuiIssueTransferTask = {
@@ -52,7 +52,7 @@ await GithubFrontendToComfyuiIssueTransferTask.createIndex(
 const save = async (
   task: { sourceIssueNumber: number } & Partial<GithubFrontendToComfyuiIssueTransferTask>,
 ) => {
-  // Normalize URLs to handle both comfyanonymous and Comfy-Org formats
+  // Normalize URLs to handle both hanzoai and hanzoui formats
   const normalizedTask = {
     ...task,
     sourceIssueUrl: task.sourceIssueUrl ? normalizeGithubUrl(task.sourceIssueUrl) : undefined,
@@ -68,7 +68,7 @@ const save = async (
         ? [
             { sourceIssueUrl: normalizedTask.sourceIssueUrl },
             {
-              sourceIssueUrl: normalizedTask.sourceIssueUrl.replace(/Comfy-Org/i, "comfyanonymous"),
+              sourceIssueUrl: normalizedTask.sourceIssueUrl.replace(/hanzoui/i, "hanzoai"),
             },
           ]
         : []),
@@ -97,7 +97,7 @@ async function runGithubFrontendToComfyuiIssueTransferTask() {
   const sourceRepo = parseGithubRepoUrl(config.srcRepoUrl);
   const targetRepo = parseGithubRepoUrl(config.dstRepoUrl);
 
-  // Fetch all open issues with "comfyui-core" label from source repo with paginated API
+  // Fetch all open issues with "hanzo-studio-core" label from source repo with paginated API
   await ghPageFlow(gh.issues.listForRepo)({
     owner: sourceRepo.owner,
     repo: sourceRepo.repo,
@@ -162,7 +162,7 @@ ${comments.length ? `\n\n**Original Comments:**\n\n${comments.join("\n\n")}` : "
           labels: issue.labels
             .map((label) => (typeof label === "string" ? label : label.name))
             .filter((name): name is string => !!name)
-            .filter((name) => name.toLowerCase() !== "comfyui-core"),
+            .filter((name) => name.toLowerCase() !== "hanzo-studio-core"),
           assignees: issue.assignees
             ?.map((assignee) => assignee.login)
             .filter((login): login is string => !!login),

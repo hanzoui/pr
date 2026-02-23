@@ -57,8 +57,8 @@ describe("GitHub API Client (gh)", () => {
 
     it("should list tags", async () => {
       const result = await gh.repos.listTags({
-        owner: "comfyanonymous",
-        repo: "ComfyUI",
+        owner: "hanzoai",
+        repo: "Hanzo Studio",
         per_page: 10,
       });
 
@@ -83,7 +83,7 @@ describe("GitHub API Client (gh)", () => {
 
     it("should list releases", async () => {
       const result = await gh.repos.listReleases({
-        owner: "Comfy-Org",
+        owner: "hanzoui",
         repo: "desktop",
         per_page: 3,
       });
@@ -332,8 +332,8 @@ describe("GitHub API Client (gh)", () => {
   describe("Git API", () => {
     it("should get an annotated tag", async () => {
       const result = await gh.git.getTag({
-        owner: "comfyanonymous",
-        repo: "ComfyUI",
+        owner: "hanzoai",
+        repo: "Hanzo Studio",
         tag_sha: "abc123",
       });
 
@@ -356,8 +356,8 @@ describe("GitHub API Client (gh)", () => {
 
       try {
         await gh.git.getTag({
-          owner: "comfyanonymous",
-          repo: "ComfyUI",
+          owner: "hanzoai",
+          repo: "Hanzo Studio",
           tag_sha: "lightweight-tag",
         });
         // Should not reach here

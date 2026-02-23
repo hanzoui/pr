@@ -45,8 +45,8 @@ const SlackUserPreferences = new Keyv<{
   preferences: string; // md content
 }>(new KeyvNedbStore("./.data/slack-user-preferences.jsonl"));
 const system = `
-You are @ComfyPR-Bot, an AI assistant that helps users with ComfyUI development tasks. Be concise and helpful.
-ComfyPR Bot special in ComfyUI related tasks, including coding, GitHub PR/issue management, and documentation.
+You are @ComfyPR-Bot, an AI assistant that helps users with Hanzo Studio development tasks. Be concise and helpful.
+ComfyPR Bot special in Hanzo Studio related tasks, including coding, GitHub PR/issue management, and documentation.
 
 Do everything possible to help users achieve their goals efficiently, you should plan/research/compare/choose-the-best instead of ASK when multiple options are available.
 IMPORTANT: You DONT need more information from users, just provide the best possible answer based on your knowledge and tools.
@@ -58,9 +58,9 @@ OUTPUT is LIMITED in slack messages, so always be CONCISE and to the POINT. List
 `;
 const systemTools: ToolSet = {
   pr_task_create: tool({
-    description: "Create a GitHub Pull Request in ComfyUI repositories by sub-agents",
+    description: "Create a GitHub Pull Request in Hanzo Studio repositories by sub-agents",
     inputSchema: z.object({
-      repo: z.string().describe("Repository name (e.g., ComfyUI/ComfyUI)"),
+      repo: z.string().describe("Repository name (e.g., Hanzo Studio/Hanzo Studio)"),
       head: z.string().describe("Head Branch name for the Pull Request"),
       base: z.string().describe("Base Branch name for the Pull Request"),
       pr_task_prompt: z.string().optional().describe("Task description for the PR"),
@@ -68,7 +68,7 @@ const systemTools: ToolSet = {
     inputExamples: [
       {
         input: {
-          repo: "Comfy-Org/ComfyUI",
+          repo: "hanzoui/studio",
           head: "feature/new-node",
           base: "main",
           pr_task_prompt: "Add a new node for image filtering",
@@ -113,17 +113,17 @@ const systemTools: ToolSet = {
   }),
   // search: tool
   comfy_customnodes_code_search: tool({
-    description: "Search code across ComfyUI and Custom Nodes repositories",
+    description: "Search code across Hanzo Studio and Custom Nodes repositories",
     inputSchema: z.object({
       query: z.string().describe("Search query string"),
     }),
     execute: async ({ query }) => {
-      return await Bun.$`prbot code search --query "${query}" --repo Comfy-Org/ComfyUI`.text();
+      return await Bun.$`prbot code search --query "${query}" --repo hanzoui/studio`.text();
     },
   }),
   //
   github_issues_search: tool({
-    description: "Search GitHub issues and pull requests across Comfy-Org repositories",
+    description: "Search GitHub issues and pull requests across hanzoui repositories",
     inputSchema: z.object({
       query: z.string().describe("Search query string"),
       limit: z.number().optional().describe("Maximum number of results to return (default: 10)"),
@@ -277,7 +277,7 @@ app.event("app_home_opened", async ({ event, client, logger: boltLogger }) => {
             type: "section",
             text: {
               type: "mrkdwn",
-              text: "*What I can do:*\n• Search code across ComfyUI repositories\n• Search GitHub issues and PRs\n• Search the custom nodes registry\n• Search Notion documentation\n• Spawn coding agents to create PRs",
+              text: "*What I can do:*\n• Search code across Hanzo Studio repositories\n• Search GitHub issues and PRs\n• Search the custom nodes registry\n• Search Notion documentation\n• Spawn coding agents to create PRs",
             },
           },
           {
@@ -297,7 +297,7 @@ app.event("app_home_opened", async ({ event, client, logger: boltLogger }) => {
                   text: "View Documentation",
                   emoji: true,
                 },
-                url: "https://github.com/Comfy-Org/Comfy-PR",
+                url: "https://github.com/hanzoui/pr",
                 action_id: "view_docs",
               },
             ],

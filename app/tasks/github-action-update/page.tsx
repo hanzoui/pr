@@ -102,7 +102,7 @@ export default async function GithubActionUpdateTaskPage() {
       </ol>
 
       <a
-        href="https://github.com/Comfy-Org/Comfy-PR/actions/workflows/updateGithubActionTask.yaml"
+        href="https://github.com/hanzoui/pr/actions/workflows/updateGithubActionTask.yaml"
         target="_blank"
         className="btn"
       >

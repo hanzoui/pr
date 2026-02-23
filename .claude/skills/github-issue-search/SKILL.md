@@ -1,13 +1,13 @@
 ---
 name: github-issue-search
-description: Search for issues and pull requests across Comfy-Org GitHub repositories. Use when the user wants to find specific issues, bugs, features, or pull requests in ComfyUI-related repositories.
+description: Search for issues and pull requests across hanzoui GitHub repositories. Use when the user wants to find specific issues, bugs, features, or pull requests in Hanzo Studio-related repositories.
 allowed-tools: Bash
 model: haiku
 ---
 
 # GitHub Issue Search
 
-This skill searches for issues and pull requests across all Comfy-Org repositories using the GitHub API.
+This skill searches for issues and pull requests across all hanzoui repositories using the GitHub API.
 
 ## Usage
 
@@ -66,18 +66,18 @@ Returns results with:
 
 ## Repositories Searched
 
-Searches across all Comfy-Org repositories including:
+Searches across all hanzoui repositories including:
 
-- Comfy-Org/ComfyUI
-- Comfy-Org/ComfyUI_frontend
-- Comfy-Org/desktop
-- Comfy-Org/docs
-- Comfy-Org/registry
-- And all other Comfy-Org repositories
+- hanzoui/studio
+- hanzoui/studio_frontend
+- hanzoui/desktop
+- hanzoui/docs
+- hanzoui/registry
+- And all other hanzoui repositories
 
 ## Notes
 
 - Requires GitHub authentication token (GH_TOKEN or GH_TOKEN_COMFY_PR)
 - Results are sorted by most recently updated
 - Automatically loads environment variables from project .env.local
-- Search is scoped to org:Comfy-Org automatically
+- Search is scoped to org:hanzoui automatically

@@ -1,13 +1,13 @@
 # CLI Usage Examples
 
-This document provides practical examples of using the ComfyUI CodeSearch CLI to search through ComfyUI custom nodes.
+This document provides practical examples of using the Hanzo Studio CodeSearch CLI to search through Hanzo Studio custom nodes.
 
 ## Setup
 
 Before using the CLI, ensure you have the required environment variables set:
 
 ```bash
-export CS_ORIGIN="https://cs.comfy.org"
+export CS_ORIGIN="https://cs.hanzo.ai"
 export CS_TOKEN="your-token-here"
 ```
 
@@ -25,8 +25,8 @@ comfy-codesearch search "binarization"
 
 **Results:**
 
-- **ComfyUI-Sa2VA-XJ** (by alexjx)
-  - Repository: https://github.com/alexjx/ComfyUI-Sa2VA-XJ
+- **Hanzo Studio-Sa2VA-XJ** (by alexjx)
+  - Repository: https://github.com/alexjx/Hanzo Studio-Sa2VA-XJ
   - Provides video segmentation with binarization capabilities
   - Outputs raw sigmoid probabilities (0.0-1.0) instead of binary masks
   - The `threshold` parameter controls binarization
@@ -47,7 +47,7 @@ comfy-codesearch search "binary mask video"
 Search within a specific repository:
 
 ```bash
-comfy-codesearch search "repo:Comfy-Org/ComfyUI last_node_id"
+comfy-codesearch search "repo:hanzoui/studio last_node_id"
 ```
 
 ## Example 3: Path-Specific Searches
@@ -55,7 +55,7 @@ comfy-codesearch search "repo:Comfy-Org/ComfyUI last_node_id"
 Search for code in specific file paths:
 
 ```bash
-comfy-codesearch search "repo:Comfy-Org/ComfyUI path:python last_node_id"
+comfy-codesearch search "repo:hanzoui/studio path:python last_node_id"
 ```
 
 ## Example 4: Repository Discovery

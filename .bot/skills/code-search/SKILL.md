@@ -1,9 +1,9 @@
 ---
-name: ComfyUI Code Search
-description: Search code across ComfyUI repositories using comfy-codesearch service. Including all Comfy-Org repos and Community made Custom Node Repos on GitHub.
+name: Hanzo Studio Code Search
+description: Search code across Hanzo Studio repositories using comfy-codesearch service. Including all hanzoui repos and Community made Custom Node Repos on GitHub.
 ---
 
-# ComfyUI Code Search
+# Hanzo Studio Code Search
 
 Search for code patterns, functions, and implementations:
 prbot code search --query "<search terms>"
@@ -11,7 +11,7 @@ prbot code search --query "<search terms>"
 NOTE: Does NOT support --limit parameter. Results are automatically paginated.
 
 Examples:
-prbot code search --query "binarization" --repo Comfy-Org/ComfyUI
+prbot code search --query "binarization" --repo hanzoui/studio
 prbot code search --query "authentication function"
 prbot code search --query "video transcription whisper"
 

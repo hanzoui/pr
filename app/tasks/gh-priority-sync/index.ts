@@ -117,8 +117,8 @@ async function SyncPriorityBetweenComfyTaskAndGithubIssue() {
 
   // prefetch all issues' labels + timeline into IssuesState cache, to reduce github api calls during sync
   const repoUrls = [
-    "https://github.com/Comfy-Org/ComfyUI_frontend",
-    "https://github.com/Comfy-Org/desktop",
+    "https://github.com/hanzoui/studio_frontend",
+    "https://github.com/hanzoui/desktop",
   ];
   const searchedIssues = await sflow(repoUrls)
     .flatMap(async (repoUrl) => [

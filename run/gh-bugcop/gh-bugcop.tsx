@@ -32,10 +32,10 @@ import { createTimeLogger } from "../../app/tasks/gh-design/createTimeLogger";
 import { tsmatch } from "@/packages/mongodb-pipeline-ts/Task";
 
 export const REPOLIST = [
-  "https://github.com/Comfy-Org/ComfyUI",
-  "https://github.com/Comfy-Org/Comfy-PR",
-  "https://github.com/Comfy-Org/ComfyUI_frontend",
-  "https://github.com/Comfy-Org/desktop",
+  "https://github.com/hanzoui/studio",
+  "https://github.com/hanzoui/pr",
+  "https://github.com/hanzoui/studio_frontend",
+  "https://github.com/hanzoui/desktop",
 ];
 await mkdir("./.cache", { recursive: true });
 const kv = new Keyv({ store: new KeyvSqlite("sqlite://.cache/bugcop-cache.sqlite") });

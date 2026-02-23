@@ -11,8 +11,8 @@ import { updateGithubActionPrepareBranchBanPatterns } from "./updateGithubAction
 import { updateGithubActionTask } from "./updateGithubActionTask";
 
 if (import.meta.main) {
-  // const repo = "https://github.com/54rt1n/ComfyUI-DareMerge";
-  const _repo = "https://github.com/snomiao/ComfyUI-DareMerge-test";
+  // const repo = "https://github.com/54rt1n/Hanzo Studio-DareMerge";
+  const _repo = "https://github.com/snomiao/Hanzo Studio-DareMerge-test";
   // await GithubActionUpdateTask.findOneAndDelete({ repo });
 
   // aprove test

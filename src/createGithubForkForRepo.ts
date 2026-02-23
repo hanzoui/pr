@@ -15,7 +15,7 @@ const ForkedRepo = db.collection<{ repo: string; forkedRepo: string; updatedAt: 
 
 if (import.meta.main) {
   console.log(
-    await createGithubForkForRepoEx("https://github.com/comfyanonymous/ComfyUI_TensorRT"),
+    await createGithubForkForRepoEx("https://github.com/hanzoai/studio_TensorRT"),
   );
 }
 

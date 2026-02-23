@@ -64,7 +64,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
   describe("Draft Release Processing - Bug Fix Verification", () => {
     it("should save draft messages to slackMessageDrafting field, not slackMessage", async () => {
       const mockDraftRelease = {
-        html_url: "https://github.com/Comfy-Org/desktop/releases/tag/v1.0.0-draft",
+        html_url: "https://github.com/hanzoui/desktop/releases/tag/v1.0.0-draft",
         tag_name: "v1.0.0-draft",
         draft: true,
         prerelease: false,
@@ -99,7 +99,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
         status: "draft",
         isStable: false,
         slackMessageDrafting: {
-          text: "🔮 desktop <https://github.com/Comfy-Org/desktop/releases/tag/v1.0.0-draft|Release v1.0.0-draft> is draft!",
+          text: "🔮 desktop <https://github.com/hanzoui/desktop/releases/tag/v1.0.0-draft|Release v1.0.0-draft> is draft!",
           channel: "test-channel-id",
           url: "https://slack.com/message/draft-123",
         },
@@ -138,7 +138,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
 
     it("should not send duplicate draft messages when text hasn't changed", async () => {
       const mockDraftRelease = {
-        html_url: "https://github.com/Comfy-Org/desktop/releases/tag/v1.0.0-draft",
+        html_url: "https://github.com/hanzoui/desktop/releases/tag/v1.0.0-draft",
         tag_name: "v1.0.0-draft",
         draft: true,
         prerelease: false,
@@ -154,7 +154,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       } as MockGhRepos;
 
       const expectedText =
-        "🔮 desktop <https://github.com/Comfy-Org/desktop/releases/tag/v1.0.0-draft|Release v1.0.0-draft> is draft!";
+        "🔮 desktop <https://github.com/hanzoui/desktop/releases/tag/v1.0.0-draft|Release v1.0.0-draft> is draft!";
 
       // Return task with existing drafting message matching new message
       mockCollection.findOneAndUpdate.mockResolvedValue({
@@ -184,7 +184,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
 
     it("should update draft message when text changes", async () => {
       const mockDraftRelease = {
-        html_url: "https://github.com/Comfy-Org/desktop/releases/tag/v1.0.1-draft",
+        html_url: "https://github.com/hanzoui/desktop/releases/tag/v1.0.1-draft",
         tag_name: "v1.0.1-draft", // Changed version
         draft: true,
         prerelease: false,
@@ -207,7 +207,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
         isStable: false,
         createdAt: new Date(mockDraftRelease.created_at),
         slackMessageDrafting: {
-          text: "🔮 desktop <https://github.com/Comfy-Org/desktop/releases/tag/v1.0.0-draft|Release v1.0.0-draft> is draft!",
+          text: "🔮 desktop <https://github.com/hanzoui/desktop/releases/tag/v1.0.0-draft|Release v1.0.0-draft> is draft!",
           channel: "test-channel-id",
           url: "https://slack.com/message/draft-123",
         },
@@ -223,7 +223,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
         status: "draft",
         isStable: false,
         slackMessageDrafting: {
-          text: "🔮 desktop <https://github.com/Comfy-Org/desktop/releases/tag/v1.0.1-draft|Release v1.0.1-draft> is draft!",
+          text: "🔮 desktop <https://github.com/hanzoui/desktop/releases/tag/v1.0.1-draft|Release v1.0.1-draft> is draft!",
           channel: "test-channel-id",
           url: "https://slack.com/message/draft-123",
         },
@@ -243,7 +243,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
   describe("Stable Release Processing", () => {
     it("should save stable messages to slackMessage field", async () => {
       const mockStableRelease = {
-        html_url: "https://github.com/Comfy-Org/desktop/releases/tag/v1.0.0",
+        html_url: "https://github.com/hanzoui/desktop/releases/tag/v1.0.0",
         tag_name: "v1.0.0",
         draft: false,
         prerelease: false,
@@ -278,7 +278,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
         status: "stable",
         isStable: true,
         slackMessage: {
-          text: "🔮 desktop <https://github.com/Comfy-Org/desktop/releases/tag/v1.0.0|Release v1.0.0> is stable!",
+          text: "🔮 desktop <https://github.com/hanzoui/desktop/releases/tag/v1.0.0|Release v1.0.0> is stable!",
           channel: "test-channel-id",
           url: "https://slack.com/message/stable-123",
         },
@@ -306,7 +306,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
 
     it("should not send duplicate stable messages when text hasn't changed", async () => {
       const mockStableRelease = {
-        html_url: "https://github.com/Comfy-Org/desktop/releases/tag/v1.0.0",
+        html_url: "https://github.com/hanzoui/desktop/releases/tag/v1.0.0",
         tag_name: "v1.0.0",
         draft: false,
         prerelease: false,
@@ -322,7 +322,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       } as MockGhRepos;
 
       const expectedText =
-        "🔮 desktop <https://github.com/Comfy-Org/desktop/releases/tag/v1.0.0|Release v1.0.0> is stable!";
+        "🔮 desktop <https://github.com/hanzoui/desktop/releases/tag/v1.0.0|Release v1.0.0> is stable!";
 
       // Return task with existing message matching new message
       mockCollection.findOneAndUpdate.mockResolvedValue({
@@ -352,7 +352,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
   describe("Prerelease Processing", () => {
     it("should save prerelease messages to slackMessageDrafting field", async () => {
       const mockPrerelease = {
-        html_url: "https://github.com/Comfy-Org/desktop/releases/tag/v1.0.0-beta.1",
+        html_url: "https://github.com/hanzoui/desktop/releases/tag/v1.0.0-beta.1",
         tag_name: "v1.0.0-beta.1",
         draft: false,
         prerelease: true,
@@ -387,7 +387,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
         status: "prerelease",
         isStable: false,
         slackMessageDrafting: {
-          text: "🔮 desktop <https://github.com/Comfy-Org/desktop/releases/tag/v1.0.0-beta.1|Release v1.0.0-beta.1> is prerelease!",
+          text: "🔮 desktop <https://github.com/hanzoui/desktop/releases/tag/v1.0.0-beta.1|Release v1.0.0-beta.1> is prerelease!",
           channel: "test-channel-id",
           url: "https://slack.com/message/pre-123",
         },
@@ -415,15 +415,15 @@ describe("GithubDesktopReleaseNotificationTask", () => {
   });
 
   describe("Core Version Integration", () => {
-    it("should include core version in message when desktop release references ComfyUI core", async () => {
+    it("should include core version in message when desktop release references Hanzo Studio core", async () => {
       const mockDesktopRelease = {
-        html_url: "https://github.com/Comfy-Org/desktop/releases/tag/v1.0.0",
+        html_url: "https://github.com/hanzoui/desktop/releases/tag/v1.0.0",
         tag_name: "v1.0.0",
         draft: false,
         prerelease: false,
         created_at: new Date().toISOString(),
         published_at: new Date().toISOString(),
-        body: "Update ComfyUI core to v0.2.0\n\nOther changes...",
+        body: "Update Hanzo Studio core to v0.2.0\n\nOther changes...",
       };
 
       mockGh.repos = {
@@ -447,7 +447,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       mockCollection.findOne.mockResolvedValueOnce({
         version: "v0.2.0",
         slackMessage: {
-          text: "ComfyUI core v0.2.0 released",
+          text: "Hanzo Studio core v0.2.0 released",
           url: "https://slack.com/message/core-123",
         },
       });
@@ -460,7 +460,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
         isStable: true,
         coreVersion: "v0.2.0",
         slackMessage: {
-          text: "🔮 desktop <https://github.com/Comfy-Org/desktop/releases/tag/v1.0.0|Release v1.0.0> is stable! Core: v0.2.0",
+          text: "🔮 desktop <https://github.com/hanzoui/desktop/releases/tag/v1.0.0|Release v1.0.0> is stable! Core: v0.2.0",
           channel: "test-channel-id",
           url: "https://slack.com/message/desktop-123",
         },
@@ -477,19 +477,19 @@ describe("GithubDesktopReleaseNotificationTask", () => {
   });
 
   describe("Repository Configuration", () => {
-    it("should process both ComfyUI and desktop repositories", async () => {
-      const mockComfyUIRelease = {
-        html_url: "https://github.com/comfyanonymous/ComfyUI/releases/tag/v0.3.0",
+    it("should process both Hanzo Studio and desktop repositories", async () => {
+      const mockHanzo StudioRelease = {
+        html_url: "https://github.com/hanzoai/studio/releases/tag/v0.3.0",
         tag_name: "v0.3.0",
         draft: false,
         prerelease: false,
         created_at: new Date().toISOString(),
         published_at: new Date().toISOString(),
-        body: "ComfyUI release",
+        body: "Hanzo Studio release",
       };
 
       const mockDesktopRelease = {
-        html_url: "https://github.com/Comfy-Org/desktop/releases/tag/v1.0.0",
+        html_url: "https://github.com/hanzoui/desktop/releases/tag/v1.0.0",
         tag_name: "v1.0.0",
         draft: false,
         prerelease: false,
@@ -501,7 +501,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       mockGh.repos = {
         listReleases: jest
           .fn()
-          .mockResolvedValueOnce({ data: [mockComfyUIRelease] })
+          .mockResolvedValueOnce({ data: [mockHanzo StudioRelease] })
           .mockResolvedValueOnce({ data: [mockDesktopRelease] }),
       } as MockGhRepos;
 
@@ -519,13 +519,13 @@ describe("GithubDesktopReleaseNotificationTask", () => {
 
       // Verify both repositories were queried
       expect(mockGh.repos.listReleases).toHaveBeenCalledWith({
-        owner: "comfyanonymous",
-        repo: "ComfyUI",
+        owner: "hanzoai",
+        repo: "Hanzo Studio",
         per_page: 3,
       });
 
       expect(mockGh.repos.listReleases).toHaveBeenCalledWith({
-        owner: "Comfy-Org",
+        owner: "hanzoui",
         repo: "desktop",
         per_page: 3,
       });
@@ -535,7 +535,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
   describe("Date Filtering", () => {
     it("should skip releases created before sendSince date", async () => {
       const oldRelease = {
-        html_url: "https://github.com/Comfy-Org/desktop/releases/tag/v0.1.0",
+        html_url: "https://github.com/hanzoui/desktop/releases/tag/v0.1.0",
         tag_name: "v0.1.0",
         draft: false,
         prerelease: false,

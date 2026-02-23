@@ -6,11 +6,11 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 import { z } from "zod";
 
-const systemPrompt = `You are a helpful ComfyUI expert assistant. You help users find code, understand implementations, and solve problems related to ComfyUI and its ecosystem.
+const systemPrompt = `You are a helpful Hanzo Studio expert assistant. You help users find code, understand implementations, and solve problems related to Hanzo Studio and its ecosystem.
 
 ## Your Capabilities
-- Search code across Comfy-Org repositories and 2000+ community custom nodes
-- Explain ComfyUI concepts, nodes, and workflows
+- Search code across hanzoui repositories and 2000+ community custom nodes
+- Explain Hanzo Studio concepts, nodes, and workflows
 - Help debug issues and find relevant implementations
 
 ## Code Search Guidelines
@@ -27,9 +27,9 @@ const systemPrompt = `You are a helpful ComfyUI expert assistant. You help users
 - Summarize the top 3-5 most relevant results with clickable GitHub links
 
 ## Available Repositories (for reference)
-- Comfy-Org/ComfyUI: Main ComfyUI backend (Python)
-- Comfy-Org/ComfyUI_frontend: Frontend (Vue + TypeScript)  
-- Comfy-Org/desktop: Desktop application
+- hanzoui/studio: Main Hanzo Studio backend (Python)
+- hanzoui/studio_frontend: Frontend (Vue + TypeScript)  
+- hanzoui/desktop: Desktop application
 - Plus 2000+ community custom node repositories
 `;
 
@@ -55,12 +55,12 @@ const resolveModels = (names: string[]): ModelRun[] => {
 const createTools = (resultLimit: number) => ({
   code_search: tool({
     description:
-      "Search for code in Comfy-Org and community custom nodes repositories. " +
+      "Search for code in hanzoui and community custom nodes repositories. " +
       "Supports filters: repo:<owner/repo> and path:<pattern>. " +
-      "Examples: 'binarization', 'repo:Comfy-Org/ComfyUI last_node_id', 'path:python auth'",
+      "Examples: 'binarization', 'repo:hanzoui/studio last_node_id', 'path:python auth'",
     inputSchema: z.object({
       query: z.string().describe("Search query with optional repo: and path: filters"),
-      repo: z.string().optional().describe("Filter by repository (e.g. Comfy-Org/ComfyUI)"),
+      repo: z.string().optional().describe("Filter by repository (e.g. hanzoui/studio)"),
       path: z.string().optional().describe("Filter by file path pattern"),
     }),
     execute: async ({ query, repo, path }) => {
@@ -312,10 +312,10 @@ const runAi = async (options: {
 
 if (import.meta.main) {
   const argv = await yargs(hideBin(process.argv))
-    .command("$0 [query]", "Run ComfyUI assistant", (builder) =>
+    .command("$0 [query]", "Run Hanzo Studio assistant", (builder) =>
       builder.positional("query", {
         type: "string",
-        default: "binarization for videos in ComfyUI?",
+        default: "binarization for videos in Hanzo Studio?",
         describe: "Search prompt for the assistant",
       }),
     )

@@ -16,7 +16,7 @@ import { match as tsmatch } from "ts-pattern";
  * GitHub Frontend Backport Checker Task
  *
  * Workflow:
- * 1. Monitor ComfyUI_frontend recent N releases
+ * 1. Monitor Hanzo Studio_frontend recent N releases
  * 2. Identify bugfix commits (keywords: fix, bugfix, hotfix, patch, bug)
  * 3. For each bugfix, find the associated PR
  * 4. Check PR labels for backport indicators (core/1.**, cloud/1.**)
@@ -27,7 +27,7 @@ import { match as tsmatch } from "ts-pattern";
 
 const config = {
   // 1. monitor releases from this repo
-  repo: "https://github.com/Comfy-Org/ComfyUI_frontend",
+  repo: "https://github.com/hanzoui/studio_frontend",
   maxReleasesToCheck: 3,
   processSince: new Date("2026-01-06T00:00:00Z").toISOString(), // only process releases since this date, to avoid posting too msgs in old releases
 
@@ -162,7 +162,7 @@ export default async function runGithubFrontendBackportCheckerTask() {
       });
       logger.info(`\nProcessing release: ${task.releaseTag}`);
 
-      // 1. find full changelog link in release body, e.g. https://github.com/Comfy-Org/ComfyUI_frontend/compare/v1.38.0...v1.38.1
+      // 1. find full changelog link in release body, e.g. https://github.com/hanzoui/studio_frontend/compare/v1.38.0...v1.38.1
       return await save({ ...task, compareLink });
     })
     .map(processTask)
@@ -440,7 +440,7 @@ async function processTask(
   // - generate report based on commits, note: slack's markdown not support table
   const rawReport = `**Release [${task.releaseTag}](${task.releaseUrl}) Backport Status:${
     statuses.filter((e) => e.status !== "completed").length ? "" : " Completed"
-  }** _by [backport-checker.ts](https://github.com/Comfy-Org/Comfy-PR/tree/HEAD/app/tasks/gh-frontend-backport-checker/index.ts)_
+  }** _by [backport-checker.ts](https://github.com/hanzoui/pr/tree/HEAD/app/tasks/gh-frontend-backport-checker/index.ts)_
 
 ${
   // not mentioned, show might need
@@ -506,7 +506,7 @@ ${
 }
 
 `;
-  // _by [backport-checker](https://github.com/Comfy-Org/Comfy-PR/tree/HEAD/app/tasks/gh-frontend-backport-checker/index.ts)_
+  // _by [backport-checker](https://github.com/hanzoui/pr/tree/HEAD/app/tasks/gh-frontend-backport-checker/index.ts)_
 
   const formattedReport = await prettier.format(rawReport, { parser: "markdown" });
   logger.info(formattedReport);

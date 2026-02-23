@@ -17,7 +17,7 @@ export async function updateCMNodesDuplicationWarnings(nodes: CMNode[]) {
   };
   const dupsSummary = JSON.stringify(map((x) => map((x) => x?.length ?? 0, x), dups));
   await notifySlack(
-    `[WARN] CMNodes duplicates: ${dupsSummary}\nSolve them in https://github.com/ltdrdata/ComfyUI-Manager/blob/main/custom-node-list.json`,
+    `[WARN] CMNodes duplicates: ${dupsSummary}\nSolve them in https://github.com/ltdrdata/Hanzo Manager/blob/main/custom-node-list.json`,
   );
 
   await pMap(
@@ -43,7 +43,7 @@ export async function updateCMNodesDuplicationWarnings(nodes: CMNode[]) {
               "```\n" +
               YAML.stringify(nodes) +
               "```" +
-              "\n\nSolve them in https://github.com/ltdrdata/ComfyUI-Manager/blob/main/custom-node-list.json",
+              "\n\nSolve them in https://github.com/ltdrdata/Hanzo Manager/blob/main/custom-node-list.json",
             { unique: true },
           );
           // mark duplicates

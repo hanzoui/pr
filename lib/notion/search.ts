@@ -5,7 +5,7 @@ import yargs from "yargs";
 import { hideBin } from "yargs/helpers";
 
 /**
- * Search Notion pages from Comfy-Org team workspace
+ * Search Notion pages from hanzoui team workspace
  * Usage: bun bot/notion/search.ts --query "search term"
  */
 async function searchNotion(query: string, limit: number = 10) {
@@ -74,7 +74,7 @@ if (import.meta.main) {
       description: "Maximum number of results",
       default: 10,
     })
-    .example('$0 -q "ComfyUI setup"', "Search for ComfyUI setup docs")
+    .example('$0 -q "Hanzo Studio setup"', "Search for Hanzo Studio setup docs")
     .example('$0 -q "sprint planning" -l 5', "Search with limit")
     .help()
     .parse();

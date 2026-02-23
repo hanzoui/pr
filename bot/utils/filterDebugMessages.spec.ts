@@ -21,7 +21,7 @@ uploading file, retry attempt 3
 
   test("filters absolute file paths", () => {
     const input = `
-Processing /repos/Comfy-Org/project/src/file.ts
+Processing /repos/hanzoui/project/src/file.ts
 Task completed
 Reading from /home/user/.cache/data.json
 Working on /tmp/temp-file.txt

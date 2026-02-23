@@ -1,7 +1,7 @@
 {
   "name": "comfy-pr",
   "version": "0.2.27",
-  "description": "Make PRs that publishes ComfyUI Custom Nodes to [ComfyUI Registry]( https://registry.comfy.org/ ).",
+  "description": "Make PRs that publishes Hanzo Studio Custom Nodes to [Hanzo Registry]( https://registry.hanzo.ai/ ).",
   "keywords": [],
   "license": "ISC",
   "author": "snomiao <snomiao@gmail.com>",

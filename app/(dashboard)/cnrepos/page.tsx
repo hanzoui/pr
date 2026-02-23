@@ -26,7 +26,7 @@ export default async function CNReposPage({ searchParams }: CNReposPageProps) {
       <div className="space-y-2">
         <h1 className="text-3xl font-bold tracking-tight">Custom Node Repositories</h1>
         <p className="text-muted-foreground">
-          Manage and monitor ComfyUI custom node repositories and their registry integration status.
+          Manage and monitor Hanzo Studio custom node repositories and their registry integration status.
         </p>
       </div>
 
@@ -38,7 +38,7 @@ export default async function CNReposPage({ searchParams }: CNReposPageProps) {
           <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
             <div className="flex items-center gap-2">
               <span className="text-lg">✅</span>
-              <span className="text-sm">Registry + ComfyUI-Manager</span>
+              <span className="text-sm">Registry + Hanzo Manager</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-lg">✔️</span>
@@ -54,7 +54,7 @@ export default async function CNReposPage({ searchParams }: CNReposPageProps) {
             </div>
             <div className="flex items-center gap-2">
               <span className="text-lg">🫗</span>
-              <span className="text-sm">Outside ComfyUI-Manager</span>
+              <span className="text-sm">Outside Hanzo Manager</span>
             </div>
             <div className="flex items-center gap-2">
               <span className="text-lg">❗</span>

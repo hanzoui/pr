@@ -15,10 +15,10 @@ import z from "zod";
  * Label Ops System
  *
  * In unknown of those repos:
- * https://github.com/Comfy-Org/Comfy-PR
- * https://github.com/Comfy-Org/ComfyUI
- * https://github.com/Comfy-Org/ComfyUI_frontend
- * https://github.com/Comfy-Org/desktop
+ * https://github.com/hanzoui/pr
+ * https://github.com/hanzoui/studio
+ * https://github.com/hanzoui/studio_frontend
+ * https://github.com/hanzoui/desktop
  *
  * User can add comments to manipulate Issue/PR labels by a simple syntax, without require permissions on repo .
  * Add a label: Send a comment with "+label:[name]" (must have no space)
@@ -28,10 +28,10 @@ import z from "zod";
 
 const cfg = {
   REPOLIST: [
-    "https://github.com/Comfy-Org/ComfyUI",
-    // "https://github.com/Comfy-Org/Comfy-PR", // handled by webhook
-    // "https://github.com/Comfy-Org/ComfyUI_frontend", // handled by webhook
-    // "https://github.com/Comfy-Org/desktop", // handled by webhook
+    "https://github.com/hanzoui/studio",
+    // "https://github.com/hanzoui/pr", // handled by webhook
+    // "https://github.com/hanzoui/studio_frontend", // handled by webhook
+    // "https://github.com/hanzoui/desktop", // handled by webhook
   ],
   allow: [
     // allow all users to edit bugcop:*, area:*, Core-*, labels
@@ -39,7 +39,7 @@ const cfg = {
     /^(?:bug-cop|area):.*$/i,
     /^(?:notify):.*$/i, // notify someone, e.g. notify:sno, notify:jk
     // allow all users to edit issue transfer labels
-    /frontend|desktop|comfyui-core|workflow_templates/i,
+    /frontend|desktop|hanzo-studio-core|workflow_templates/i,
   ],
 };
 type GithubIssueLabelOps = {
@@ -71,7 +71,7 @@ const Meta = MetaCollection(
 );
 
 const saveTask = async (task: Partial<GithubIssueLabelOps> & { target_url: string }) => {
-  // Normalize URLs to handle both comfyanonymous and Comfy-Org formats
+  // Normalize URLs to handle both hanzoai and hanzoui formats
   const normalizedTask = {
     ...task,
     target_url: normalizeGithubUrl(task.target_url),
@@ -80,7 +80,7 @@ const saveTask = async (task: Partial<GithubIssueLabelOps> & { target_url: strin
   };
 
   // Incremental migration: Check both normalized and old URL formats
-  const oldUrl = normalizedTask.target_url.replace(/Comfy-Org/i, "comfyanonymous");
+  const oldUrl = normalizedTask.target_url.replace(/hanzoui/i, "hanzoai");
   const existing = await GithubIssueLabelOps.findOne({
     $or: [{ target_url: normalizedTask.target_url }, { target_url: oldUrl }],
   });
@@ -95,7 +95,7 @@ const saveTask = async (task: Partial<GithubIssueLabelOps> & { target_url: strin
 };
 
 if (import.meta.main) {
-  // const issueCommentUrl = 'https://github.com/Comfy-Org/ComfyUI/issues/10522#issuecomment-3459764591'
+  // const issueCommentUrl = 'https://github.com/hanzoui/studio/issues/10522#issuecomment-3459764591'
   // const issue = await ghc.issues.get({ ...parseIssueUrl(issueCommentUrl) });
   // const comment = await ghc.issues.getComment({ ...parseIssueUrl(issueCommentUrl), comment_id: issueCommentUrl.match(/\d+$/).at(0) });
   // await processIssueCommentForLableops({ issue: issue.data, comment: comment.data })
@@ -206,7 +206,7 @@ export async function processIssueCommentForLableops({
 }) {
   const target = comment || issue;
   console.log("  +COMMENT " + target.html_url + " len:" + target.body?.length);
-  // Normalize URLs before saving to handle both comfyanonymous and Comfy-Org formats
+  // Normalize URLs before saving to handle both hanzoai and hanzoui formats
   let task = await saveTask({
     target_url: normalizeGithubUrl(target.html_url),
     issue_url: normalizeGithubUrl(issue.html_url),

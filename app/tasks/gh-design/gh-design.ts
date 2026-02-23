@@ -29,8 +29,8 @@ const tlog = createTimeLogger();
 
 // 1. scan these repos
 const REPOURLS = [
-  "https://github.com/Comfy-Org/ComfyUI_frontend",
-  "https://github.com/Comfy-Org/desktop",
+  "https://github.com/hanzoui/studio_frontend",
+  "https://github.com/hanzoui/desktop",
 ];
 
 // 2. match these labels
@@ -103,7 +103,7 @@ async function ensureIndexes() {
 // Helper function to save/update GithubDesignTask
 async function saveGithubDesignTask(url: string, $set: Partial<GithubDesignTask>) {
   await ensureIndexes();
-  // Normalize URLs to handle both comfyanonymous and Comfy-Org formats
+  // Normalize URLs to handle both hanzoai and hanzoui formats
   const normalizedUrl = normalizeGithubUrl(url);
   const normalizedSet = {
     ...$set,
@@ -114,7 +114,7 @@ async function saveGithubDesignTask(url: string, $set: Partial<GithubDesignTask>
   };
 
   // Incremental migration: Check both normalized and old URL formats
-  const oldUrl = normalizedUrl.replace(/Comfy-Org/i, "comfyanonymous");
+  const oldUrl = normalizedUrl.replace(/hanzoui/i, "hanzoai");
   const existing = await GithubDesignTask.findOne({
     $or: [{ url: normalizedUrl }, { url: oldUrl }],
   });

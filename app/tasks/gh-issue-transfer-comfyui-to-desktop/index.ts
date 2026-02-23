@@ -9,26 +9,26 @@ import isCI from "is-ci";
 import { pageFlow } from "sflow";
 
 /**
- * GitHub ComfyUI to Desktop Issue Transfer Task
+ * GitHub Hanzo Studio to Desktop Issue Transfer Task
  *
  * Workflow:
- * 1. Fetch new/unseen issues from Comfy-Org/ComfyUI with label "desktop"
+ * 1. Fetch new/unseen issues from hanzoui/studio with label "desktop"
  * 2. For each issue:
- *    1. Create corresponding issues in Comfy-Org/desktop, copying title, body (+meta and backlinks), labels, assignees
+ *    1. Create corresponding issues in hanzoui/desktop, copying title, body (+meta and backlinks), labels, assignees
  *    2. Comment on original issue that it's been transferred
- *    3. Close original issue in Comfy-Org/ComfyUI
+ *    3. Close original issue in hanzoui/studio
  *    4. Track transferred issues to avoid duplicates
  */
 
 const config = {
-  srcRepoUrl: "https://github.com/Comfy-Org/ComfyUI",
-  dstRepoUrl: "https://github.com/Comfy-Org/desktop",
+  srcRepoUrl: "https://github.com/hanzoui/studio",
+  dstRepoUrl: "https://github.com/hanzoui/desktop",
   desktopLabel: "desktop",
   transferComment: (newIssueUrl: string) =>
     `This issue has been transferred to the desktop repository: ${newIssueUrl}\n\nPlease continue the discussion there.`,
 };
 
-export type GithubComfyUIToDesktopIssueTransferTask = {
+export type GithubHanzo StudioToDesktopIssueTransferTask = {
   sourceIssueNumber: number;
   sourceIssueUrl: string;
   targetIssueNumber?: number;
@@ -39,18 +39,18 @@ export type GithubComfyUIToDesktopIssueTransferTask = {
   error?: string;
 };
 
-export const GithubComfyUIToDesktopIssueTransferTask =
-  db.collection<GithubComfyUIToDesktopIssueTransferTask>("GithubComfyUIToDesktopIssueTransferTask");
+export const GithubHanzo StudioToDesktopIssueTransferTask =
+  db.collection<GithubHanzo StudioToDesktopIssueTransferTask>("GithubHanzo StudioToDesktopIssueTransferTask");
 
-await GithubComfyUIToDesktopIssueTransferTask.createIndex(
+await GithubHanzo StudioToDesktopIssueTransferTask.createIndex(
   { sourceIssueNumber: 1 },
   { unique: true },
 );
 
 const save = async (
-  task: { sourceIssueNumber: number } & Partial<GithubComfyUIToDesktopIssueTransferTask>,
+  task: { sourceIssueNumber: number } & Partial<GithubHanzo StudioToDesktopIssueTransferTask>,
 ) => {
-  // Normalize URLs to handle both comfyanonymous and Comfy-Org formats
+  // Normalize URLs to handle both hanzoai and hanzoui formats
   const normalizedTask = {
     ...task,
     sourceIssueUrl: task.sourceIssueUrl ? normalizeGithubUrl(task.sourceIssueUrl) : undefined,
@@ -59,14 +59,14 @@ const save = async (
   };
 
   // Incremental migration: Check both normalized and old URL formats
-  const existing = await GithubComfyUIToDesktopIssueTransferTask.findOne({
+  const existing = await GithubHanzo StudioToDesktopIssueTransferTask.findOne({
     $or: [
       { sourceIssueNumber: normalizedTask.sourceIssueNumber },
       ...(normalizedTask.sourceIssueUrl
         ? [
             { sourceIssueUrl: normalizedTask.sourceIssueUrl },
             {
-              sourceIssueUrl: normalizedTask.sourceIssueUrl.replace(/Comfy-Org/i, "comfyanonymous"),
+              sourceIssueUrl: normalizedTask.sourceIssueUrl.replace(/hanzoui/i, "hanzoai"),
             },
           ]
         : []),
@@ -74,7 +74,7 @@ const save = async (
   });
 
   return (
-    (await GithubComfyUIToDesktopIssueTransferTask.findOneAndUpdate(
+    (await GithubHanzo StudioToDesktopIssueTransferTask.findOneAndUpdate(
       existing ? { _id: existing._id } : { sourceIssueNumber: normalizedTask.sourceIssueNumber },
       { $set: normalizedTask },
       { upsert: true, returnDocument: "after" },
@@ -83,14 +83,14 @@ const save = async (
 };
 
 if (import.meta.main) {
-  await runGithubComfyUIToDesktopIssueTransferTask();
+  await runGithubHanzo StudioToDesktopIssueTransferTask();
   if (isCI) {
     await db.close();
     process.exit(0);
   }
 }
 
-async function runGithubComfyUIToDesktopIssueTransferTask() {
+async function runGithubHanzo StudioToDesktopIssueTransferTask() {
   const sourceRepo = parseGithubRepoUrl(config.srcRepoUrl);
   const targetRepo = parseGithubRepoUrl(config.dstRepoUrl);
 
@@ -122,7 +122,7 @@ async function runGithubComfyUIToDesktopIssueTransferTask() {
         return null;
       }
 
-      const existingTask = await GithubComfyUIToDesktopIssueTransferTask.findOne({
+      const existingTask = await GithubHanzo StudioToDesktopIssueTransferTask.findOne({
         sourceIssueNumber: issue.number,
       });
 
@@ -244,4 +244,4 @@ ${comments.length ? `\n\n**Original Comments:**\n\n${comments.join("\n\n")}` : "
     .run();
 }
 
-export default runGithubComfyUIToDesktopIssueTransferTask;
+export default runGithubHanzo StudioToDesktopIssueTransferTask;

@@ -13,10 +13,10 @@ import { parseGithubRepoUrl } from "@/src/parseOwnerRepo";
 import { processIssueCommentForLableops } from "./easylabel";
 
 export const REPOLIST = [
-  "https://github.com/Comfy-Org/Comfy-PR",
-  "https://github.com/Comfy-Org/ComfyUI",
-  "https://github.com/Comfy-Org/ComfyUI_frontend",
-  "https://github.com/Comfy-Org/desktop",
+  "https://github.com/hanzoui/pr",
+  "https://github.com/hanzoui/studio",
+  "https://github.com/hanzoui/studio_frontend",
+  "https://github.com/hanzoui/desktop",
 ];
 
 const WEBHOOK_SECRET = process.env.GITHUB_WEBHOOK_SECRET; // generate one with `openssl rand -hex 32`
@@ -687,7 +687,7 @@ if (import.meta.main) {
     routes: {
       "/api/github/webhook": (req) => monitor.webhookRequestHandler(req),
       "/": new Response(
-        "Hello from Comfy-Org/Comfy-PR Github Service, contact snomiao@gmail.com if you have encountered unknown problem.",
+        "Hello from hanzoui/pr Github Service, contact snomiao@gmail.com if you have encountered unknown problem.",
       ),
       "/health": () => new Response("gh-service OK"),
     },

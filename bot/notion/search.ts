@@ -4,7 +4,7 @@ import sflow from "sflow";
 import { parseArgs } from "util";
 
 /**
- * Search Notion pages from Comfy-Org team workspace
+ * Search Notion pages from hanzoui team workspace
  * Usage: bun bot/notion/search.ts --query "search term"
  */
 async function searchNotion(query: string, limit: number = 10) {
@@ -77,7 +77,7 @@ if (import.meta.main) {
 
   if (!values.query) {
     console.error('Usage: bun bot/notion/search.ts --query "<search term>" [--limit <number>]');
-    console.error('Example: bun bot/notion/search.ts --query "ComfyUI setup" --limit 5');
+    console.error('Example: bun bot/notion/search.ts --query "Hanzo Studio setup" --limit 5');
     process.exit(1);
   }
 

@@ -1,7 +1,7 @@
 import { createOctokit } from "@/lib/github/createOctokit";
 
 /**
- * Search for issues across Comfy-Org repositories
+ * Search for issues across hanzoui repositories
  * @param query - Search query string
  * @param limit - Maximum number of results to return (default: 10)
  * @returns Array of issue results with title, URL, state, repository, and creation date
@@ -19,8 +19,8 @@ export async function searchGitHubIssues(query: string, limit: number = 10) {
     const octokit = createOctokit({ auth: GH_TOKEN });
     const gh = octokit.rest;
 
-    // Build search query to search across Comfy-Org repositories
-    const searchQuery = `org:Comfy-Org ${query}`;
+    // Build search query to search across hanzoui repositories
+    const searchQuery = `org:hanzoui ${query}`;
 
     const response = await gh.search.issuesAndPullRequests({
       q: searchQuery,

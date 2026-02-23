@@ -158,10 +158,10 @@ import {
 const unprocessed = await getUnprocessedEvents("pull_request", 50);
 
 // Get events for a specific repository
-const repoEvents = await getRepositoryEvents("Comfy-Org/ComfyUI_frontend");
+const repoEvents = await getRepositoryEvents("hanzoui/studio_frontend");
 
 // Get events for a specific PR
-const prEvents = await getPullRequestEvents("Comfy-Org/ComfyUI_frontend", 123);
+const prEvents = await getPullRequestEvents("hanzoui/studio_frontend", 123);
 
 // Mark event as processed
 await markEventAsProcessed("delivery-id-123");
@@ -184,7 +184,7 @@ console.log(stats);
 const events = await queryWebhookEvents({
   eventType: "pull_request",
   processed: false,
-  repository: "Comfy-Org/ComfyUI_frontend",
+  repository: "hanzoui/studio_frontend",
   fromDate: new Date("2025-01-01"),
   limit: 100,
 });

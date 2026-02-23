@@ -1,19 +1,19 @@
-# Research: Why No PRs into ComfyUI-SeedVR2_VideoUpscaler
+# Research: Why No PRs into Hanzo Studio-SeedVR2_VideoUpscaler
 
 **Date:** 2025-10-15
-**Repository:** https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler
+**Repository:** https://github.com/numz/Hanzo Studio-SeedVR2_VideoUpscaler
 **Status:** ISSUE IDENTIFIED ❌
 
 ## Summary
 
-The ComfyUI-SeedVR2_VideoUpscaler repository is NOT generating PRs into the ComfyRegistry because the `crPulls` field is in an `error` state, which prevents the repository from being marked as a candidate for PR creation.
+The Hanzo Studio-SeedVR2_VideoUpscaler repository is NOT generating PRs into the ComfyRegistry because the `crPulls` field is in an `error` state, which prevents the repository from being marked as a candidate for PR creation.
 
 ## Key Findings
 
 ### 1. Repository Exists in Database ✅
 
 - **Collection:** CNRepos
-- **Repository:** `https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler`
+- **Repository:** `https://github.com/numz/Hanzo Studio-SeedVR2_VideoUpscaler`
 - **Status:** Active and tracked
 
 ### 2. Repository Metadata ✅
@@ -108,7 +108,7 @@ const isCandidate = !info.private && !info.archived && crPulls.length === 0;
 ```javascript
 // Repository found with these issues:
 {
-  "repository": "https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler",
+  "repository": "https://github.com/numz/Hanzo Studio-SeedVR2_VideoUpscaler",
   "crPulls": { "state": "error", "mtime": "2025-09-26T07:12:02.999Z" },
   "candidate": undefined,  // ❌ Should exist
   "createdPulls": undefined,  // ❌ Should exist
