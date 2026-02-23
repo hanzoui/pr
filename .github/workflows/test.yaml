@@ -1,3 +1,4 @@
+# Secrets: Hanzo KMS (kms.hanzo.ai) — auth via Hanzo IAM
 name: Run Comfy-PR Tests.
 
 on:
@@ -9,6 +10,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
+      - name: Fetch secrets from Hanzo KMS
+        id: kms
+        uses: hanzoui/.github/actions/kms-secrets@main
+        with:
+          kms_client_id: ${{ secrets.KMS_CLIENT_ID }}
+          kms_client_secret: ${{ secrets.KMS_CLIENT_SECRET }}
+          secrets: 'SSH_PRIVATE_KEY'
       - uses: actions/checkout@v4
       # setup hanzo-cli
       - uses: actions/setup-python@v5
@@ -21,7 +29,7 @@ jobs:
       # Setup SSH Key for git push
       - uses: webfactory/ssh-agent@v0.9.0
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ steps.kms.outputs.SSH_PRIVATE_KEY }}
       # Setup Bun
       - run: pip install setuptools
       - uses: oven-sh/setup-bun@v2

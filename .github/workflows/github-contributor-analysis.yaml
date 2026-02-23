@@ -1,3 +1,4 @@
+# Secrets: Hanzo KMS (kms.hanzo.ai) — auth via Hanzo IAM
 name: GitHub Contributor Analysis
 on:
   schedule:
@@ -15,6 +16,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 120 # 2 hours timeout
     steps:
+      - name: Fetch secrets from Hanzo KMS
+        id: kms
+        uses: hanzoui/.github/actions/kms-secrets@main
+        with:
+          kms_client_id: ${{ secrets.KMS_CLIENT_ID }}
+          kms_client_secret: ${{ secrets.KMS_CLIENT_SECRET }}
+          secrets: 'GH_TOKEN_COMFY_PR,MONGODB_URI'
       - uses: actions/checkout@v4
 
       # Setup Git (required for cloning repositories)
@@ -35,16 +43,16 @@ jobs:
       - name: Run contributor analysis
         run: bun run app/tasks/github-contributor-analyze/githubContributorAnalyze.ts
         env:
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR }}
+          MONGODB_URI: ${{ steps.kms.outputs.MONGODB_URI }}
+          GH_TOKEN_COMFY_PR: ${{ steps.kms.outputs.GH_TOKEN_COMFY_PR }}
         timeout-minutes: 100
 
       # run summaryGithubContributorAnalyzeTask
       - name: Run summary task
         run: bun run app/tasks/github-contributor-analyze/summaryGithubContributorAnalyzeTask.ts
         env:
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR }}
+          MONGODB_URI: ${{ steps.kms.outputs.MONGODB_URI }}
+          GH_TOKEN_COMFY_PR: ${{ steps.kms.outputs.GH_TOKEN_COMFY_PR }}
         timeout-minutes: 20
 
       # Optional: Generate and upload analysis report
