@@ -49,7 +49,7 @@ for (const event of prEvents) {
 ```typescript
 import { getRepositoryEvents } from "./app/api/webhook/github/webhook-events";
 
-const events = await getRepositoryEvents("hanzoui/studio_frontend", 100);
+const events = await getRepositoryEvents("hanzoui/frontend", 100);
 
 console.log(`Found ${events.length} events for HanzoStudio_frontend`);
 
@@ -70,7 +70,7 @@ console.log("Events by type:", byType);
 ```typescript
 import { getPullRequestEvents } from "./app/api/webhook/github/webhook-events";
 
-const prEvents = await getPullRequestEvents("hanzoui/studio_frontend", 123);
+const prEvents = await getPullRequestEvents("hanzoui/frontend", 123);
 
 console.log(`Timeline for PR #123:`);
 for (const event of prEvents.reverse()) {
@@ -87,7 +87,7 @@ const lastWeek = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
 const events = await queryWebhookEvents({
   eventType: "pull_request",
-  repository: "hanzoui/studio_frontend",
+  repository: "hanzoui/frontend",
   fromDate: lastWeek,
   processed: false,
   limit: 50,
@@ -267,7 +267,7 @@ async function getPRReviewSummary(repo: string, prNumber: number) {
   };
 }
 
-const summary = await getPRReviewSummary("hanzoui/studio_frontend", 123);
+const summary = await getPRReviewSummary("hanzoui/frontend", 123);
 ```
 
 ### Monitor Repository Activity
@@ -301,7 +301,7 @@ async function getRepoActivityReport(repo: string, days = 7) {
   return activity;
 }
 
-await getRepoActivityReport("hanzoui/studio_frontend", 7);
+await getRepoActivityReport("hanzoui/frontend", 7);
 ```
 
 ## Direct MongoDB Queries
@@ -429,7 +429,7 @@ import { writeFileSync } from "fs";
 
 const events = await queryWebhookEvents({
   eventType: "pull_request",
-  repository: "hanzoui/studio_frontend",
+  repository: "hanzoui/frontend",
   limit: 1000,
 });
 

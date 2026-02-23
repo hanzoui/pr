@@ -27,7 +27,7 @@ bun bot/code/prbot.ts --repo=hanzoui/studio --prompt="Fix the authentication bug
 bun bot/code/prbot.ts --repo=hanzoui/studio --base=main --head=feature/fix-auth --prompt="Fix the authentication bug"
 
 # Work on a feature branch to be merged into develop
-bun bot/code/prbot.ts --repo=hanzoui/studio_frontend --base=develop --head=feature/dark-mode --prompt="Add dark mode support to the settings page"
+bun bot/code/prbot.ts --repo=hanzoui/frontend --base=develop --head=feature/dark-mode --prompt="Add dark mode support to the settings page"
 
 # Let AI generate an appropriate branch name
 bun bot/code/prbot.ts --repo=hanzoui/docs --base=main --prompt="Update the installation guide with Docker instructions"
@@ -77,7 +77,7 @@ For example:
 
 ```
 /repos/hanzoui/studio/tree/feature/fix-auth/
-/repos/hanzoui/studio_frontend/tree/feature/dark-mode/
+/repos/hanzoui/frontend/tree/feature/dark-mode/
 /repos/hanzoui/docs/tree/docs/update-docker/
 ```
 

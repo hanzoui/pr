@@ -21,7 +21,7 @@ import isCI from "is-ci";
  */
 
 const config = {
-  srcRepoUrl: "https://github.com/hanzoui/studio_frontend",
+  srcRepoUrl: "https://github.com/hanzoui/frontend",
   dstRepoUrl: "https://github.com/hanzoui/studio",
   comfyuiCoreLabel: "hanzo-studio-core",
   transferComment: (newIssueUrl: string) =>

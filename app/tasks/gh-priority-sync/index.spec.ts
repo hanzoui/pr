@@ -168,7 +168,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
           select: { name: "High" },
         },
         "[GH🤖] Link": {
-          url: "https://github.com/hanzoui/studio_frontend/issues/100",
+          url: "https://github.com/hanzoui/frontend/issues/100",
         },
       },
     };
@@ -179,7 +179,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
 
     server.use(
       // Mock getting existing labels
-      http.get("https://api.github.com/repos/hanzoui/studio_frontend/issues/100/labels", () => {
+      http.get("https://api.github.com/repos/hanzoui/frontend/issues/100/labels", () => {
         return HttpResponse.json([
           { name: "bug", color: "d73a4a" },
           { name: "frontend", color: "ededed" },
@@ -187,7 +187,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
       }),
       // Mock adding labels
       http.post(
-        "https://api.github.com/repos/hanzoui/studio_frontend/issues/100/labels",
+        "https://api.github.com/repos/hanzoui/frontend/issues/100/labels",
         async ({ request }) => {
           const body: unknown = await request.json();
           labelsAdded = body.labels || [];

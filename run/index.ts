@@ -15,7 +15,7 @@ import { processIssueCommentForLableops } from "./easylabel";
 export const REPOLIST = [
   "https://github.com/hanzoui/pr",
   "https://github.com/hanzoui/studio",
-  "https://github.com/hanzoui/studio_frontend",
+  "https://github.com/hanzoui/frontend",
   "https://github.com/hanzoui/desktop",
 ];
 

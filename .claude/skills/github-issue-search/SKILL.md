@@ -69,7 +69,7 @@ Returns results with:
 Searches across all hanzoui repositories including:
 
 - hanzoui/studio
-- hanzoui/studio_frontend
+- hanzoui/frontend
 - hanzoui/desktop
 - hanzoui/docs
 - hanzoui/registry

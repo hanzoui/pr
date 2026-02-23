@@ -27,7 +27,7 @@ import { match as tsmatch } from "ts-pattern";
 
 const config = {
   // 1. monitor releases from this repo
-  repo: "https://github.com/hanzoui/studio_frontend",
+  repo: "https://github.com/hanzoui/frontend",
   maxReleasesToCheck: 3,
   processSince: new Date("2026-01-06T00:00:00Z").toISOString(), // only process releases since this date, to avoid posting too msgs in old releases
 
@@ -162,7 +162,7 @@ export default async function runGithubFrontendBackportCheckerTask() {
       });
       logger.info(`\nProcessing release: ${task.releaseTag}`);
 
-      // 1. find full changelog link in release body, e.g. https://github.com/hanzoui/studio_frontend/compare/v1.38.0...v1.38.1
+      // 1. find full changelog link in release body, e.g. https://github.com/hanzoui/frontend/compare/v1.38.0...v1.38.1
       return await save({ ...task, compareLink });
     })
     .map(processTask)

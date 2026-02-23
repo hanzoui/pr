@@ -14,7 +14,7 @@ import { pageFlow } from "sflow";
  * Workflow:
  * 1. Fetch new/unseen issues from hanzoui/desktop with label "frontend"
  * 2. For each issue:
- *    1. Create corresponding issues in hanzoui/studio_frontend, copying title, body (+meta and backlinks), labels, assignees
+ *    1. Create corresponding issues in hanzoui/frontend, copying title, body (+meta and backlinks), labels, assignees
  *    2. Comment on original issue that it's been transferred
  *    3. Close original issue in hanzoui/desktop
  *    4. Track transferred issues to avoid duplicates
@@ -22,7 +22,7 @@ import { pageFlow } from "sflow";
 
 const config = {
   srcRepoUrl: "https://github.com/hanzoui/desktop",
-  dstRepoUrl: "https://github.com/hanzoui/studio_frontend",
+  dstRepoUrl: "https://github.com/hanzoui/frontend",
   frontendLabel: "frontend",
   transferComment: (newIssueUrl: string) =>
     `This issue has been transferred to the frontend repository: ${newIssueUrl}\n\nPlease continue the discussion there.`,

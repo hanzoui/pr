@@ -33,7 +33,7 @@ mock.module("@/src/parseOwnerRepo", () => ({
     if (url === "https://github.com/hanzoai/studio") {
       return { owner: "hanzoai", repo: "studio" };
     }
-    if (url === "https://github.com/hanzoui/studio_frontend") {
+    if (url === "https://github.com/hanzoui/frontend") {
       return { owner: "hanzoui", repo: "HanzoStudio_frontend" };
     }
     throw new Error(`Unknown repo URL: ${url}`);
@@ -123,12 +123,12 @@ describe("GithubFrontendIssueTransferTask", () => {
       }),
       // Mock creating issue in target repo
       http.post(
-        "https://api.github.com/repos/hanzoui/studio_frontend/issues",
+        "https://api.github.com/repos/hanzoui/frontend/issues",
         async ({ request }) => {
           createdIssue = await request.json();
           return HttpResponse.json({
             number: 456,
-            html_url: "https://github.com/hanzoui/studio_frontend/issues/456",
+            html_url: "https://github.com/hanzoui/frontend/issues/456",
             ...createdIssue,
           });
         },
@@ -169,7 +169,7 @@ describe("GithubFrontendIssueTransferTask", () => {
     expect(createdComment).toBeTruthy();
     expect(createdComment.body).toContain("transferred to the frontend repository");
     expect(createdComment.body).toContain(
-      "https://github.com/hanzoui/studio_frontend/issues/456",
+      "https://github.com/hanzoui/frontend/issues/456",
     );
 
     // Verify database was updated
@@ -201,7 +201,7 @@ describe("GithubFrontendIssueTransferTask", () => {
       http.get("https://api.github.com/repos/hanzoai/studio/issues", () => {
         return HttpResponse.json([pullRequest]);
       }),
-      http.post("https://api.github.com/repos/hanzoui/studio_frontend/issues", () => {
+      http.post("https://api.github.com/repos/hanzoui/frontend/issues", () => {
         issueCreated = true;
         return HttpResponse.json({});
       }),
@@ -220,7 +220,7 @@ describe("GithubFrontendIssueTransferTask", () => {
         sourceIssueNumber: 999,
         sourceIssueUrl: "https://github.com/hanzoai/studio/issues/999",
         targetIssueNumber: 888,
-        targetIssueUrl: "https://github.com/hanzoui/studio_frontend/issues/888",
+        targetIssueUrl: "https://github.com/hanzoui/frontend/issues/888",
         transferredAt: new Date(),
         commentPosted: true,
       },
@@ -247,7 +247,7 @@ describe("GithubFrontendIssueTransferTask", () => {
       http.get("https://api.github.com/repos/hanzoai/studio/issues", () => {
         return HttpResponse.json([alreadyTransferredIssue]);
       }),
-      http.post("https://api.github.com/repos/hanzoui/studio_frontend/issues", () => {
+      http.post("https://api.github.com/repos/hanzoui/frontend/issues", () => {
         issueCreated = true;
         return HttpResponse.json({});
       }),
@@ -283,7 +283,7 @@ describe("GithubFrontendIssueTransferTask", () => {
       http.get("https://api.github.com/repos/hanzoai/studio/issues/555/comments", () => {
         return HttpResponse.json([]);
       }),
-      http.post("https://api.github.com/repos/hanzoui/studio_frontend/issues", () => {
+      http.post("https://api.github.com/repos/hanzoui/frontend/issues", () => {
         createAttempts++;
         return new HttpResponse(JSON.stringify({ message: "API Error" }), {
           status: 500,
@@ -324,10 +324,10 @@ describe("GithubFrontendIssueTransferTask", () => {
       http.get("https://api.github.com/repos/hanzoai/studio/issues/666/comments", () => {
         return HttpResponse.json([]);
       }),
-      http.post("https://api.github.com/repos/hanzoui/studio_frontend/issues", () => {
+      http.post("https://api.github.com/repos/hanzoui/frontend/issues", () => {
         return HttpResponse.json({
           number: 777,
-          html_url: "https://github.com/hanzoui/studio_frontend/issues/777",
+          html_url: "https://github.com/hanzoui/frontend/issues/777",
         });
       }),
       http.post("https://api.github.com/repos/hanzoai/studio/issues/666/comments", () => {
@@ -397,14 +397,14 @@ describe("GithubFrontendIssueTransferTask", () => {
         },
       ),
       http.post(
-        "https://api.github.com/repos/hanzoui/studio_frontend/issues",
+        "https://api.github.com/repos/hanzoui/frontend/issues",
         async ({ request }) => {
           const body: unknown = await request.json();
           issuesCreated++;
           const issueNumber = parseInt(body.title.split(" ")[1]);
           return HttpResponse.json({
             number: issueNumber + 10000,
-            html_url: `https://github.com/hanzoui/studio_frontend/issues/${issueNumber + 10000}`,
+            html_url: `https://github.com/hanzoui/frontend/issues/${issueNumber + 10000}`,
           });
         },
       ),

@@ -23,7 +23,7 @@ To improve yourself or check what you can do, please read the code there.
 ### Public Repos
 
 - **https://github.com/hanzoui/studio**: The main Hanzo Studio repository containing the core application logic and features. It's a python backend to run any machine learning models and solves various machine learning tasks.
-- **https://github.com/hanzoui/studio_frontend**: The frontend codebase for Hanzo Studio, built with Vue and TypeScript.
+- **https://github.com/hanzoui/frontend**: The frontend codebase for Hanzo Studio, built with Vue and TypeScript.
 - **https://github.com/hanzoui/docs**: Documentation for Hanzo Studio, including setup guides, tutorials, and API references.
 - **https://github.com/hanzoui/desktop**: The desktop application for Hanzo Studio, providing a user-friendly interface and additional functionalities.
 - **https://github.com/hanzoui/registry**: The https://registry.hanzo.ai, where users can share and discover Hanzo Studio custom-nodes and extensions.
@@ -221,7 +221,7 @@ prbot pr -r hanzoui/studio -p "Fix authentication timeout in login module"
 prbot pr -r hanzoui/studio --head fix/auth-timeout -p "Fix auth timeout"
 
 # Work on feature branch merging to develop
-prbot pr -r hanzoui/studio_frontend -b develop -p "Add dark mode toggle"
+prbot pr -r hanzoui/frontend -b develop -p "Add dark mode toggle"
 ```
 
 **How it works:**

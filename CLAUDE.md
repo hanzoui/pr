@@ -325,7 +325,7 @@ The bot agent prompt (lines 390-396 in `bot/index.ts`) includes the following sk
 The bot has knowledge of these hanzoui repositories:
 
 - **hanzoai/studio**: Main Hanzo Studio repository (Python ML backend)
-- **hanzoui/studio_frontend**: Frontend codebase (Vue + TypeScript)
+- **hanzoui/frontend**: Frontend codebase (Vue + TypeScript)
 - **hanzoui/docs**: Documentation, setup guides, tutorials, API references
 - **hanzoui/desktop**: Desktop application
 - **hanzoui/registry**: registry.hanzo.ai for custom-nodes and extensions
@@ -377,7 +377,7 @@ bun bot/code/prbot.ts --repo=hanzoui/studio --prompt="Fix authentication bug in 
 bun bot/code/prbot.ts --repo=hanzoui/studio --base=main --head=fix/auth-bug --prompt="Fix authentication bug"
 
 # Work on a feature branch to merge into develop
-bun bot/code/prbot.ts --repo=hanzoui/studio_frontend --base=develop --head=feature/dark-mode --prompt="Add dark mode support"
+bun bot/code/prbot.ts --repo=hanzoui/frontend --base=develop --head=feature/dark-mode --prompt="Add dark mode support"
 ```
 
 ### How It Works
@@ -437,7 +437,7 @@ prbot prbot -r <owner/repo> [-b <base>] [--head <head>] -p "<task>"
 # Examples
 prbot pr -r hanzoui/studio -p "Fix authentication timeout"
 prbot pr -r hanzoui/studio --head fix/auth-timeout -p "Fix auth"
-prbot pr -r hanzoui/studio_frontend -b develop -p "Add dark mode"
+prbot pr -r hanzoui/frontend -b develop -p "Add dark mode"
 ```
 
 **Options:**
