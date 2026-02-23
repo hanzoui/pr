@@ -145,7 +145,7 @@ describe("GithubFrontendBackportCheckerTask", () => {
 
       const summary = generateTestSlackSummary(bugfixes);
 
-      expect(summary).toContain("Hanzo Studio_frontend Backport Status Report");
+      expect(summary).toContain("HanzoStudio_frontend Backport Status Report");
       expect(summary).toContain("Release v1.0.0");
       expect(summary).toContain("Fix authentication bug");
       expect(summary).toContain("Fix render issue");
@@ -288,7 +288,7 @@ function generateTestSlackSummary(
     grouped.get(key)!.push(bf);
   });
 
-  let summary = "🔄 *Hanzo Studio_frontend Backport Status Report*\n\n";
+  let summary = "🔄 *HanzoStudio_frontend Backport Status Report*\n\n";
 
   for (const [releaseTag, items] of grouped) {
     const releaseUrl = items[0].releaseUrl;

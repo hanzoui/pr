@@ -31,7 +31,7 @@ mock.module("@/src/db", () => ({
 mock.module("@/src/parseOwnerRepo", () => ({
   parseGithubRepoUrl: (url: string) => {
     if (url === "https://github.com/hanzoui/studio_frontend") {
-      return { owner: "hanzoui", repo: "Hanzo Studio_frontend" };
+      return { owner: "hanzoui", repo: "HanzoStudio_frontend" };
     }
     if (url === "https://github.com/hanzoai/studio") {
       return { owner: "hanzoai", repo: "Hanzo Studio" };

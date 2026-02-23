@@ -37,8 +37,8 @@ if (import.meta.main) {
 
   const _repoExamples = {
     "https://github.com/MuziekMagie/Hanzo Studio-Matchering": "license already updated",
-    // - [Hanzo Studio_FizzNodes/LICENCE.txt at main · FizzleDorf/Hanzo Studio_FizzNodes]( https://github.com/FizzleDorf/Hanzo Studio_FizzNodes/blob/main/LICENCE.txt )
-    "https://github.com/FizzleDorf/Hanzo Studio_FizzNodes": "licenCe",
+    // - [HanzoStudio_FizzNodes/LICENCE.txt at main · FizzleDorf/HanzoStudio_FizzNodes]( https://github.com/FizzleDorf/HanzoStudio_FizzNodes/blob/main/LICENCE.txt )
+    "https://github.com/FizzleDorf/HanzoStudio_FizzNodes": "licenCe",
   };
 
   await updateTomlLicenseTasks();

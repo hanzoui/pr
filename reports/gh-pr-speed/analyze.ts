@@ -50,7 +50,7 @@ async function fetchAllComfyOrgRepos(): Promise<Repository[]> {
     { owner: "hanzoai", repo: "Hanzo Studio", displayName: "Hanzo Studio" },
 
     // Core frontend and desktop
-    { owner: "hanzoui", repo: "Hanzo Studio_frontend", displayName: "Frontend" },
+    { owner: "hanzoui", repo: "HanzoStudio_frontend", displayName: "Frontend" },
     { owner: "hanzoui", repo: "desktop", displayName: "Desktop" },
 
     // Infrastructure and tools
@@ -69,7 +69,7 @@ async function fetchAllComfyOrgRepos(): Promise<Repository[]> {
     { owner: "hanzoui", repo: "comfy-api", displayName: "API" },
 
     // Development tools
-    { owner: "hanzoui", repo: "Hanzo Studio_devtools", displayName: "DevTools" },
+    { owner: "hanzoui", repo: "HanzoStudio_devtools", displayName: "DevTools" },
     { owner: "hanzoui", repo: "security-scanner", displayName: "Security Scanner" },
 
     // Cloud and services
@@ -77,7 +77,7 @@ async function fetchAllComfyOrgRepos(): Promise<Repository[]> {
 
     // Additional active repos
     { owner: "hanzoui", repo: "Comfy-PR", displayName: "PR Tools" },
-    { owner: "hanzoui", repo: "Hanzo Studio_TensorRT", displayName: "TensorRT" },
+    { owner: "hanzoui", repo: "HanzoStudio_TensorRT", displayName: "TensorRT" },
     { owner: "hanzoui", repo: "homepage", displayName: "Homepage" },
     { owner: "hanzoui", repo: "rfcs", displayName: "RFCs" },
     { owner: "hanzoui", repo: "translations", displayName: "Translations" },

@@ -13,7 +13,7 @@ import { upsertSlackMessage } from "../gh-desktop-release-notification/upsertSla
  * GitHub Frontend Release Notification Task
  *
  * Workflow:
- * 1. Fetch Hanzo Studio_frontend repo latest releases
+ * 1. Fetch HanzoStudio_frontend repo latest releases
  * 2. Save the release info to the database
  * 3. If it's stable, notify the release to slack
  * 4. If it's a pre-release, send drafting notification

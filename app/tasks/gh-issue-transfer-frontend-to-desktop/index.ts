@@ -12,7 +12,7 @@ import { pageFlow } from "sflow";
  * GitHub Frontend to Desktop Issue Transfer Task
  *
  * Workflow:
- * 1. Fetch new/unseen issues from the Hanzo Studio_frontend repository with label "desktop"
+ * 1. Fetch new/unseen issues from the HanzoStudio_frontend repository with label "desktop"
  * 2. For each issue:
  *    1. Create corresponding issues in the hanzoui/desktop repository (currently hardcoded in config.dstRepoUrl), copying title, body (+meta and backlinks), labels, assignees
  *    2. Comment on original issue that it's been transferred

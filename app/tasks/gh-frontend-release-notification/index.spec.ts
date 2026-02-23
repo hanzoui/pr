@@ -60,11 +60,11 @@ describe("GithubFrontendReleaseNotificationTask", () => {
   });
 
   describe("parseGithubRepoUrl", () => {
-    it("should correctly parse Hanzo Studio_frontend repo URL", () => {
+    it("should correctly parse HanzoStudio_frontend repo URL", () => {
       const result = parseGithubRepoUrl("https://github.com/hanzoui/studio_frontend");
       expect(result).toEqual({
         owner: "hanzoui",
-        repo: "Hanzo Studio_frontend",
+        repo: "HanzoStudio_frontend",
       });
     });
   });
@@ -108,7 +108,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         createdAt: new Date(mockRelease.created_at),
         releasedAt: new Date(mockRelease.published_at),
         slackMessage: {
-          text: "🎨 Hanzo Studio_frontend <https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0|Release v1.0.0> is stable!\n\n*Release Notes:*\nRelease notes",
+          text: "🎨 HanzoStudio_frontend <https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0|Release v1.0.0> is stable!\n\n*Release Notes:*\nRelease notes",
           channel: "test-channel-id",
           url: "https://slack.com/message/123",
         },
@@ -118,7 +118,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
 
       expect(mockGh.repos.listReleases).toHaveBeenCalledWith({
         owner: "hanzoui",
-        repo: "Hanzo Studio_frontend",
+        repo: "HanzoStudio_frontend",
         per_page: 3,
       });
 
@@ -157,7 +157,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         createdAt: new Date(mockRelease.created_at),
         releasedAt: new Date(mockRelease.published_at),
         slackMessage: {
-          text: "🎨 Hanzo Studio_frontend <https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0|Release v1.0.0> is stable!\n\n*Release Notes:*\nRelease notes",
+          text: "🎨 HanzoStudio_frontend <https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0|Release v1.0.0> is stable!\n\n*Release Notes:*\nRelease notes",
           channel: "test-channel-id",
           url: "https://slack.com/message/123",
         },
@@ -207,7 +207,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         createdAt: new Date(mockPrerelease.created_at),
         releasedAt: new Date(mockPrerelease.published_at),
         slackMessageDrafting: {
-          text: "🎨 Hanzo Studio_frontend <https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0-beta.1|Release v1.0.0-beta.1> is prerelease!\n\n*Release Notes:*\nBeta release notes",
+          text: "🎨 HanzoStudio_frontend <https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0-beta.1|Release v1.0.0-beta.1> is prerelease!\n\n*Release Notes:*\nBeta release notes",
           channel: "test-channel-id",
           url: "https://slack.com/message/456",
         },
@@ -326,7 +326,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         createdAt: new Date(mockRelease.created_at),
         releasedAt: new Date(mockRelease.published_at),
         slackMessage: {
-          text: "🎨 Hanzo Studio_frontend <https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0|Release v1.0.0> is stable!",
+          text: "🎨 HanzoStudio_frontend <https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0|Release v1.0.0> is stable!",
           channel: "test-channel-id",
           url: "https://slack.com/message/123",
         },
@@ -340,7 +340,7 @@ describe("GithubFrontendReleaseNotificationTask", () => {
         isStable: true,
         releaseNotes: mockRelease.body,
         slackMessage: {
-          text: "🎨 Hanzo Studio_frontend <https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0|Release v1.0.1> is stable!\n\n*Release Notes:*\nUpdated release notes",
+          text: "🎨 HanzoStudio_frontend <https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0|Release v1.0.1> is stable!\n\n*Release Notes:*\nUpdated release notes",
           channel: "test-channel-id",
           url: "https://slack.com/message/123",
         },
