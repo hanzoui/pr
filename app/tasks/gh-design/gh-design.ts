@@ -29,7 +29,7 @@ const tlog = createTimeLogger();
 
 // 1. scan these repos
 const REPOURLS = [
-  "https://github.com/hanzoui/studio_frontend",
+  "https://github.com/hanzoui/frontend",
   "https://github.com/hanzoui/desktop",
 ];
 

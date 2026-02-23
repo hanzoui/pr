@@ -696,7 +696,7 @@ ${nearbyMessages.map((m) => `- User ${m.username} said: ${JSON.stringify(m.markd
 
 Possible Context Repos:
 - https://github.com/hanzoai/studio: The main Hanzo Studio repository containing the core application logic and features. Its a python backend to run unknown machine learning models and solves various machine learning tasks.
-- https://github.com/hanzoui/studio_frontend: The frontend codebase for ComfyuUI, built with Vue and TypeScript.
+- https://github.com/hanzoui/frontend: The frontend codebase for ComfyuUI, built with Vue and TypeScript.
 - https://github.com/hanzoui/docs: Documentation for Hanzo Studio, including setup guides, tutorials, and API references.
 - https://github.com/hanzoui/desktop: The desktop application for Hanzo Studio, providing a user-friendly interface and additional functionalities.
 - https://github.com/hanzoui/registry: The registry.hanzo.ai, where users can share and discover Hanzo Studio custom-nodes, and extensions.

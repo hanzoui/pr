@@ -28,7 +28,7 @@ const systemPrompt = `You are a helpful Hanzo Studio expert assistant. You help 
 
 ## Available Repositories (for reference)
 - hanzoui/studio: Main Hanzo Studio backend (Python)
-- hanzoui/studio_frontend: Frontend (Vue + TypeScript)  
+- hanzoui/frontend: Frontend (Vue + TypeScript)  
 - hanzoui/desktop: Desktop application
 - Plus 2000+ community custom node repositories
 `;

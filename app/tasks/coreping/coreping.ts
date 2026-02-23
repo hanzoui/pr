@@ -54,7 +54,7 @@ export const coreReviewTrackerConfig = {
     // "https://github.com/hanzoai/studio", // deprecated
     "https://github.com/hanzoui/studio", // 2026-01-08 new
     "https://github.com/hanzoui/pr",
-    "https://github.com/hanzoui/studio_frontend",
+    "https://github.com/hanzoui/frontend",
     "https://github.com/hanzoui/desktop",
   ],
   // labels

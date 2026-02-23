@@ -34,7 +34,7 @@ import { tsmatch } from "@/packages/mongodb-pipeline-ts/Task";
 export const REPOLIST = [
   "https://github.com/hanzoui/studio",
   "https://github.com/hanzoui/pr",
-  "https://github.com/hanzoui/studio_frontend",
+  "https://github.com/hanzoui/frontend",
   "https://github.com/hanzoui/desktop",
 ];
 await mkdir("./.cache", { recursive: true });

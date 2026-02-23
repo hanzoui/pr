@@ -42,7 +42,7 @@ describe("normalizeGithubUrl", () => {
   });
 
   test("should not affect other GitHub repos (hanzoui)", () => {
-    const url = "https://github.com/hanzoui/studio_frontend/issues/123";
+    const url = "https://github.com/hanzoui/frontend/issues/123";
     expect(normalizeGithubUrl(url)).toBe(url);
   });
 
@@ -92,12 +92,12 @@ describe("normalizeGithubUrlsInObject", () => {
   test("should normalize URL fields in object", () => {
     const obj = {
       sourceIssueUrl: "https://github.com/hanzoai/studio/issues/123",
-      targetIssueUrl: "https://github.com/hanzoui/studio_frontend/issues/456",
+      targetIssueUrl: "https://github.com/hanzoui/frontend/issues/456",
       otherField: "not a url",
     };
     const result = normalizeGithubUrlsInObject(obj, ["sourceIssueUrl", "targetIssueUrl"]);
     expect(result.sourceIssueUrl).toBe("https://github.com/hanzoui/studio/issues/123");
-    expect(result.targetIssueUrl).toBe("https://github.com/hanzoui/studio_frontend/issues/456");
+    expect(result.targetIssueUrl).toBe("https://github.com/hanzoui/frontend/issues/456");
     expect(result.otherField).toBe("not a url");
   });
 

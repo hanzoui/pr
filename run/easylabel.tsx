@@ -17,7 +17,7 @@ import z from "zod";
  * In unknown of those repos:
  * https://github.com/hanzoui/pr
  * https://github.com/hanzoui/studio
- * https://github.com/hanzoui/studio_frontend
+ * https://github.com/hanzoui/frontend
  * https://github.com/hanzoui/desktop
  *
  * User can add comments to manipulate Issue/PR labels by a simple syntax, without require permissions on repo .
@@ -30,7 +30,7 @@ const cfg = {
   REPOLIST: [
     "https://github.com/hanzoui/studio",
     // "https://github.com/hanzoui/pr", // handled by webhook
-    // "https://github.com/hanzoui/studio_frontend", // handled by webhook
+    // "https://github.com/hanzoui/frontend", // handled by webhook
     // "https://github.com/hanzoui/desktop", // handled by webhook
   ],
   allow: [

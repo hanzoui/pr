@@ -25,7 +25,7 @@ const getBountyMessage = (issue_title: string, issueUrl: string) =>
   )})`;
 
 const milestoneUrls = [
-  "https://github.com/hanzoui/studio_frontend/milestone/1",
+  "https://github.com/hanzoui/frontend/milestone/1",
   "https://github.com/hanzoui/desktop/milestone/1",
 ];
 export const GithubBountyTask = db.collection<{

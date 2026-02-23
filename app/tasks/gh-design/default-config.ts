@@ -8,9 +8,9 @@ const SLACK_MESSAGE_TEMPLATE = `🎨 *New Design {{ITEM_TYPE}}*: <{{URL}}|{{TITL
 // const SLACK_MSG_URL_TEMPLATE = `https://comfy-organization.slack.com/archives/{{CHANNEL_ID}}/p{{TSNODOT}}`;
 const REQUEST_REVIEWERS = ["PabloWiedemann"];
 const REPOS_TO_SCAN_URLS = [
-  "https://github.com/hanzoui/studio_frontend",
+  "https://github.com/hanzoui/frontend",
   "https://github.com/hanzoui/desktop",
-  // "https://github.com/hanzoai/studio" // frontend contents moved to hanzoui/studio_frontend
+  // "https://github.com/hanzoai/studio" // frontend contents moved to hanzoui/frontend
 ];
 
 export const ghDesignDefaultConfig = {

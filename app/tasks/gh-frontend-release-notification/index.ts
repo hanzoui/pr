@@ -20,7 +20,7 @@ import { upsertSlackMessage } from "../gh-desktop-release-notification/upsertSla
  */
 
 const config = {
-  repos: ["https://github.com/hanzoui/studio_frontend"],
+  repos: ["https://github.com/hanzoui/frontend"],
   slackChannelName: "frontend",
   slackMessage: "🎨 {repo} <{url}|Release {version}> is {status}!",
   sendSince: new Date("2025-09-03T00:00:00Z").toISOString(),

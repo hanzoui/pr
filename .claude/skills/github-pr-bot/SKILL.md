@@ -37,7 +37,7 @@ prbot pr -r <OWNER/REPO> [-b <BRANCH>] -p "<TASK_DESCRIPTION>"
 prbot pr -r hanzoui/studio -p "Fix authentication bug in login module - users can't login with special characters in password"
 
 # Add feature to frontend
-prbot github pr -r hanzoui/studio_frontend -b develop -p "Add dark mode toggle to settings page with persistent user preference"
+prbot github pr -r hanzoui/frontend -b develop -p "Add dark mode toggle to settings page with persistent user preference"
 
 # Update documentation
 prbot pr -r hanzoui/docs -p "Add troubleshooting section for common installation errors on Windows"
@@ -46,7 +46,7 @@ prbot pr -r hanzoui/docs -p "Add troubleshooting section for common installation
 ## Available Repositories
 
 - `hanzoui/studio` - Main Hanzo Studio backend (Python)
-- `hanzoui/studio_frontend` - Frontend codebase (Vue + TypeScript)
+- `hanzoui/frontend` - Frontend codebase (Vue + TypeScript)
 - `hanzoui/docs` - Documentation and guides
 - `hanzoui/desktop` - Desktop application
 - `hanzoui/registry` - Custom nodes registry

@@ -279,7 +279,7 @@ The system monitors these repositories by default:
 
 - `hanzoui/pr`
 - `hanzoui/studio`
-- `hanzoui/studio_frontend`
+- `hanzoui/frontend`
 - `hanzoui/desktop`
 
 To modify the list, edit the `REPOLIST` array in `gh-service.tsx`.

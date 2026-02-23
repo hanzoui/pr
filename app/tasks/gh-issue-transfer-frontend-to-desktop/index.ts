@@ -21,7 +21,7 @@ import { pageFlow } from "sflow";
  */
 
 const config = {
-  srcRepoUrl: "https://github.com/hanzoui/studio_frontend",
+  srcRepoUrl: "https://github.com/hanzoui/frontend",
   dstRepoUrl: "https://github.com/hanzoui/desktop",
   desktopLabel: "desktop",
   transferComment: (newIssueUrl: string) =>

@@ -115,11 +115,11 @@ describe("GithubFrontendBackportCheckerTask", () => {
       const bugfixes = [
         {
           releaseTag: "v1.0.0",
-          releaseUrl: "https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0",
+          releaseUrl: "https://github.com/hanzoui/frontend/releases/tag/v1.0.0",
           commitSha: "abc123",
           commitMessage: "fix: authentication bug",
           prNumber: 100,
-          prUrl: "https://github.com/hanzoui/studio_frontend/pull/100",
+          prUrl: "https://github.com/hanzoui/frontend/pull/100",
           prTitle: "Fix authentication bug",
           backportStatus: "needed" as BackportStatus,
           backportLabels: ["needs-backport"],
@@ -129,11 +129,11 @@ describe("GithubFrontendBackportCheckerTask", () => {
         },
         {
           releaseTag: "v1.0.0",
-          releaseUrl: "https://github.com/hanzoui/studio_frontend/releases/tag/v1.0.0",
+          releaseUrl: "https://github.com/hanzoui/frontend/releases/tag/v1.0.0",
           commitSha: "def456",
           commitMessage: "fix: render issue",
           prNumber: 101,
-          prUrl: "https://github.com/hanzoui/studio_frontend/pull/101",
+          prUrl: "https://github.com/hanzoui/frontend/pull/101",
           prTitle: "Fix render issue",
           backportStatus: "completed" as BackportStatus,
           backportLabels: ["backport-completed"],
@@ -232,7 +232,7 @@ describe("GithubFrontendBackportCheckerTask", () => {
   describe("configuration validation", () => {
     it("should have valid config values", () => {
       const config = {
-        repo: "https://github.com/hanzoui/studio_frontend",
+        repo: "https://github.com/hanzoui/frontend",
         slackChannel: "frontend",
         bugfixPatterns: /\b(fix|bugfix|hotfix|patch|bug)\b/i,
         backportLabels: ["backport", "backport-stable", "needs-backport", "stable"],
@@ -252,11 +252,11 @@ describe("GithubFrontendBackportCheckerTask", () => {
 function createTestBugfix(releaseTag: string, status: BackportStatus) {
   return {
     releaseTag,
-    releaseUrl: `https://github.com/hanzoui/studio_frontend/releases/tag/${releaseTag}`,
+    releaseUrl: `https://github.com/hanzoui/frontend/releases/tag/${releaseTag}`,
     commitSha: Math.random().toString(36).substring(7),
     commitMessage: `fix: test bug ${status}`,
     prNumber: Math.floor(Math.random() * 1000),
-    prUrl: `https://github.com/hanzoui/studio_frontend/pull/${Math.floor(Math.random() * 1000)}`,
+    prUrl: `https://github.com/hanzoui/frontend/pull/${Math.floor(Math.random() * 1000)}`,
     prTitle: `Test PR ${status}`,
     backportStatus: status,
     backportLabels: status === "needed" ? ["needs-backport"] : [],
