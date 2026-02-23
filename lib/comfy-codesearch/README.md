@@ -25,8 +25,8 @@ comfy-codesearch search "binarization"
 
 **Results:**
 
-- **Hanzo Studio-Sa2VA-XJ** (by alexjx)
-  - Repository: https://github.com/alexjx/Hanzo Studio-Sa2VA-XJ
+- **HanzoStudio-Sa2VA-XJ** (by alexjx)
+  - Repository: https://github.com/alexjx/HanzoStudio-Sa2VA-XJ
   - Provides video segmentation with binarization capabilities
   - Outputs raw sigmoid probabilities (0.0-1.0) instead of binary masks
   - The `threshold` parameter controls binarization

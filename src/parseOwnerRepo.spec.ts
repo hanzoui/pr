@@ -59,13 +59,13 @@ describe("parseOwnerRepo", () => {
       const result1 = parseGithubRepoUrl("git@github.com:hanzoui/studio-Registry");
       expect(result1).toEqual({
         owner: "hanzoui",
-        repo: "Hanzo Studio-Registry",
+        repo: "HanzoStudio-Registry",
       });
 
-      const result2 = parseGithubRepoUrl("https://github.com/snomiao/Hanzo Studio-FD-Tagger.git");
+      const result2 = parseGithubRepoUrl("https://github.com/snomiao/HanzoStudio-FD-Tagger.git");
       expect(result2).toEqual({
         owner: "snomiao",
-        repo: "Hanzo Studio-FD-Tagger",
+        repo: "HanzoStudio-FD-Tagger",
       });
     });
   });
@@ -99,7 +99,7 @@ describe("parseOwnerRepo", () => {
     });
 
     it("should handle real-world examples", () => {
-      const result = stringifyGithubRepoUrl({ owner: "hanzoui", repo: "Hanzo Studio-Registry" });
+      const result = stringifyGithubRepoUrl({ owner: "hanzoui", repo: "HanzoStudio-Registry" });
       expect(result).toBe("https://github.com/hanzoui/studio-Registry");
     });
   });
@@ -117,7 +117,7 @@ describe("parseOwnerRepo", () => {
     });
 
     it("should handle real-world examples", async () => {
-      const result = await stringifyGithubOrigin({ owner: "hanzoui", repo: "Hanzo Studio-Registry" });
+      const result = await stringifyGithubOrigin({ owner: "hanzoui", repo: "HanzoStudio-Registry" });
       expect(result).toBe("git@github.com:hanzoui/studio-Registry");
     });
   });
@@ -131,10 +131,10 @@ describe("parseOwnerRepo", () => {
     });
 
     it("should work end-to-end with parseGithubRepoUrl and stringifyGithubRepoUrl", () => {
-      const originalUrl = "git@github.com:snomiao/Hanzo Studio-FD-Tagger";
+      const originalUrl = "git@github.com:snomiao/HanzoStudio-FD-Tagger";
       const parsed = parseGithubRepoUrl(originalUrl);
       const httpsUrl = stringifyGithubRepoUrl(parsed);
-      expect(httpsUrl).toBe("https://github.com/snomiao/Hanzo Studio-FD-Tagger");
+      expect(httpsUrl).toBe("https://github.com/snomiao/HanzoStudio-FD-Tagger");
     });
 
     it("should work end-to-end with parseGithubRepoUrl and stringifyGithubOrigin", async () => {

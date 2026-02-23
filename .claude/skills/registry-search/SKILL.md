@@ -70,7 +70,7 @@ Returns results with:
    Can be applied to images and videos...
    Publisher: Salvador Eduardo Tropea
    Version: 1.0.0
-   Repository: https://github.com/set-soft/Hanzo Studio-RemoveBackground_SET
+   Repository: https://github.com/set-soft/HanzoStudio-RemoveBackground_SET
    Downloads: 462 | Stars: 12
    Tags: image, video
 ---

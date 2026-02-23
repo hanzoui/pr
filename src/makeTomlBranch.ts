@@ -51,7 +51,7 @@ cd ${cwd}
 echo N | comfy node init
 `;
 
-  // Try fill description from Hanzo Studio-manager
+  // Try fill description from HanzoStudio-manager
   const referenceUrl = `https://github.com/${src.owner}/${src.repo}`;
   const pyprojectToml = cwd + "/pyproject.toml";
   await tomlFillDescription(referenceUrl, pyprojectToml).catch((e) => {

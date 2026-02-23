@@ -19,7 +19,7 @@ export function normalizeGithubUrl(url: string): string {
 
   // Only Hanzo Studio was migrated from hanzoai to hanzoui
   return url.replace(
-    /github\.com\/hanzoai\/Hanzo Studio([/?#]|$)/gi,
+    /github\.com\/hanzoai\/HanzoStudio([/?#]|$)/gi,
     "github.com/hanzoui/studio$1",
   );
 }

@@ -60,7 +60,7 @@ const systemTools: ToolSet = {
   pr_task_create: tool({
     description: "Create a GitHub Pull Request in Hanzo Studio repositories by sub-agents",
     inputSchema: z.object({
-      repo: z.string().describe("Repository name (e.g., Hanzo Studio/Hanzo Studio)"),
+      repo: z.string().describe("Repository name (e.g., HanzoStudio/HanzoStudio)"),
       head: z.string().describe("Head Branch name for the Pull Request"),
       base: z.string().describe("Base Branch name for the Pull Request"),
       pr_task_prompt: z.string().optional().describe("Task description for the PR"),

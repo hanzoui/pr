@@ -3,7 +3,7 @@
 # Want to remove your repo from bypass list? make a pr here to remove.
 
 ignore_repos:
-  # reason: https://github.com/loopyd/Hanzo Studio-FD-Tagger/pull/1
+  # reason: https://github.com/loopyd/HanzoStudio-FD-Tagger/pull/1
   - https://github.com/loopyd
   #
   # maybe?

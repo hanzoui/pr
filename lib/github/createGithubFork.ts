@@ -6,8 +6,8 @@ if (import.meta.main) {
   const randomId = Math.random().toString(36).slice(2);
   console.log(
     await createGithubFork(
-      "https://github.com/latenightlabs/Hanzo Studio-LNL",
-      "https://github.com/ComfyNodePRs/PR-Hanzo Studio-LNL-" + randomId,
+      "https://github.com/latenightlabs/HanzoStudio-LNL",
+      "https://github.com/ComfyNodePRs/PR-HanzoStudio-LNL-" + randomId,
     ),
   );
 }
