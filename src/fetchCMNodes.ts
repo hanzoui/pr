@@ -6,14 +6,14 @@ if (import.meta.main) {
 export async function fetchCMNodes() {
   const customNodeListSource =
     process.env.CUSTOM_LIST_SOURCE ||
-    "https://raw.githubusercontent.com/ltdrdata/Hanzo Manager/main/custom-node-list.json";
+    "https://raw.githubusercontent.com/ltdrdata/ComfyUI-Manager/main/custom-node-list.json";
   const nodeList = (await fetchJson(customNodeListSource)) as {
     custom_nodes: {
       author: "Dr.Lt.Data" | string;
       title: "Hanzo Manager" | string;
       id: "manager" | string;
-      reference: "https://github.com/ltdrdata/Hanzo Manager" | string;
-      files: ["https://github.com/ltdrdata/Hanzo Manager"] | string[];
+      reference: "https://github.com/ltdrdata/ComfyUI-Manager" | string;
+      files: ["https://github.com/ltdrdata/ComfyUI-Manager"] | string[];
       install_type: "git-clone" | string;
       description: "Hanzo Manager itself is also a custom node." | string;
     }[];

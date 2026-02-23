@@ -58,7 +58,7 @@ describe("GitHub API Client (gh)", () => {
     it("should list tags", async () => {
       const result = await gh.repos.listTags({
         owner: "hanzoai",
-        repo: "Hanzo Studio",
+        repo: "studio",
         per_page: 10,
       });
 
@@ -333,7 +333,7 @@ describe("GitHub API Client (gh)", () => {
     it("should get an annotated tag", async () => {
       const result = await gh.git.getTag({
         owner: "hanzoai",
-        repo: "Hanzo Studio",
+        repo: "studio",
         tag_sha: "abc123",
       });
 
@@ -357,7 +357,7 @@ describe("GitHub API Client (gh)", () => {
       try {
         await gh.git.getTag({
           owner: "hanzoai",
-          repo: "Hanzo Studio",
+          repo: "studio",
           tag_sha: "lightweight-tag",
         });
         // Should not reach here

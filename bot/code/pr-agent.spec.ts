@@ -60,12 +60,12 @@ describe("pr-agent", () => {
     const [owner, repoName] = repo.split("/");
 
     expect(owner).toBe("hanzoui");
-    expect(repoName).toBe("Hanzo Studio");
+    expect(repoName).toBe("HanzoStudio");
   });
 
   it("should construct correct directory path", () => {
     const owner = "hanzoui";
-    const repoName = "Hanzo Studio";
+    const repoName = "studio";
     const branch = "main";
 
     const expectedPath = path.join(process.cwd(), "repos", owner, repoName, "tree", branch);

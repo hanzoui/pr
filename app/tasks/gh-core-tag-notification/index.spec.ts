@@ -101,7 +101,7 @@ describe("GithubCoreTagNotificationTask", () => {
 
     expect(mockGh.repos.listTags).toHaveBeenCalledWith({
       owner: "hanzoai",
-      repo: "Hanzo Studio",
+      repo: "studio",
       per_page: 10,
     });
   });
