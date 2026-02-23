@@ -1,13 +1,13 @@
 ---
 name: notion-search
-description: Search Notion documentation and knowledge base from the Comfy-Org team workspace. Use when the user needs to find internal documentation, guides, meeting notes, or reference materials stored in Notion.
+description: Search Notion documentation and knowledge base from the hanzoui team workspace. Use when the user needs to find internal documentation, guides, meeting notes, or reference materials stored in Notion.
 allowed-tools: Bash
 model: haiku
 ---
 
 # Notion Documentation Search
 
-This skill searches the Comfy-Org team Notion workspace for documentation, guides, and internal knowledge.
+This skill searches the hanzoui team Notion workspace for documentation, guides, and internal knowledge.
 
 ## Usage
 
@@ -32,8 +32,8 @@ Returns results with:
 ## Examples
 
 ```bash
-# Search for ComfyUI setup documentation
-prbot notion search -q "ComfyUI setup" -l 5
+# Search for Hanzo Studio setup documentation
+prbot notion search -q "Hanzo Studio setup" -l 5
 
 # Find meeting notes
 prbot notion search -q "weekly sync meeting"
@@ -45,6 +45,6 @@ prbot notion search -q "API documentation workflow" -l 3
 ## Notes
 
 - Requires Notion API integration token in environment variables
-- Searches across all accessible pages in the Comfy-Org workspace
+- Searches across all accessible pages in the hanzoui workspace
 - Returns most recently edited pages first
 - Useful for finding internal documentation not in public docs

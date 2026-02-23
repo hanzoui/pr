@@ -13,15 +13,15 @@ import { upsertSlackMessage } from "../gh-desktop-release-notification/upsertSla
  * GitHub Core Tag Notification Task
  *
  * Workflow:
- * 1. Fetch ComfyUI core repo latest tags
+ * 1. Fetch Hanzo Studio core repo latest tags
  * 2. Save the tag info to the database
  * 3. Notify new tags to slack
  */
 
 const config = {
-  repo: "https://github.com/Comfy-Org/ComfyUI",
+  repo: "https://github.com/hanzoui/studio",
   slackChannels: ["desktop", "live-ops"],
-  slackMessage: "🏷️ ComfyUI <{url}|Tag {tagName}> created!",
+  slackMessage: "🏷️ Hanzo Studio <{url}|Tag {tagName}> created!",
   sendSince: new Date("2025-11-19T00:00:00Z").toISOString(),
   tagsPerPage: 3,
 };
@@ -57,7 +57,7 @@ export const GithubCoreTagNotificationTask = db.collection<GithubCoreTagNotifica
 await GithubCoreTagNotificationTask.createIndex({ tagName: 1 }, { unique: true });
 
 const save = async (task: { tagName: string } & Partial<GithubCoreTagNotificationTask>) => {
-  // Normalize URLs to handle both comfyanonymous and Comfy-Org formats
+  // Normalize URLs to handle both hanzoai and hanzoui formats
   const normalizedTask = {
     ...task,
     url: task.url ? normalizeGithubUrl(task.url) : undefined,

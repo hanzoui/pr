@@ -56,16 +56,16 @@ describe("pr-agent", () => {
   });
 
   it("should parse repo owner and name correctly", () => {
-    const repo = "Comfy-Org/ComfyUI";
+    const repo = "hanzoui/studio";
     const [owner, repoName] = repo.split("/");
 
-    expect(owner).toBe("Comfy-Org");
-    expect(repoName).toBe("ComfyUI");
+    expect(owner).toBe("hanzoui");
+    expect(repoName).toBe("Hanzo Studio");
   });
 
   it("should construct correct directory path", () => {
-    const owner = "Comfy-Org";
-    const repoName = "ComfyUI";
+    const owner = "hanzoui";
+    const repoName = "Hanzo Studio";
     const branch = "main";
 
     const expectedPath = path.join(process.cwd(), "repos", owner, repoName, "tree", branch);

@@ -299,8 +299,8 @@ The bot agent prompt (lines 390-396 in `bot/index.ts`) includes the following sk
    - Gather up-to-date information and context
 
 2. **GitHub Repository Access (READ-ONLY)**
-   - Clone any repositories from https://github.com/Comfy-Org
-   - Inspect codebases at `./codes/Comfy-Org/[repo]/tree/[branch]`
+   - Clone any repositories from https://github.com/hanzoui
+   - Inspect codebases at `./codes/hanzoui/[repo]/tree/[branch]`
    - Read and analyze source code
    - **Note**: Master bot CANNOT make direct code changes - must use prbot tool
 
@@ -310,7 +310,7 @@ The bot agent prompt (lines 390-396 in `bot/index.ts`) includes the following sk
    - Update responses frequently to provide live progress updates
 
 4. **Notion Documentation Search**
-   - Search Notion docs from Comfy-Org team: `./bot/notion/search.ts`
+   - Search Notion docs from hanzoui team: `./bot/notion/search.ts`
    - Access internal documentation and knowledge base
 
 5. **Code Modification via PR-Bot (REQUIRED for GitHub changes)**
@@ -322,14 +322,14 @@ The bot agent prompt (lines 390-396 in `bot/index.ts`) includes the following sk
 
 ### Context Repositories
 
-The bot has knowledge of these Comfy-Org repositories:
+The bot has knowledge of these hanzoui repositories:
 
-- **comfyanonymous/ComfyUI**: Main ComfyUI repository (Python ML backend)
-- **Comfy-Org/ComfyUI_frontend**: Frontend codebase (Vue + TypeScript)
-- **Comfy-Org/docs**: Documentation, setup guides, tutorials, API references
-- **Comfy-Org/desktop**: Desktop application
-- **Comfy-Org/registry**: registry.comfy.org for custom-nodes and extensions
-- **Comfy-Org/workflow_templates**: Official shared workflow templates
+- **hanzoai/studio**: Main Hanzo Studio repository (Python ML backend)
+- **hanzoui/studio_frontend**: Frontend codebase (Vue + TypeScript)
+- **hanzoui/docs**: Documentation, setup guides, tutorials, API references
+- **hanzoui/desktop**: Desktop application
+- **hanzoui/registry**: registry.hanzo.ai for custom-nodes and extensions
+- **hanzoui/workflow-templates**: Official shared workflow templates
 
 ### Usage
 
@@ -371,13 +371,13 @@ bun bot/code/prbot.ts --repo=<owner/repo> [--base=<base-branch>] [--head=<head-b
 
 ```bash
 # Auto-generate head branch name from prompt
-bun bot/code/prbot.ts --repo=Comfy-Org/ComfyUI --prompt="Fix authentication bug in login module"
+bun bot/code/prbot.ts --repo=hanzoui/studio --prompt="Fix authentication bug in login module"
 
 # Specify both base and head branches explicitly
-bun bot/code/prbot.ts --repo=Comfy-Org/ComfyUI --base=main --head=fix/auth-bug --prompt="Fix authentication bug"
+bun bot/code/prbot.ts --repo=hanzoui/studio --base=main --head=fix/auth-bug --prompt="Fix authentication bug"
 
 # Work on a feature branch to merge into develop
-bun bot/code/prbot.ts --repo=Comfy-Org/ComfyUI_frontend --base=develop --head=feature/dark-mode --prompt="Add dark mode support"
+bun bot/code/prbot.ts --repo=hanzoui/studio_frontend --base=develop --head=feature/dark-mode --prompt="Add dark mode support"
 ```
 
 ### How It Works
@@ -435,9 +435,9 @@ prbot pr -r <owner/repo> [-b <base>] [--head <head>] -p "<task>"
 prbot prbot -r <owner/repo> [-b <base>] [--head <head>] -p "<task>"
 
 # Examples
-prbot pr -r Comfy-Org/ComfyUI -p "Fix authentication timeout"
-prbot pr -r Comfy-Org/ComfyUI --head fix/auth-timeout -p "Fix auth"
-prbot pr -r Comfy-Org/ComfyUI_frontend -b develop -p "Add dark mode"
+prbot pr -r hanzoui/studio -p "Fix authentication timeout"
+prbot pr -r hanzoui/studio --head fix/auth-timeout -p "Fix auth"
+prbot pr -r hanzoui/studio_frontend -b develop -p "Add dark mode"
 ```
 
 **Options:**
@@ -449,14 +449,14 @@ prbot pr -r Comfy-Org/ComfyUI_frontend -b develop -p "Add dark mode"
 
 #### 2. Code Search
 
-Search ComfyUI codebases using comfy-codesearch:
+Search Hanzo Studio codebases using comfy-codesearch:
 
 ```bash
 prbot code search -q "<query>" [--repo <owner/repo>] [--path <pattern>]
 
 # Examples
 prbot code search -q "binarization"
-prbot code search -q "auth" --repo Comfy-Org/ComfyUI
+prbot code search -q "auth" --repo hanzoui/studio
 prbot code search -q "useAuth" --path "src/hooks/**"
 ```
 
@@ -468,7 +468,7 @@ prbot code search -q "useAuth" --path "src/hooks/**"
 
 #### 3. GitHub Issue Search
 
-Search issues/PRs across Comfy-Org repositories:
+Search issues/PRs across hanzoui repositories:
 
 ```bash
 prbot github-issue search -q "<query>" [-l <limit>]
@@ -487,7 +487,7 @@ prbot github-issue search -q "dark mode feature" -l 10
 
 #### 4. Registry Search
 
-Search ComfyUI custom nodes registry:
+Search Hanzo Studio custom nodes registry:
 
 ```bash
 prbot registry search -q "<query>" [-l <limit>] [--include-deprecated]
@@ -615,13 +615,13 @@ prbot slack context "<message_url>"
 
 #### 6. Notion Search
 
-Search Notion pages in Comfy-Org workspace:
+Search Notion pages in hanzoui workspace:
 
 ```bash
 prbot notion search -q "<query>" [-l <limit>]
 
 # Examples
-prbot notion search -q "ComfyUI setup" -l 5
+prbot notion search -q "Hanzo Studio setup" -l 5
 prbot notion search -q "sprint planning"
 ```
 
@@ -685,9 +685,9 @@ These files are in the `.bot/` workspace directory accessible to spawned agents.
 
 ```bash
 prbot github-issue search -q "auth timeout" -l 5
-prbot code search -q "authentication timeout" --repo Comfy-Org/ComfyUI
+prbot code search -q "authentication timeout" --repo hanzoui/studio
 prbot notion search -q "authentication" -l 3
-prbot pr -r Comfy-Org/ComfyUI -p "Fix auth timeout by increasing session TTL"
+prbot pr -r hanzoui/studio -p "Fix auth timeout by increasing session TTL"
 ```
 
 **Slack Thread Investigation:**
@@ -719,8 +719,8 @@ prbot slack members "<channel_url>"  # See who's in the channel
 
 ```bash
 prbot registry search -q "video processing" -l 10
-prbot code search -q "VideoProcessNode" --repo Comfy-Org/ComfyUI
-prbot pr -r Comfy-Org/ComfyUI -p "Integrate VideoProcessNode"
+prbot code search -q "VideoProcessNode" --repo hanzoui/studio
+prbot pr -r hanzoui/studio -p "Integrate VideoProcessNode"
 ```
 
 ## SFlow Stream Processing Library
@@ -761,7 +761,7 @@ grep -ri "TODO" --include="*.ts" --include="*.tsx" --include="*.js" --include="*
 
 **Registry Search (`bot/registry/search.ts`)** ✅ COMPLETED
 
-- ~~Line 1: Call api.comfy.org to search custom nodes~~ - Implemented in `searchRegistryNodes()` function
+- ~~Line 1: Call api.hanzo.ai to search custom nodes~~ - Implemented in `searchRegistryNodes()` function
 
 **GitHub Action Updates**
 
@@ -800,7 +800,7 @@ grep -ri "TODO" --include="*.ts" --include="*.tsx" --include="*.js" --include="*
 
 ### External Project TODOs (Reference Only)
 
-**comfy-api** (codes/Comfy-Org/comfy-api/)
+**comfy-api** (codes/hanzoui/comfy-api/)
 
 - Multiple proxy endpoints need user filtering implementation (7 occurrences)
 - Service account setup for dev environment
@@ -842,7 +842,7 @@ You can use prbot to automatically work on TODOs:
 prbot code search -q "TODO performance"
 
 # Create a PR to fix a TODO
-prbot code pr -r Comfy-Org/Comfy-PR -p "Fix TODO in bot/index.ts line 145: Define zSlackMessage schema"
+prbot code pr -r hanzoui/pr -p "Fix TODO in bot/index.ts line 145: Define zSlackMessage schema"
 ```
 
 ### Process Cleaning

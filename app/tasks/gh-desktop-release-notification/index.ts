@@ -16,17 +16,17 @@ import { upsertSlackMessage } from "./upsertSlackMessage";
  * 4. if it's a pre-release, do nothing
  */
 const config = {
-  repos: ["https://github.com/Comfy-Org/ComfyUI", "https://github.com/Comfy-Org/desktop"],
+  repos: ["https://github.com/hanzoui/studio", "https://github.com/hanzoui/desktop"],
   slackChannel: "desktop",
   slackMessage: "🔮 {repo} <{url}|Release {version}> is {status}!",
   sendSince: new Date("2025-08-02T00:00:00Z").toISOString(), // only send notifications for releases after this date (UTC)
 };
 
-const coreVersionPattern = /Update ComfyUI core to (v\S+)/;
+const coreVersionPattern = /Update Hanzo Studio core to (v\S+)/;
 export type GithubReleaseNotificationTask = {
   url: string; // github release url
   version?: string; // released version, e.g. v1.0.0, v2.0.0-beta.1
-  coreVersion?: string; // for desktop repo, match /Update ComfyUI core to (v\S+)/
+  coreVersion?: string; // for desktop repo, match /Update Hanzo Studio core to (v\S+)/
   createdAt: Date;
   releasedAt?: Date;
   isStable?: boolean; // true if the release is stable, false if it's a pre-release
@@ -52,14 +52,14 @@ export const GithubReleaseNotificationTask = db.collection<GithubReleaseNotifica
 );
 await GithubReleaseNotificationTask.createIndex({ url: 1 }, { unique: true });
 const save = async (task: { url: string } & Partial<GithubReleaseNotificationTask>) => {
-  // Normalize URLs to handle both comfyanonymous and Comfy-Org formats
+  // Normalize URLs to handle both hanzoai and hanzoui formats
   const normalizedTask = {
     ...task,
     url: normalizeGithubUrl(task.url),
   };
 
   // Incremental migration: Check both normalized and old URL formats
-  const oldUrl = normalizedTask.url.replace(/Comfy-Org/i, "comfyanonymous");
+  const oldUrl = normalizedTask.url.replace(/hanzoui/i, "hanzoai");
   const existing = await GithubReleaseNotificationTask.findOne({
     $or: [{ url: normalizedTask.url }, { url: oldUrl }],
   });

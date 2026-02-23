@@ -30,12 +30,12 @@ async function previewMinimal() {
     console.log("=".repeat(60));
 
     console.log("\n📝 Notes:");
-    console.log("- In actual PR, the description field would be filled from ComfyUI-Manager DB");
+    console.log("- In actual PR, the description field would be filled from Hanzo Manager DB");
     console.log("- The publisher_id would need to be added by the node author");
     console.log("- This file would be added to a 'pyproject' branch\n");
   } catch (error) {
     console.error("❌ Error:", error);
-    console.error("\n💡 Make sure comfy-cli is installed: pip install comfy-cli");
+    console.error("\n💡 Make sure hanzo-cli is installed: pip install hanzo-cli");
   } finally {
     // Cleanup
     await rm(tempDir, { recursive: true, force: true }).catch(() => {});

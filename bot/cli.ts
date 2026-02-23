@@ -127,7 +127,7 @@ async function main() {
           .option("repo", {
             alias: "r",
             type: "string",
-            describe: "owner/repo (e.g. Comfy-Org/ComfyUI)",
+            describe: "owner/repo (e.g. hanzoui/studio)",
             demandOption: true,
           })
           .option("base", {
@@ -156,7 +156,7 @@ async function main() {
     )
     .command(
       "code search",
-      "Search ComfyUI code using comfy-codesearch service",
+      "Search Hanzo Studio code using comfy-codesearch service",
       (y) =>
         y
           .option("query", {
@@ -167,7 +167,7 @@ async function main() {
           })
           .option("repo", {
             type: "string",
-            describe: "Filter by repository (e.g. Comfy-Org/ComfyUI)",
+            describe: "Filter by repository (e.g. hanzoui/studio)",
           })
           .option("path", {
             type: "string",
@@ -191,7 +191,7 @@ async function main() {
     )
     .command(
       "github-issue search",
-      "Search for issues across Comfy-Org repositories",
+      "Search for issues across hanzoui repositories",
       (y) =>
         y
           .option("query", {
@@ -238,7 +238,7 @@ async function main() {
           .option("repo", {
             alias: "r",
             type: "string",
-            describe: "owner/repo (e.g. Comfy-Org/ComfyUI)",
+            describe: "owner/repo (e.g. hanzoui/studio)",
             demandOption: true,
           })
           .option("base", {
@@ -891,7 +891,7 @@ async function main() {
     )
     .command(
       "registry search",
-      "Search ComfyUI custom nodes registry",
+      "Search Hanzo Studio custom nodes registry",
       (y) =>
         y
           .option("query", { alias: "q", type: "string", demandOption: true })
@@ -1043,11 +1043,11 @@ async function main() {
     .epilog(
       [
         "Examples:",
-        "  prbot code pr -r Comfy-Org/ComfyUI -b main -p 'Fix auth bug'",
-        "  prbot code search -q 'binarization' --repo Comfy-Org/ComfyUI",
+        "  prbot code pr -r hanzoui/studio -b main -p 'Fix auth bug'",
+        "  prbot code search -q 'binarization' --repo hanzoui/studio",
         "  prbot github-issue search -q 'authentication bug' -l 5",
         "  prbot registry search -q 'video' -l 5",
-        "  prbot pr -r Comfy-Org/desktop -p 'Add spellcheck to editor'",
+        "  prbot pr -r hanzoui/desktop -p 'Add spellcheck to editor'",
         "  prbot agent respond-slack-msg 'https://workspace.slack.com/archives/C123/p1234567890'",
         "  prbot debug list",
         "  prbot debug watch /bot/slack/snomiao/1771137874-418759",
@@ -1060,7 +1060,7 @@ async function main() {
         "  prbot slack post-with-files -c C123 -m 'Check these files' -f file1.pdf -f file2.png",
         "  prbot slack download-file -f F123ABC -o ./downloaded.pdf",
         "  prbot slack file-info -f F123ABC",
-        "  prbot notion search -q 'ComfyUI setup' -l 5",
+        "  prbot notion search -q 'Hanzo Studio setup' -l 5",
       ].join("\n"),
     ).argv;
 

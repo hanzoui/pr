@@ -1,6 +1,6 @@
 # Comfy-PR
 
-A comprehensive automation platform for [ComfyUI Custom Node](https://registry.comfy.org/) development and publishing. Comfy-PR helps Custom Node authors streamline their publishing workflow by automating repository setup, pull request creation, and ongoing maintenance.
+A comprehensive automation platform for [Hanzo Studio Custom Node](https://registry.hanzo.ai/) development and publishing. Comfy-PR helps Custom Node authors streamline their publishing workflow by automating repository setup, pull request creation, and ongoing maintenance.
 
 ## Features
 
@@ -13,12 +13,12 @@ A comprehensive automation platform for [ComfyUI Custom Node](https://registry.c
 
 ## Comfy-PR Project Goals
 
-The Comfy-PR project aims to support and streamline the process for Custom Node Authors to publish their work in the Comfy Registry. Here's why this initiative is essential:
+The Comfy-PR project aims to support and streamline the process for Custom Node Authors to publish their work in the hanzo registry. Here's why this initiative is essential:
 
 1. **Simplify Node Publishing**: Provide tools and assistance to make publishing Custom Nodes straightforward, allowing authors to concentrate on development rather than the complexities of the publishing process.
-2. **Expand Node Availability**: Streamlined publishing will increase the number of Custom Nodes in the Comfy Registry, enriching the ecosystem and offering more options to users.
+2. **Expand Node Availability**: Streamlined publishing will increase the number of Custom Nodes in the hanzo registry, enriching the ecosystem and offering more options to users.
 3. **Encourage Collaboration**: Scanning GitHub repositories and providing follow-up support fosters collaboration, knowledge-sharing, and a stronger sense of community among Custom Node Authors and users.
-4. **Ensure Quality and Compliance**: Automate checks and provide guidance to maintain high-quality standards and compliance within the Comfy Registry.
+4. **Ensure Quality and Compliance**: Automate checks and provide guidance to maintain high-quality standards and compliance within the hanzo registry.
 5. **Resolve Publishing Issues Promptly**: Address Custom Node Authors' issues during the publishing process quickly, reducing frustration and improving the overall user experience.
 6. **Strengthen the Comfy Community**: Help solve users' problems with Custom Node uploading and publishing, contributing to a more vibrant, supportive, and engaged community.
 7. **Promote Innovation**: Lower barriers to publishing Custom Nodes to encourage innovation and creativity within the community, leading to the development of novel and exciting nodes.
@@ -158,7 +158,7 @@ bunx comfy-pr --repolist repos.txt
 ### Prerequisites
 
 - [Bun](https://bun.sh) runtime
-- Python 3.x with `comfy-cli` installed
+- Python 3.x with `hanzo-cli` installed
 - Git with SSH key configured
 - GitHub Personal Access Token
 
@@ -166,16 +166,16 @@ bunx comfy-pr --repolist repos.txt
 
 ```bash
 # Clone the repository
-git clone https://github.com/Comfy-Org/Comfy-PR
+git clone https://github.com/hanzoui/pr
 cd Comfy-PR
 
 # Install dependencies
 bun install
 
-# Setup Python environment for comfy-cli
+# Setup Python environment for hanzo-cli
 python3 -m venv .venv
 source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-pip install comfy-cli
+pip install hanzo-cli
 
 # Configure environment
 cp .env.example .env

@@ -277,9 +277,9 @@ bun run run/gh-service.tsx
 
 The system monitors these repositories by default:
 
-- `Comfy-Org/Comfy-PR`
-- `Comfy-Org/ComfyUI`
-- `Comfy-Org/ComfyUI_frontend`
-- `Comfy-Org/desktop`
+- `hanzoui/pr`
+- `hanzoui/studio`
+- `hanzoui/studio_frontend`
+- `hanzoui/desktop`
 
 To modify the list, edit the `REPOLIST` array in `gh-service.tsx`.

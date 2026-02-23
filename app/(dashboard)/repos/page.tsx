@@ -13,11 +13,11 @@ export default async function ReposPage() {
   return (
     <>
       <div>
-        <div>✅: Listed in Registry, And ComfyUI-Manager Legacy version</div>
-        <div>✔️: Listed in Registry, Not ComfyUI-Manager Legacy version</div>
+        <div>✅: Listed in Registry, And Hanzo Manager Legacy version</div>
+        <div>✔️: Listed in Registry, Not Hanzo Manager Legacy version</div>
         <div>🧪: Ready to Create PR</div>
         <div>👀: Pending Reviewing PR</div>
-        <div>🫗: Repos Outside ComfyUI-Manager</div>
+        <div>🫗: Repos Outside Hanzo Manager</div>
       </div>
       <ul className="flex flex-row flex-wrap">
         <Suspense fallback={<div>⏳ Loading...</div>}>

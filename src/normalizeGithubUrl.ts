@@ -1,26 +1,26 @@
 /**
- * Normalize GitHub URLs to use the canonical Comfy-Org organization name
+ * Normalize GitHub URLs to use the canonical hanzoui organization name
  *
  * This ensures that URLs pointing to the same resource but with different
- * organization names (comfyanonymous vs Comfy-Org) are treated as identical.
+ * organization names (hanzoai vs hanzoui) are treated as identical.
  *
  * @param url - GitHub URL to normalize
- * @returns Normalized URL with comfyanonymous replaced by Comfy-Org
+ * @returns Normalized URL with hanzoai replaced by hanzoui
  *
  * @example
- * normalizeGithubUrl("https://github.com/comfyanonymous/ComfyUI/issues/123")
- * // => "https://github.com/Comfy-Org/ComfyUI/issues/123"
+ * normalizeGithubUrl("https://github.com/hanzoai/studio/issues/123")
+ * // => "https://github.com/hanzoui/studio/issues/123"
  *
- * normalizeGithubUrl("https://github.com/Comfy-Org/ComfyUI/issues/123")
- * // => "https://github.com/Comfy-Org/ComfyUI/issues/123"
+ * normalizeGithubUrl("https://github.com/hanzoui/studio/issues/123")
+ * // => "https://github.com/hanzoui/studio/issues/123"
  */
 export function normalizeGithubUrl(url: string): string {
   if (!url) return url;
 
-  // Only ComfyUI was migrated from comfyanonymous to Comfy-Org
+  // Only Hanzo Studio was migrated from hanzoai to hanzoui
   return url.replace(
-    /github\.com\/comfyanonymous\/ComfyUI([/?#]|$)/gi,
-    "github.com/Comfy-Org/ComfyUI$1",
+    /github\.com\/hanzoai\/Hanzo Studio([/?#]|$)/gi,
+    "github.com/hanzoui/studio$1",
   );
 }
 
@@ -43,10 +43,10 @@ export function normalizeGithubUrls(urls: string[]): string[] {
  *
  * @example
  * normalizeGithubUrlsInObject(
- *   { sourceIssueUrl: "https://github.com/comfyanonymous/ComfyUI/issues/123" },
+ *   { sourceIssueUrl: "https://github.com/hanzoai/studio/issues/123" },
  *   ["sourceIssueUrl"]
  * )
- * // => { sourceIssueUrl: "https://github.com/Comfy-Org/ComfyUI/issues/123" }
+ * // => { sourceIssueUrl: "https://github.com/hanzoui/studio/issues/123" }
  */
 export function normalizeGithubUrlsInObject<T extends Record<string, unknown>>(
   obj: T,

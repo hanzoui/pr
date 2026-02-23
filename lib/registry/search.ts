@@ -26,7 +26,7 @@ export interface SearchOptions {
 }
 
 /**
- * Search for custom nodes in the ComfyUI registry
+ * Search for custom nodes in the Hanzo Studio registry
  * @param options - Search options including query string and filters
  * @returns Array of matching nodes
  */

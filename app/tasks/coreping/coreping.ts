@@ -28,11 +28,11 @@ import { upsertSlackMessage } from "../gh-desktop-release-notification/upsertSla
 
 /**
  * [Comfy- CorePing] The Core/Important PR Review Reminder Service
- * This service reminders @comfyanonymous for unreviewed Core/Core-Important PRs every 24 hours in the morning 8am of california
+ * This service reminders @hanzoai for unreviewed Core/Core-Important PRs every 24 hours in the morning 8am of california
  *
  * Environment: it's designed to be run in github actions by cron-job.
  *
- * Usage: run this script in github actions by cron job, it will scan all Core/Important PRs and send a slack message to @comfyanonymous
+ * Usage: run this script in github actions by cron job, it will scan all Core/Important PRs and send a slack message to @hanzoai
  *
  * How should it works:
  *
@@ -51,11 +51,11 @@ import { upsertSlackMessage } from "../gh-desktop-release-notification/upsertSla
 
 export const coreReviewTrackerConfig = {
   REPOLIST: [
-    // "https://github.com/comfyanonymous/ComfyUI", // deprecated
-    "https://github.com/Comfy-Org/ComfyUI", // 2026-01-08 new
-    "https://github.com/Comfy-Org/Comfy-PR",
-    "https://github.com/Comfy-Org/ComfyUI_frontend",
-    "https://github.com/Comfy-Org/desktop",
+    // "https://github.com/hanzoai/studio", // deprecated
+    "https://github.com/hanzoui/studio", // 2026-01-08 new
+    "https://github.com/hanzoui/pr",
+    "https://github.com/hanzoui/studio_frontend",
+    "https://github.com/hanzoui/desktop",
   ],
   // labels
   labels: ["Core", "Core-Important", "CoreImportant"],
@@ -69,8 +69,8 @@ export const coreReviewTrackerConfig = {
 
   // github message
   messageUpdatePattern: "<!-- COMFY_PR_BOT_TRACKER -->",
-  staleMessage: `<!-- COMFY_PR_BOT_TRACKER --> This PR has been waiting for a response for too long. A reminder is being sent to @comfyanonymous.`,
-  reviewedMessage: `<!-- COMFY_PR_BOT_TRACKER --> This PR is reviewed! When it's ready for review again, please add a comment with **+label:Core-Ready-for-Review** to reminder @comfyanonymous to restart the review process.`,
+  staleMessage: `<!-- COMFY_PR_BOT_TRACKER --> This PR has been waiting for a response for too long. A reminder is being sent to @hanzoai.`,
+  reviewedMessage: `<!-- COMFY_PR_BOT_TRACKER --> This PR is reviewed! When it's ready for review again, please add a comment with **+label:Core-Ready-for-Review** to reminder @hanzoai to restart the review process.`,
 };
 const cfg = coreReviewTrackerConfig;
 
@@ -143,8 +143,8 @@ if (import.meta.main) {
   // Designed to be mon to sat, TIME CHECKING
   // Pacific Daylight Time
 
-  // const url = "https://github.com/Comfy-Org/ComfyUI/pull/10179";
-  // const url = "https://github.com/Comfy-Org/ComfyUI/pull/8351";
+  // const url = "https://github.com/hanzoui/studio/pull/10179";
+  // const url = "https://github.com/hanzoui/studio/pull/8351";
   // await determinePullRequestReviewStatus(url);
 
   // await _cleanSpammyMessages20251117()
@@ -299,7 +299,7 @@ async function getTimelineReviewStatuses(pr: GH["pull-request-simple"] | GH["pul
 }
 
 /**
- * Deduplicates PR tasks by PR number, preferring Comfy-Org/ComfyUI URLs over comfyanonymous/ComfyUI
+ * Deduplicates PR tasks by PR number, preferring hanzoui/studio URLs over hanzoai/studio
  */
 function deduplicatePRTasks<T extends { url: string }>(tasks: T[]): T[] {
   const seenPRNumbers = new Map<number, T>();
@@ -311,10 +311,10 @@ function deduplicatePRTasks<T extends { url: string }>(tasks: T[]): T[] {
     if (!existingTask) {
       seenPRNumbers.set(prNumber, task);
     } else {
-      // Prefer Comfy-Org/ComfyUI URLs over comfyanonymous/ComfyUI
+      // Prefer hanzoui/studio URLs over hanzoai/studio
       if (
-        task.url.includes("Comfy-Org/ComfyUI") &&
-        !existingTask.url.includes("Comfy-Org/ComfyUI")
+        task.url.includes("hanzoui/studio") &&
+        !existingTask.url.includes("hanzoui/studio")
       ) {
         seenPRNumbers.set(prNumber, task);
       }
@@ -339,17 +339,17 @@ async function runCorePingTaskFull() {
     .filter((e) => e.labels.some((e) => ["Core", "Core-Important"].includes(e.name)))
     .toArray();
 
-  // Deduplicate PRs by number, preferring Comfy-Org/ComfyUI over comfyanonymous/ComfyUI
+  // Deduplicate PRs by number, preferring hanzoui/studio over hanzoai/studio
   const seenPRNumbers = new Map<number, GH["pull-request-simple"]>();
   for (const pr of allPRs) {
     const existingPR = seenPRNumbers.get(pr.number);
     if (!existingPR) {
       seenPRNumbers.set(pr.number, pr);
     } else {
-      // Prefer Comfy-Org/ComfyUI URLs over comfyanonymous/ComfyUI
+      // Prefer hanzoui/studio URLs over hanzoai/studio
       if (
-        pr.html_url.includes("Comfy-Org/ComfyUI") &&
-        !existingPR.html_url.includes("Comfy-Org/ComfyUI")
+        pr.html_url.includes("hanzoui/studio") &&
+        !existingPR.html_url.includes("hanzoui/studio")
       ) {
         seenPRNumbers.set(pr.number, pr);
       }
@@ -369,8 +369,8 @@ async function runCorePingTaskFull() {
   const updatedOldTasks = await sflow(
     ComfyCorePRs.find({
       status: { $nin: ["MERGED", "CLOSED", "UNRELATED"] },
-      // Exclude deprecated comfyanonymous/ComfyUI URLs
-      url: { $not: { $regex: "comfyanonymous/ComfyUI" } },
+      // Exclude deprecated hanzoai/studio URLs
+      url: { $not: { $regex: "hanzoai/studio" } },
     }),
   )
     .filter((task) => !processedTasks.some((t) => t.url === task.url))
@@ -386,8 +386,8 @@ async function runCorePingTaskFull() {
       status: {
         $in: ["AUTHOR_COMMENTED", "REVIEW_REQUESTED", "OPEN", "COMMITTED"],
       },
-      // Exclude deprecated comfyanonymous/ComfyUI URLs to prevent showing stale data
-      url: { $not: { $regex: "comfyanonymous/ComfyUI" } },
+      // Exclude deprecated hanzoai/studio URLs to prevent showing stale data
+      url: { $not: { $regex: "hanzoai/studio" } },
     })
       .sort({ statusAt: 1, created_at: 1 })
       .toArray(),
@@ -396,8 +396,8 @@ async function runCorePingTaskFull() {
   const allOpeningCorePRs = deduplicatePRTasks(
     await ComfyCorePRs.find({
       state: "open",
-      // Exclude deprecated comfyanonymous/ComfyUI URLs to prevent showing stale data
-      url: { $not: { $regex: "comfyanonymous/ComfyUI" } },
+      // Exclude deprecated hanzoai/studio URLs to prevent showing stale data
+      url: { $not: { $regex: "hanzoai/studio" } },
     }).toArray(),
   );
 
@@ -446,7 +446,7 @@ async function runCorePingTaskFull() {
           )
           .join("\n- ")}`
       : "";
-  const tail = `\n\nSent from <https://github.com/Comfy-Org/Comfy-PR/blob/main/app/tasks/coreping/coreping.ts|CorePing.ts> by <@snomiao>`;
+  const tail = `\n\nSent from <https://github.com/hanzoui/pr/blob/main/app/tasks/coreping/coreping.ts|CorePing.ts> by <@snomiao>`;
 
   const notifyMessage = `${reviewMessage}${keepInMindMessage}${tail}`;
   // console.log(chalk.bgBlue(notifyMessage));

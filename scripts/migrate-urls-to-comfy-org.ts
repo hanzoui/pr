@@ -3,7 +3,7 @@
  * MongoDB Migration Script: Normalize GitHub URLs
  *
  * This script migrates existing database records to normalize GitHub URLs
- * from comfyanonymous/* to Comfy-Org/* format to prevent duplicates.
+ * from hanzoai/* to hanzoui/* format to prevent duplicates.
  *
  * NOTE: This script is OPTIONAL. The save functions in all task handlers
  * have been updated with incremental migration logic that automatically
@@ -54,9 +54,9 @@ async function migrateCollection(
   for (const field of urlFields) {
     console.log(`  📝 Processing field: ${field}`);
 
-    // Find all documents with comfyanonymous URLs in this field
+    // Find all documents with hanzoai URLs in this field
     const query: Record<string, unknown> = {};
-    query[field] = { $regex: /github\.com\/comfyanonymous\//i };
+    query[field] = { $regex: /github\.com\/hanzoai\//i };
 
     const documents = await collection.find(query).toArray();
 
@@ -138,7 +138,7 @@ async function migrateCollection(
 async function runMigration() {
   console.log("🚀 Starting GitHub URL Migration");
   console.log(`Mode: ${DRY_RUN ? "DRY-RUN" : "LIVE"}`);
-  console.log("Converting: comfyanonymous/* → Comfy-Org/*");
+  console.log("Converting: hanzoai/* → hanzoui/*");
 
   try {
     // Migrate each collection with URL fields
@@ -150,7 +150,7 @@ async function runMigration() {
         uniqueField: undefined, // uses sourceIssueNumber as unique
       },
       {
-        collection: "GithubComfyUIToDesktopIssueTransferTask",
+        collection: "GithubHanzo StudioToDesktopIssueTransferTask",
         fields: ["sourceIssueUrl", "targetIssueUrl", "commentUrl"],
         uniqueField: undefined,
       },

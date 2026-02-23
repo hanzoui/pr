@@ -1,6 +1,6 @@
 ---
 name: Notion Docs Search
-description: Find and cite relevant Notion pages from the Comfy-Org workspace.
+description: Find and cite relevant Notion pages from the hanzoui workspace.
 ---
 
 # Notion Docs Search
@@ -9,7 +9,7 @@ Search internal docs, RFCs, and meeting notes using prbot CLI:
 prbot notion search --query "<search term>" [--limit=5]
 
 Examples:
-prbot notion search --query "ComfyUI setup" --limit 5
+prbot notion search --query "Hanzo Studio setup" --limit 5
 prbot notion search --query "architecture decisions"
 
 Best practices:

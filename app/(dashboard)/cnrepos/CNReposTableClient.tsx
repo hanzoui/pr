@@ -36,7 +36,7 @@ export function CNReposTableClient({ repos }: CNReposTableClientProps) {
           <TableHead className="w-12 px-2 py-1">Status</TableHead>
           <TableHead className="px-2 py-1">Repository</TableHead>
           <TableHead className="w-20 text-center px-2 py-1">Registry</TableHead>
-          <TableHead className="w-28 text-center px-2 py-1">ComfyUI-Manager</TableHead>
+          <TableHead className="w-28 text-center px-2 py-1">Hanzo Manager</TableHead>
           <TableHead className="w-20 text-center px-2 py-1">Candidate</TableHead>
           <TableHead className="px-2 py-1">Pull Requests</TableHead>
           <TableHead className="w-20 px-2 py-1">Info</TableHead>
@@ -68,9 +68,9 @@ function CNRepoRow({ repo }: { repo: CNRepo & { _id?: unknown } }) {
   const getStatusDescription = () => {
     const icon = getStatusIcon();
     const descriptions = {
-      "🫗": "Repository not listed in ComfyUI-Manager or Registry",
-      "✅": "Listed in both Registry and ComfyUI-Manager (PR successful)",
-      "☑️": "Listed in both Registry and ComfyUI-Manager",
+      "🫗": "Repository not listed in Hanzo Manager or Registry",
+      "✅": "Listed in both Registry and Hanzo Manager (PR successful)",
+      "☑️": "Listed in both Registry and Hanzo Manager",
       "✔️": "Listed in Registry only",
       "🧪": "Ready to create PR",
       "👀": "Pull request pending review",

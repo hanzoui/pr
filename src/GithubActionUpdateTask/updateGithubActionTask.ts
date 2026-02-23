@@ -27,7 +27,7 @@ export const testUpdatedPublishYaml = await readFile(
 
 if (import.meta.main) {
   // const repo = "https://github.com/aigc-apps/VideoX-Fun";
-  const repo = "https://github.com/FuouM/ComfyUI-MatAnyone";
+  const repo = "https://github.com/FuouM/Hanzo Studio-MatAnyone";
   await resetErrorForGithubActionUpdateTask(repo);
   logger.info("Task result", { result: await updateGithubActionTask(repo) });
   logger.info("Task status", { task: await GithubActionUpdateTask.findOne({ repo }) });

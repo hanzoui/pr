@@ -21,16 +21,16 @@ bun bot/code/prbot.ts --repo=<owner/repo> [--base=<base-branch>] [--head=<head-b
 
 ```bash
 # Auto-generate head branch name
-bun bot/code/prbot.ts --repo=Comfy-Org/ComfyUI --prompt="Fix the authentication bug in the login module"
+bun bot/code/prbot.ts --repo=hanzoui/studio --prompt="Fix the authentication bug in the login module"
 
 # Specify both base and head branches
-bun bot/code/prbot.ts --repo=Comfy-Org/ComfyUI --base=main --head=feature/fix-auth --prompt="Fix the authentication bug"
+bun bot/code/prbot.ts --repo=hanzoui/studio --base=main --head=feature/fix-auth --prompt="Fix the authentication bug"
 
 # Work on a feature branch to be merged into develop
-bun bot/code/prbot.ts --repo=Comfy-Org/ComfyUI_frontend --base=develop --head=feature/dark-mode --prompt="Add dark mode support to the settings page"
+bun bot/code/prbot.ts --repo=hanzoui/studio_frontend --base=develop --head=feature/dark-mode --prompt="Add dark mode support to the settings page"
 
 # Let AI generate an appropriate branch name
-bun bot/code/prbot.ts --repo=Comfy-Org/docs --base=main --prompt="Update the installation guide with Docker instructions"
+bun bot/code/prbot.ts --repo=hanzoui/docs --base=main --prompt="Update the installation guide with Docker instructions"
 ```
 
 ## How It Works
@@ -76,9 +76,9 @@ Cloned repositories are stored in the absolute system path using the **head bran
 For example:
 
 ```
-/repos/Comfy-Org/ComfyUI/tree/feature/fix-auth/
-/repos/Comfy-Org/ComfyUI_frontend/tree/feature/dark-mode/
-/repos/Comfy-Org/docs/tree/docs/update-docker/
+/repos/hanzoui/studio/tree/feature/fix-auth/
+/repos/hanzoui/studio_frontend/tree/feature/dark-mode/
+/repos/hanzoui/docs/tree/docs/update-docker/
 ```
 
 This ensures:

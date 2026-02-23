@@ -9,7 +9,7 @@ import { makePyprojectBranch } from "./makeTomlBranch";
 import { parsePulls } from "./parsePullsState";
 if (import.meta.main) {
   // test repo
-  // const default_test_repo = "https://github.com/numz/ComfyUI-SeedVR2_VideoUpscaler";
+  // const default_test_repo = "https://github.com/numz/Hanzo Studio-SeedVR2_VideoUpscaler";
   const default_test_repo = "https://github.com/snomiao/ComfyNode-Registry-test";
   const test_repo = minimist(process.argv.slice(2)).argv || default_test_repo;
   console.info(await createComfyRegistryPullRequests(test_repo));

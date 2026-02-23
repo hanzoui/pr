@@ -13,14 +13,14 @@ import { upsertSlackMessage } from "../gh-desktop-release-notification/upsertSla
  * GitHub Frontend Release Notification Task
  *
  * Workflow:
- * 1. Fetch ComfyUI_frontend repo latest releases
+ * 1. Fetch Hanzo Studio_frontend repo latest releases
  * 2. Save the release info to the database
  * 3. If it's stable, notify the release to slack
  * 4. If it's a pre-release, send drafting notification
  */
 
 const config = {
-  repos: ["https://github.com/Comfy-Org/ComfyUI_frontend"],
+  repos: ["https://github.com/hanzoui/studio_frontend"],
   slackChannelName: "frontend",
   slackMessage: "🎨 {repo} <{url}|Release {version}> is {status}!",
   sendSince: new Date("2025-09-03T00:00:00Z").toISOString(),
@@ -52,14 +52,14 @@ export const GithubFrontendReleaseNotificationTask =
   db.collection<GithubFrontendReleaseNotificationTask>("GithubFrontendReleaseNotificationTask");
 
 const save = async (task: { url: string } & Partial<GithubFrontendReleaseNotificationTask>) => {
-  // Normalize URLs to handle both comfyanonymous and Comfy-Org formats
+  // Normalize URLs to handle both hanzoai and hanzoui formats
   const normalizedTask = {
     ...task,
     url: normalizeGithubUrl(task.url),
   };
 
   // Incremental migration: Check both normalized and old URL formats
-  const oldUrl = normalizedTask.url.replace(/Comfy-Org/i, "comfyanonymous");
+  const oldUrl = normalizedTask.url.replace(/hanzoui/i, "hanzoai");
   const existing = await GithubFrontendReleaseNotificationTask.findOne({
     $or: [{ url: normalizedTask.url }, { url: oldUrl }],
   });

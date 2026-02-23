@@ -9,8 +9,8 @@ import type { GithubPull } from "@/lib/github/GithubPull";
 import { parseGithubRepoUrl } from "./parseOwnerRepo";
 import { parseTitleBodyOfMarkdown } from "./parseTitleBodyOfMarkdown";
 if (import.meta.main) {
-  const srcUrl = "https://github.com/ComfyNodePRs/PR-ComfyUI-DareMerge-7bcbf6a9";
-  const dstUrl = "https://github.com/54rt1n/ComfyUI-DareMerge";
+  const srcUrl = "https://github.com/ComfyNodePRs/PR-Hanzo Studio-DareMerge-7bcbf6a9";
+  const dstUrl = "https://github.com/54rt1n/Hanzo Studio-DareMerge";
   const src = parseGithubRepoUrl(srcUrl);
   const dst = parseGithubRepoUrl(dstUrl);
   const _branch = "licence-update";
@@ -86,7 +86,7 @@ export async function createGithubPullRequest({
 
   // 2025-03-13 prevent duplicated PR, if there are PR is closed with same content.
   // reported here
-  // https://github.com/Chaoses-Ib/ComfyUI_Ib_CustomNodes/pulls?q=is%3Apr
+  // https://github.com/Chaoses-Ib/Hanzo Studio_Ib_CustomNodes/pulls?q=is%3Apr
   //
   const sameContentPRList = (
     await gh.pulls.list({

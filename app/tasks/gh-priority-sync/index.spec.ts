@@ -168,7 +168,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
           select: { name: "High" },
         },
         "[GH🤖] Link": {
-          url: "https://github.com/Comfy-Org/ComfyUI_frontend/issues/100",
+          url: "https://github.com/hanzoui/studio_frontend/issues/100",
         },
       },
     };
@@ -179,7 +179,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
 
     server.use(
       // Mock getting existing labels
-      http.get("https://api.github.com/repos/Comfy-Org/ComfyUI_frontend/issues/100/labels", () => {
+      http.get("https://api.github.com/repos/hanzoui/studio_frontend/issues/100/labels", () => {
         return HttpResponse.json([
           { name: "bug", color: "d73a4a" },
           { name: "frontend", color: "ededed" },
@@ -187,7 +187,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
       }),
       // Mock adding labels
       http.post(
-        "https://api.github.com/repos/Comfy-Org/ComfyUI_frontend/issues/100/labels",
+        "https://api.github.com/repos/hanzoui/studio_frontend/issues/100/labels",
         async ({ request }) => {
           const body: unknown = await request.json();
           labelsAdded = body.labels || [];
@@ -219,7 +219,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
           select: { name: "Low" },
         },
         "[GH🤖] Link": {
-          url: "https://github.com/Comfy-Org/ComfyUI/issues/200",
+          url: "https://github.com/hanzoui/studio/issues/200",
         },
       },
     };
@@ -231,7 +231,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
 
     server.use(
       // Mock getting existing labels (has High-Priority but should be Low-Priority)
-      http.get("https://api.github.com/repos/Comfy-Org/ComfyUI/issues/200/labels", () => {
+      http.get("https://api.github.com/repos/hanzoui/studio/issues/200/labels", () => {
         return HttpResponse.json([
           { name: "documentation", color: "0075ca" },
           { name: "High-Priority", color: "d73a4a" },
@@ -239,7 +239,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
       }),
       // Mock removing label
       http.delete(
-        "https://api.github.com/repos/Comfy-Org/ComfyUI/issues/200/labels/:name",
+        "https://api.github.com/repos/hanzoui/studio/issues/200/labels/:name",
         ({ params }) => {
           labelsRemoved.push(params.name as string);
           return HttpResponse.json({});
@@ -247,7 +247,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
       ),
       // Mock adding labels
       http.post(
-        "https://api.github.com/repos/Comfy-Org/ComfyUI/issues/200/labels",
+        "https://api.github.com/repos/hanzoui/studio/issues/200/labels",
         async ({ request }) => {
           const body: unknown = await request.json();
           labelsAdded = body.labels || [];
@@ -275,7 +275,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
           select: { name: "" }, // Empty priority
         },
         "[GH🤖] Link": {
-          url: "https://github.com/Comfy-Org/ComfyUI/issues/300",
+          url: "https://github.com/hanzoui/studio/issues/300",
         },
       },
     };
@@ -285,7 +285,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
     let githubCalled = false;
 
     server.use(
-      http.get("https://api.github.com/repos/Comfy-Org/ComfyUI/issues/300/labels", () => {
+      http.get("https://api.github.com/repos/hanzoui/studio/issues/300/labels", () => {
         githubCalled = true;
         return HttpResponse.json([]);
       }),
@@ -343,7 +343,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
           select: { name: "Medium" },
         },
         "[GH🤖] Link": {
-          url: "https://github.com/Comfy-Org/ComfyUI/issues/400",
+          url: "https://github.com/hanzoui/studio/issues/400",
         },
       },
     };
@@ -353,11 +353,11 @@ describe("GithubIssuePrioritiesLabeler", () => {
     let labelsAdded: string[] = [];
 
     server.use(
-      http.get("https://api.github.com/repos/Comfy-Org/ComfyUI/issues/400/labels", () => {
+      http.get("https://api.github.com/repos/hanzoui/studio/issues/400/labels", () => {
         return HttpResponse.json([]);
       }),
       http.post(
-        "https://api.github.com/repos/Comfy-Org/ComfyUI/issues/400/labels",
+        "https://api.github.com/repos/hanzoui/studio/issues/400/labels",
         async ({ request }) => {
           const body: unknown = await request.json();
           labelsAdded = body.labels || [];
@@ -384,7 +384,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
           select: { name: "High" },
         },
         "[GH🤖] Link": {
-          url: "https://github.com/Comfy-Org/ComfyUI/issues/500",
+          url: "https://github.com/hanzoui/studio/issues/500",
         },
       },
     };
@@ -395,17 +395,17 @@ describe("GithubIssuePrioritiesLabeler", () => {
     let labelsRemoved = false;
 
     server.use(
-      http.get("https://api.github.com/repos/Comfy-Org/ComfyUI/issues/500/labels", () => {
+      http.get("https://api.github.com/repos/hanzoui/studio/issues/500/labels", () => {
         return HttpResponse.json([
           { name: "bug", color: "d73a4a" },
           { name: "High-Priority", color: "d73a4a" },
         ]);
       }),
-      http.post("https://api.github.com/repos/Comfy-Org/ComfyUI/issues/500/labels", () => {
+      http.post("https://api.github.com/repos/hanzoui/studio/issues/500/labels", () => {
         labelsAdded = true;
         return HttpResponse.json([]);
       }),
-      http.delete("https://api.github.com/repos/Comfy-Org/ComfyUI/issues/500/labels/:name", () => {
+      http.delete("https://api.github.com/repos/hanzoui/studio/issues/500/labels/:name", () => {
         labelsRemoved = true;
         return HttpResponse.json({});
       }),
@@ -434,7 +434,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
           select: { name: "Low" },
         },
         "[GH🤖] Link": {
-          url: "https://github.com/Comfy-Org/ComfyUI/issues/600",
+          url: "https://github.com/hanzoui/studio/issues/600",
         },
       },
     };
@@ -444,15 +444,15 @@ describe("GithubIssuePrioritiesLabeler", () => {
     let labelsAdded: string[] = [];
 
     server.use(
-      http.get("https://api.github.com/repos/Comfy-Org/ComfyUI/issues/600/labels", () => {
+      http.get("https://api.github.com/repos/hanzoui/studio/issues/600/labels", () => {
         return HttpResponse.json([{ name: "High-Priority", color: "d73a4a" }]);
       }),
       // Mock label removal failure
-      http.delete("https://api.github.com/repos/Comfy-Org/ComfyUI/issues/600/labels/:name", () => {
+      http.delete("https://api.github.com/repos/hanzoui/studio/issues/600/labels/:name", () => {
         return HttpResponse.json({ message: "Label not found" }, { status: 404 });
       }),
       http.post(
-        "https://api.github.com/repos/Comfy-Org/ComfyUI/issues/600/labels",
+        "https://api.github.com/repos/hanzoui/studio/issues/600/labels",
         async ({ request }) => {
           const body: unknown = await request.json();
           labelsAdded = body.labels || [];
@@ -475,7 +475,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
         properties: {
           Task: { title: [{ plain_text: "High priority task" }] },
           Priority: { select: { name: "High" } },
-          "[GH🤖] Link": { url: "https://github.com/Comfy-Org/ComfyUI/issues/1001" },
+          "[GH🤖] Link": { url: "https://github.com/hanzoui/studio/issues/1001" },
         },
       },
       {
@@ -484,7 +484,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
         properties: {
           Task: { title: [{ plain_text: "Medium priority task" }] },
           Priority: { select: { name: "Medium" } },
-          "[GH🤖] Link": { url: "https://github.com/Comfy-Org/ComfyUI/issues/1002" },
+          "[GH🤖] Link": { url: "https://github.com/hanzoui/studio/issues/1002" },
         },
       },
       {
@@ -493,7 +493,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
         properties: {
           Task: { title: [{ plain_text: "Low priority task" }] },
           Priority: { select: { name: "Low" } },
-          "[GH🤖] Link": { url: "https://github.com/Comfy-Org/ComfyUI/issues/1003" },
+          "[GH🤖] Link": { url: "https://github.com/hanzoui/studio/issues/1003" },
         },
       },
     ];
@@ -501,11 +501,11 @@ describe("GithubIssuePrioritiesLabeler", () => {
     const labelsAddedByIssue: Record<number, string[]> = {};
 
     server.use(
-      http.get("https://api.github.com/repos/Comfy-Org/ComfyUI/issues/:number/labels", () => {
+      http.get("https://api.github.com/repos/hanzoui/studio/issues/:number/labels", () => {
         return HttpResponse.json([]);
       }),
       http.post(
-        "https://api.github.com/repos/Comfy-Org/ComfyUI/issues/:number/labels",
+        "https://api.github.com/repos/hanzoui/studio/issues/:number/labels",
         async ({ request, params }) => {
           const body: unknown = await request.json();
           const issueNumber = parseInt(params.number as string);
@@ -537,7 +537,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
         properties: {
           Task: { title: [{ plain_text: "Already processed" }] },
           Priority: { select: { name: "High" } },
-          "[GH🤖] Link": { url: "https://github.com/Comfy-Org/ComfyUI/issues/2001" },
+          "[GH🤖] Link": { url: "https://github.com/hanzoui/studio/issues/2001" },
         },
       },
       {
@@ -546,7 +546,7 @@ describe("GithubIssuePrioritiesLabeler", () => {
         properties: {
           Task: { title: [{ plain_text: "New task" }] },
           Priority: { select: { name: "Medium" } },
-          "[GH🤖] Link": { url: "https://github.com/Comfy-Org/ComfyUI/issues/2002" },
+          "[GH🤖] Link": { url: "https://github.com/hanzoui/studio/issues/2002" },
         },
       },
     ];
@@ -554,11 +554,11 @@ describe("GithubIssuePrioritiesLabeler", () => {
     let processedIssues: number[] = [];
 
     server.use(
-      http.get("https://api.github.com/repos/Comfy-Org/ComfyUI/issues/:number/labels", () => {
+      http.get("https://api.github.com/repos/hanzoui/studio/issues/:number/labels", () => {
         return HttpResponse.json([]);
       }),
       http.post(
-        "https://api.github.com/repos/Comfy-Org/ComfyUI/issues/:number/labels",
+        "https://api.github.com/repos/hanzoui/studio/issues/:number/labels",
         async ({ params }) => {
           const issueNumber = parseInt(params.number as string);
           processedIssues.push(issueNumber);

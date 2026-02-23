@@ -4,7 +4,7 @@ import { os } from "zx";
 import { getActivateCMD } from "./cli/getActivateCMD";
 
 export async function checkComfyActivated() {
-  console.log("Checking ComfyUI Activated...");
+  console.log("Checking Hanzo Studio Activated...");
 
   if (!(await bunSh`comfy --help`.quiet().catch(() => null))) {
     const activate = getActivateCMD();
@@ -18,21 +18,21 @@ export async function checkComfyActivated() {
 ${installPython}
 python -m venv .venv
 ${activate}
-pip install comfy-cli
-comfy-cli --help
+pip install hanzo-cli
+hanzo-cli --help
 `.catch(console.error);
 
     DIE(
       `
-Cound not found comfy-cli.
-Please install comfy-cli before run "bunx comfy-pr" here.
+Cound not found hanzo-cli.
+Please install hanzo-cli before run "bunx comfy-pr" here.
 
 $ >>>>>>>>>>>>>>>>>>>>>>>>>>
 ${installPython}
 python -m venv .venv
 ${activate}
-pip install comfy-cli
-comfy-cli --help
+pip install hanzo-cli
+hanzo-cli --help
 `.trim(),
     );
   }

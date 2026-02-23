@@ -763,7 +763,7 @@
           <strong>Pull Requests (PRs)</strong> from the following repositories:
           <strong id="repo-list">Loading...</strong>. Direct commits to repositories are
           <strong>not included</strong> in this analysis. Some contributors like
-          <strong>comfyanonymous</strong> may have extensive direct commit activity that is not
+          <strong>hanzoai</strong> may have extensive direct commit activity that is not
           reflected in these metrics.
         </div>
 
@@ -2683,9 +2683,9 @@
 
       function getRepoInfo(repository) {
         // Map display names to actual GitHub repository info
-        // First check if it's the main ComfyUI repo
-        if (repository === "ComfyUI") {
-          return { owner: "comfyanonymous", repo: "ComfyUI" };
+        // First check if it's the main Hanzo Studio repo
+        if (repository === "Hanzo Studio") {
+          return { owner: "hanzoai", repo: "Hanzo Studio" };
         }
 
         // Try to find in the repositories list from data
@@ -2698,15 +2698,15 @@
 
         // Legacy mapping for backward compatibility
         const repoMap = {
-          Frontend: { owner: "Comfy-Org", repo: "ComfyUI_frontend" },
-          Desktop: { owner: "Comfy-Org", repo: "desktop" },
-          Registry: { owner: "Comfy-Org", repo: "registry-web" },
-          "Comfy-API": { owner: "Comfy-Org", repo: "comfy-api" },
-          Cloud: { owner: "Comfy-Org", repo: "cloud" },
+          Frontend: { owner: "hanzoui", repo: "Hanzo Studio_frontend" },
+          Desktop: { owner: "hanzoui", repo: "desktop" },
+          Registry: { owner: "hanzoui", repo: "registry-web" },
+          "Comfy-API": { owner: "hanzoui", repo: "comfy-api" },
+          Cloud: { owner: "hanzoui", repo: "cloud" },
         };
 
-        // Default to Comfy-Org if not found
-        return repoMap[repository] || { owner: "Comfy-Org", repo: repository };
+        // Default to hanzoui if not found
+        return repoMap[repository] || { owner: "hanzoui", repo: repository };
       }
 
       function updateGanttChart(allPRs) {
@@ -3152,7 +3152,7 @@
       </p>
       <a
         href="data.json"
-        download="comfyui-pr-speed-data.json"
+        download="hanzo-studio-pr-speed-data.json"
         style="
           display: inline-block;
           padding: 12px 30px;
@@ -3198,7 +3198,7 @@
               🎯 Comfy Team PR Review Speed Analysis
             </a>
             <span style="color: #666; font-size: 14px; margin-left: 10px">
-              - ComfyUI repository only (excludes Comfy's data)
+              - Hanzo Studio repository only (excludes Comfy's data)
             </span>
           </li>
         </ul>

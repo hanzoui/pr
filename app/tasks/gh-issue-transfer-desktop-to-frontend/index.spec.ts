@@ -30,11 +30,11 @@ mock.module("@/src/db", () => ({
 // Mock parseGithubRepoUrl
 mock.module("@/src/parseOwnerRepo", () => ({
   parseGithubRepoUrl: (url: string) => {
-    if (url === "https://github.com/Comfy-Org/desktop") {
-      return { owner: "Comfy-Org", repo: "desktop" };
+    if (url === "https://github.com/hanzoui/desktop") {
+      return { owner: "hanzoui", repo: "desktop" };
     }
-    if (url === "https://github.com/Comfy-Org/ComfyUI_frontend") {
-      return { owner: "Comfy-Org", repo: "ComfyUI_frontend" };
+    if (url === "https://github.com/hanzoui/studio_frontend") {
+      return { owner: "hanzoui", repo: "Hanzo Studio_frontend" };
     }
     throw new Error(`Unknown repo URL: ${url}`);
   },
@@ -56,7 +56,7 @@ describe("GithubDesktopIssueTransferTask", () => {
   it("should handle no frontend issues", async () => {
     // Override default handler to return empty array
     server.use(
-      http.get("https://api.github.com/repos/Comfy-Org/desktop/issues", ({ request }) => {
+      http.get("https://api.github.com/repos/hanzoui/desktop/issues", ({ request }) => {
         const url = new URL(request.url);
         const labels = url.searchParams.get("labels");
         if (labels === "frontend") {
@@ -77,7 +77,7 @@ describe("GithubDesktopIssueTransferTask", () => {
       number: 123,
       title: "Desktop Frontend Bug",
       body: "This is a desktop frontend issue",
-      html_url: "https://github.com/Comfy-Org/desktop/issues/123",
+      html_url: "https://github.com/hanzoui/desktop/issues/123",
       labels: [
         { name: "frontend", color: "ededed" },
         { name: "bug", color: "d73a4a" },
@@ -96,7 +96,7 @@ describe("GithubDesktopIssueTransferTask", () => {
 
     server.use(
       // Mock source repo issues list
-      http.get("https://api.github.com/repos/Comfy-Org/desktop/issues", ({ request }) => {
+      http.get("https://api.github.com/repos/hanzoui/desktop/issues", ({ request }) => {
         const url = new URL(request.url);
         const labels = url.searchParams.get("labels");
         if (labels === "frontend") {
@@ -105,7 +105,7 @@ describe("GithubDesktopIssueTransferTask", () => {
         return HttpResponse.json([]);
       }),
       // Mock fetching comments
-      http.get("https://api.github.com/repos/Comfy-Org/desktop/issues/123/comments", () => {
+      http.get("https://api.github.com/repos/hanzoui/desktop/issues/123/comments", () => {
         return HttpResponse.json([
           {
             id: 1,
@@ -123,32 +123,32 @@ describe("GithubDesktopIssueTransferTask", () => {
       }),
       // Mock creating issue in target repo
       http.post(
-        "https://api.github.com/repos/Comfy-Org/ComfyUI_frontend/issues",
+        "https://api.github.com/repos/hanzoui/studio_frontend/issues",
         async ({ request }) => {
           createdIssue = await request.json();
           return HttpResponse.json({
             number: 456,
-            html_url: "https://github.com/Comfy-Org/ComfyUI_frontend/issues/456",
+            html_url: "https://github.com/hanzoui/studio_frontend/issues/456",
             ...createdIssue,
           });
         },
       ),
       // Mock creating comment on source issue
       http.post(
-        "https://api.github.com/repos/Comfy-Org/desktop/issues/123/comments",
+        "https://api.github.com/repos/hanzoui/desktop/issues/123/comments",
         async ({ request }) => {
           createdComment = await request.json();
           return HttpResponse.json({
             id: 999,
             body: createdComment.body,
             user: { login: "test-user", id: 1 },
-            html_url: "https://github.com/Comfy-Org/desktop/issues/123#issuecomment-999",
+            html_url: "https://github.com/hanzoui/desktop/issues/123#issuecomment-999",
             created_at: new Date().toISOString(),
           });
         },
       ),
       // Mock closing the issue
-      http.patch("https://api.github.com/repos/Comfy-Org/desktop/issues/123", () => {
+      http.patch("https://api.github.com/repos/hanzoui/desktop/issues/123", () => {
         return HttpResponse.json({});
       }),
     );
@@ -160,7 +160,7 @@ describe("GithubDesktopIssueTransferTask", () => {
     expect(createdIssue.title).toBe("Desktop Frontend Bug");
     expect(createdIssue.body).toContain("This is a desktop frontend issue");
     expect(createdIssue.body).toContain(
-      "*This issue is transferred from: https://github.com/Comfy-Org/desktop/issues/123*",
+      "*This issue is transferred from: https://github.com/hanzoui/desktop/issues/123*",
     );
     expect(createdIssue.labels).toEqual(["bug"]);
     expect(createdIssue.assignees).toEqual(["testuser"]);
@@ -169,7 +169,7 @@ describe("GithubDesktopIssueTransferTask", () => {
     expect(createdComment).toBeTruthy();
     expect(createdComment.body).toContain("transferred to the frontend repository");
     expect(createdComment.body).toContain(
-      "https://github.com/Comfy-Org/ComfyUI_frontend/issues/456",
+      "https://github.com/hanzoui/studio_frontend/issues/456",
     );
 
     // Verify database was updated
@@ -183,10 +183,10 @@ describe("GithubDesktopIssueTransferTask", () => {
       number: 789,
       title: "Desktop Frontend PR",
       body: "This is a PR",
-      html_url: "https://github.com/Comfy-Org/desktop/pull/789",
+      html_url: "https://github.com/hanzoui/desktop/pull/789",
       labels: [{ name: "frontend", color: "ededed" }],
       assignees: [],
-      pull_request: { url: "https://api.github.com/repos/Comfy-Org/desktop/pulls/789" },
+      pull_request: { url: "https://api.github.com/repos/hanzoui/desktop/pulls/789" },
       state: "open",
       user: { login: "test-user", id: 1 },
       created_at: "2025-01-10T10:00:00Z",
@@ -198,10 +198,10 @@ describe("GithubDesktopIssueTransferTask", () => {
     let issueCreated = false;
 
     server.use(
-      http.get("https://api.github.com/repos/Comfy-Org/desktop/issues", () => {
+      http.get("https://api.github.com/repos/hanzoui/desktop/issues", () => {
         return HttpResponse.json([pullRequest]);
       }),
-      http.post("https://api.github.com/repos/Comfy-Org/ComfyUI_frontend/issues", () => {
+      http.post("https://api.github.com/repos/hanzoui/studio_frontend/issues", () => {
         issueCreated = true;
         return HttpResponse.json({});
       }),
@@ -218,9 +218,9 @@ describe("GithubDesktopIssueTransferTask", () => {
       filter: { sourceIssueNumber: 999 },
       data: {
         sourceIssueNumber: 999,
-        sourceIssueUrl: "https://github.com/Comfy-Org/desktop/issues/999",
+        sourceIssueUrl: "https://github.com/hanzoui/desktop/issues/999",
         targetIssueNumber: 888,
-        targetIssueUrl: "https://github.com/Comfy-Org/ComfyUI_frontend/issues/888",
+        targetIssueUrl: "https://github.com/hanzoui/studio_frontend/issues/888",
         transferredAt: new Date(),
         commentPosted: true,
       },
@@ -230,7 +230,7 @@ describe("GithubDesktopIssueTransferTask", () => {
       number: 999,
       title: "Already Transferred",
       body: "This was already transferred",
-      html_url: "https://github.com/Comfy-Org/desktop/issues/999",
+      html_url: "https://github.com/hanzoui/desktop/issues/999",
       labels: [{ name: "frontend", color: "ededed" }],
       assignees: [],
       state: "open",
@@ -244,10 +244,10 @@ describe("GithubDesktopIssueTransferTask", () => {
     let issueCreated = false;
 
     server.use(
-      http.get("https://api.github.com/repos/Comfy-Org/desktop/issues", () => {
+      http.get("https://api.github.com/repos/hanzoui/desktop/issues", () => {
         return HttpResponse.json([alreadyTransferredIssue]);
       }),
-      http.post("https://api.github.com/repos/Comfy-Org/ComfyUI_frontend/issues", () => {
+      http.post("https://api.github.com/repos/hanzoui/studio_frontend/issues", () => {
         issueCreated = true;
         return HttpResponse.json({});
       }),
@@ -263,7 +263,7 @@ describe("GithubDesktopIssueTransferTask", () => {
       number: 555,
       title: "Error Issue",
       body: "This will fail",
-      html_url: "https://github.com/Comfy-Org/desktop/issues/555",
+      html_url: "https://github.com/hanzoui/desktop/issues/555",
       labels: [{ name: "frontend", color: "ededed" }],
       assignees: [],
       state: "open",
@@ -277,13 +277,13 @@ describe("GithubDesktopIssueTransferTask", () => {
     let createAttempts = 0;
 
     server.use(
-      http.get("https://api.github.com/repos/Comfy-Org/desktop/issues", () => {
+      http.get("https://api.github.com/repos/hanzoui/desktop/issues", () => {
         return HttpResponse.json([sourceIssue]);
       }),
-      http.get("https://api.github.com/repos/Comfy-Org/desktop/issues/555/comments", () => {
+      http.get("https://api.github.com/repos/hanzoui/desktop/issues/555/comments", () => {
         return HttpResponse.json([]);
       }),
-      http.post("https://api.github.com/repos/Comfy-Org/ComfyUI_frontend/issues", () => {
+      http.post("https://api.github.com/repos/hanzoui/studio_frontend/issues", () => {
         createAttempts++;
         return new HttpResponse(JSON.stringify({ message: "API Error" }), {
           status: 500,
@@ -306,7 +306,7 @@ describe("GithubDesktopIssueTransferTask", () => {
       number: 666,
       title: "Comment Error",
       body: "Comment will fail",
-      html_url: "https://github.com/Comfy-Org/desktop/issues/666",
+      html_url: "https://github.com/hanzoui/desktop/issues/666",
       labels: [{ name: "frontend", color: "ededed" }],
       assignees: [],
       state: "open",
@@ -318,19 +318,19 @@ describe("GithubDesktopIssueTransferTask", () => {
     };
 
     server.use(
-      http.get("https://api.github.com/repos/Comfy-Org/desktop/issues", () => {
+      http.get("https://api.github.com/repos/hanzoui/desktop/issues", () => {
         return HttpResponse.json([sourceIssue]);
       }),
-      http.get("https://api.github.com/repos/Comfy-Org/desktop/issues/666/comments", () => {
+      http.get("https://api.github.com/repos/hanzoui/desktop/issues/666/comments", () => {
         return HttpResponse.json([]);
       }),
-      http.post("https://api.github.com/repos/Comfy-Org/ComfyUI_frontend/issues", () => {
+      http.post("https://api.github.com/repos/hanzoui/studio_frontend/issues", () => {
         return HttpResponse.json({
           number: 777,
-          html_url: "https://github.com/Comfy-Org/ComfyUI_frontend/issues/777",
+          html_url: "https://github.com/hanzoui/studio_frontend/issues/777",
         });
       }),
-      http.post("https://api.github.com/repos/Comfy-Org/desktop/issues/666/comments", () => {
+      http.post("https://api.github.com/repos/hanzoui/desktop/issues/666/comments", () => {
         return HttpResponse.json({ message: "Comment Error" }, { status: 403 });
       }),
     );
@@ -349,7 +349,7 @@ describe("GithubDesktopIssueTransferTask", () => {
       number: 1000 + i,
       title: `Issue ${1000 + i}`,
       body: `Body ${1000 + i}`,
-      html_url: `https://github.com/Comfy-Org/desktop/issues/${1000 + i}`,
+      html_url: `https://github.com/hanzoui/desktop/issues/${1000 + i}`,
       labels: [{ name: "frontend", color: "ededed" }],
       assignees: [],
       state: "open",
@@ -365,7 +365,7 @@ describe("GithubDesktopIssueTransferTask", () => {
       number: 2000 + i,
       title: `Issue ${2000 + i}`,
       body: `Body ${2000 + i}`,
-      html_url: `https://github.com/Comfy-Org/desktop/issues/${2000 + i}`,
+      html_url: `https://github.com/hanzoui/desktop/issues/${2000 + i}`,
       labels: [{ name: "frontend", color: "ededed" }],
       assignees: [],
       state: "open",
@@ -380,7 +380,7 @@ describe("GithubDesktopIssueTransferTask", () => {
     let commentsCreated = 0;
 
     server.use(
-      http.get("https://api.github.com/repos/Comfy-Org/desktop/issues", ({ request }) => {
+      http.get("https://api.github.com/repos/hanzoui/desktop/issues", ({ request }) => {
         const url = new URL(request.url);
         const page = parseInt(url.searchParams.get("page") || "1");
         if (page === 1) {
@@ -391,34 +391,34 @@ describe("GithubDesktopIssueTransferTask", () => {
         return HttpResponse.json([]);
       }),
       http.get(
-        "https://api.github.com/repos/Comfy-Org/desktop/issues/:issue_number/comments",
+        "https://api.github.com/repos/hanzoui/desktop/issues/:issue_number/comments",
         () => {
           return HttpResponse.json([]);
         },
       ),
       http.post(
-        "https://api.github.com/repos/Comfy-Org/ComfyUI_frontend/issues",
+        "https://api.github.com/repos/hanzoui/studio_frontend/issues",
         async ({ request }) => {
           const body: unknown = await request.json();
           issuesCreated++;
           const issueNumber = parseInt(body.title.split(" ")[1]);
           return HttpResponse.json({
             number: issueNumber + 10000,
-            html_url: `https://github.com/Comfy-Org/ComfyUI_frontend/issues/${issueNumber + 10000}`,
+            html_url: `https://github.com/hanzoui/studio_frontend/issues/${issueNumber + 10000}`,
           });
         },
       ),
       http.post(
-        "https://api.github.com/repos/Comfy-Org/desktop/issues/:issue_number/comments",
+        "https://api.github.com/repos/hanzoui/desktop/issues/:issue_number/comments",
         () => {
           commentsCreated++;
           return HttpResponse.json({
             id: commentsCreated,
-            html_url: "https://github.com/Comfy-Org/desktop/issues/comment",
+            html_url: "https://github.com/hanzoui/desktop/issues/comment",
           });
         },
       ),
-      http.patch("https://api.github.com/repos/Comfy-Org/desktop/issues/:issue_number", () => {
+      http.patch("https://api.github.com/repos/hanzoui/desktop/issues/:issue_number", () => {
         return HttpResponse.json({});
       }),
     );

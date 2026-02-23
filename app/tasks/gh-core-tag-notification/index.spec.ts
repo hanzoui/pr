@@ -61,16 +61,16 @@ describe("GithubCoreTagNotificationTask", () => {
     jest.clearAllMocks();
   });
 
-  it("should fetch tags from the ComfyUI repository", async () => {
+  it("should fetch tags from the Hanzo Studio repository", async () => {
     const mockTags = [
       {
         name: "v0.2.1",
         commit: {
           sha: "abc123def456",
-          url: "https://api.github.com/repos/comfyanonymous/ComfyUI/commits/abc123def456",
+          url: "https://api.github.com/repos/hanzoai/studio/commits/abc123def456",
         },
-        zipball_url: "https://api.github.com/repos/comfyanonymous/ComfyUI/zipball/v0.2.1",
-        tarball_url: "https://api.github.com/repos/comfyanonymous/ComfyUI/tarball/v0.2.1",
+        zipball_url: "https://api.github.com/repos/hanzoai/studio/zipball/v0.2.1",
+        tarball_url: "https://api.github.com/repos/hanzoai/studio/tarball/v0.2.1",
         node_id: "REF_kwDOI_",
       },
     ];
@@ -100,8 +100,8 @@ describe("GithubCoreTagNotificationTask", () => {
     await runGithubCoreTagNotificationTask();
 
     expect(mockGh.repos.listTags).toHaveBeenCalledWith({
-      owner: "comfyanonymous",
-      repo: "ComfyUI",
+      owner: "hanzoai",
+      repo: "Hanzo Studio",
       per_page: 10,
     });
   });
@@ -112,7 +112,7 @@ describe("GithubCoreTagNotificationTask", () => {
         name: "v0.2.2",
         commit: {
           sha: "def789ghi012",
-          url: "https://api.github.com/repos/comfyanonymous/ComfyUI/commits/def789ghi012",
+          url: "https://api.github.com/repos/hanzoai/studio/commits/def789ghi012",
         },
       },
     ];
@@ -159,7 +159,7 @@ describe("GithubCoreTagNotificationTask", () => {
         name: "v0.2.3",
         commit: {
           sha: "123abc456def",
-          url: "https://api.github.com/repos/comfyanonymous/ComfyUI/commits/123abc456def",
+          url: "https://api.github.com/repos/hanzoai/studio/commits/123abc456def",
         },
       },
     ];
@@ -180,7 +180,7 @@ describe("GithubCoreTagNotificationTask", () => {
     } as MockGhGit;
 
     mockUpsertSlackMessage.mockResolvedValue({
-      text: "🏷️ ComfyUI <https://github.com/comfyanonymous/ComfyUI/releases/tag/v0.2.3|Tag v0.2.3> created!",
+      text: "🏷️ Hanzo Studio <https://github.com/hanzoai/studio/releases/tag/v0.2.3|Tag v0.2.3> created!",
       channel: "test-channel-desktop",
       url: "https://slack.com/message/789",
     });
@@ -209,7 +209,7 @@ describe("GithubCoreTagNotificationTask", () => {
         name: "v0.2.0",
         commit: {
           sha: "existing123",
-          url: "https://api.github.com/repos/comfyanonymous/ComfyUI/commits/existing123",
+          url: "https://api.github.com/repos/hanzoai/studio/commits/existing123",
         },
       },
     ];
@@ -221,7 +221,7 @@ describe("GithubCoreTagNotificationTask", () => {
     mockCollection.findOne.mockResolvedValue({
       tagName: "v0.2.0",
       commitSha: "existing123",
-      url: "https://github.com/comfyanonymous/ComfyUI/releases/tag/v0.2.0",
+      url: "https://github.com/hanzoai/studio/releases/tag/v0.2.0",
       slackMessages: [
         {
           text: "Already sent",
@@ -247,7 +247,7 @@ describe("GithubCoreTagNotificationTask", () => {
         name: "v0.3.0",
         commit: {
           sha: "annotated123",
-          url: "https://api.github.com/repos/comfyanonymous/ComfyUI/commits/annotated123",
+          url: "https://api.github.com/repos/hanzoai/studio/commits/annotated123",
         },
       },
     ];
@@ -273,7 +273,7 @@ describe("GithubCoreTagNotificationTask", () => {
     } as MockGhGit;
 
     mockUpsertSlackMessage.mockResolvedValue({
-      text: `🏷️ ComfyUI <https://github.com/comfyanonymous/ComfyUI/releases/tag/v0.3.0|Tag v0.3.0> created!\n> ${tagMessage}`,
+      text: `🏷️ Hanzo Studio <https://github.com/hanzoai/studio/releases/tag/v0.3.0|Tag v0.3.0> created!\n> ${tagMessage}`,
       channel: "test-channel-id",
       url: "https://slack.com/message/annotated",
     });
@@ -294,7 +294,7 @@ describe("GithubCoreTagNotificationTask", () => {
         name: "v0.1.0",
         commit: {
           sha: "old123",
-          url: "https://api.github.com/repos/comfyanonymous/ComfyUI/commits/old123",
+          url: "https://api.github.com/repos/hanzoai/studio/commits/old123",
         },
       },
     ];

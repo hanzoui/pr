@@ -98,15 +98,15 @@ prbot registry search -q "<QUERY>" [-l <LIMIT>] [--include-deprecated]
 
 ```bash
 # Create automatic PR for bug fix
-prbot code pr -r Comfy-Org/ComfyUI -b main -p "Fix auth bug in login"
+prbot code pr -r hanzoui/studio -b main -p "Fix auth bug in login"
 
-# Search ComfyUI code
-prbot code search -q "binarization" --repo Comfy-Org/ComfyUI
+# Search Hanzo Studio code
+prbot code search -q "binarization" --repo hanzoui/studio
 
 # Search GitHub issues
 prbot github-issue search -q "is:open label:bug" -l 5
 
-# Search ComfyUI custom nodes registry
+# Search Hanzo Studio custom nodes registry
 prbot registry search -q "video" -l 5
 
 # Update Slack message
@@ -116,7 +116,7 @@ prbot slack update -c C123 -t 1234567890.123456 -m "Working on it"
 prbot slack read-thread -c C123 -t 1234567890.123456
 
 # Search Notion docs
-prbot notion search -q "ComfyUI setup" -l 5
+prbot notion search -q "Hanzo Studio setup" -l 5
 ```
 
 ## Notes

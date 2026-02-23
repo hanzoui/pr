@@ -1,17 +1,17 @@
 ---
-name: Comfy-Org Repo Reading (Read-Only)
-description: Clone and inspect Comfy-Org repositories for analysis and citations (no direct pushing).
+name: hanzoui Repo Reading (Read-Only)
+description: Clone and inspect hanzoui repositories for analysis and citations (no direct pushing).
 ---
 
-# Comfy-Org Repo Reading (Read-Only)
+# hanzoui Repo Reading (Read-Only)
 
 Clone repositories locally for analysis (read-only):
-mkdir -p ./codes/Comfy-Org
-git clone --depth=1 https://github.com/Comfy-Org/<repo>.git ./codes/Comfy-Org/<repo>
-cd ./codes/Comfy-Org/<repo> && git checkout <branch>
+mkdir -p ./codes/hanzoui
+git clone --depth=1 https://github.com/hanzoui/<repo>.git ./codes/hanzoui/<repo>
+cd ./codes/hanzoui/<repo> && git checkout <branch>
 
 Or use prbot code search for faster results:
-prbot code search --query "<search terms>" --repo Comfy-Org/<repo>
+prbot code search --query "<search terms>" --repo hanzoui/<repo>
 
 Guidelines:
 

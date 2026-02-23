@@ -1,9 +1,9 @@
 ---
-name: ComfyUI Registry Search
-description: Search for custom nodes and extensions in the ComfyUI registry.
+name: Hanzo Registry Search
+description: Search for custom nodes and extensions in the Hanzo Studio registry.
 ---
 
-# ComfyUI Registry Search
+# Hanzo Registry Search
 
 Search for custom nodes and plugins:
 prbot registry search --query "<search terms>" [--limit=5]

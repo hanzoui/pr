@@ -12,13 +12,13 @@ WORKDIR /app
 #     chmod +x ./.venv/bin/* && \
 #     bash -c " \
 #     source ./.venv/bin/activate && \
-#     pip3 install comfy-cli \
+#     pip3 install hanzo-cli \
 #     "
 RUN python3 -m venv .venv && \
     chmod +x ./.venv/bin/* && \
     bash -c " \
     source ./.venv/bin/activate && \
-    pip3 install comfy-cli \
+    pip3 install hanzo-cli \
     "
     
 # install this repo

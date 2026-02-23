@@ -34,8 +34,8 @@ export async function updateCNRepos() {
       return [await notifySlack(msg, { unique: true, silent: true })];
     }),
     // stage 1: get repos
-    tLog("Update Nodes from ComfyUI Manager", updateCMNodes),
-    tLog("Update Repos from ComfyUI Manager", updateCMRepos),
+    tLog("Update Nodes from Hanzo Manager", updateCMNodes),
+    tLog("Update Repos from Hanzo Manager", updateCMRepos),
     tLog("Update Nodes from ComfyRegistry", updateCRNodes),
     tLog("Update Repos from ComfyRegistry", updateCRRepos),
     // stage 2: update repo info & pulls

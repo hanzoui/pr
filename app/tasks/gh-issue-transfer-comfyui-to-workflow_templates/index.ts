@@ -12,17 +12,17 @@ import { pageFlow } from "sflow";
  * GitHub Workflow Templates Issue Transfer Task
  *
  * Workflow:
- * 1. Fetch new/unseen issues from Comfy-Org/ComfyUI with label "workflow_templates"
+ * 1. Fetch new/unseen issues from hanzoui/studio with label "workflow_templates"
  * 2. For each issue:
- *    1. Create corresponding issues in Comfy-Org/workflow_templates, copying title, body (+meta and backlinks), labels, assignees
+ *    1. Create corresponding issues in hanzoui/workflow-templates, copying title, body (+meta and backlinks), labels, assignees
  *    2. Comment on original issue that it's been transferred
- *    3. Close original issue in Comfy-Org/ComfyUI
+ *    3. Close original issue in hanzoui/studio
  *    4. Track transferred issues to avoid duplicates
  */
 
 const config = {
-  srcRepoUrl: "https://github.com/Comfy-Org/ComfyUI",
-  dstRepoUrl: "https://github.com/Comfy-Org/workflow_templates",
+  srcRepoUrl: "https://github.com/hanzoui/studio",
+  dstRepoUrl: "https://github.com/hanzoui/workflow-templates",
   workflowTemplatesLabel: "workflow_templates",
   transferComment: (newIssueUrl: string) =>
     `This issue has been transferred to the workflow_templates repository: ${newIssueUrl}\n\nPlease continue the discussion there.`,
@@ -52,7 +52,7 @@ await GithubWorkflowTemplatesIssueTransferTask.createIndex(
 const save = async (
   task: { sourceIssueNumber: number } & Partial<GithubWorkflowTemplatesIssueTransferTask>,
 ) => {
-  // Normalize URLs to handle both comfyanonymous and Comfy-Org formats
+  // Normalize URLs to handle both hanzoai and hanzoui formats
   const normalizedTask = {
     ...task,
     sourceIssueUrl: task.sourceIssueUrl ? normalizeGithubUrl(task.sourceIssueUrl) : undefined,
@@ -68,7 +68,7 @@ const save = async (
         ? [
             { sourceIssueUrl: normalizedTask.sourceIssueUrl },
             {
-              sourceIssueUrl: normalizedTask.sourceIssueUrl.replace(/Comfy-Org/i, "comfyanonymous"),
+              sourceIssueUrl: normalizedTask.sourceIssueUrl.replace(/hanzoui/i, "hanzoai"),
             },
           ]
         : []),

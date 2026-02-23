@@ -58,7 +58,7 @@ async function previewPyprojectToml() {
     console.log(pyprojectContent);
     console.log("=" + "=".repeat(59));
 
-    // Try to fetch description from ComfyUI-Manager (optional enhancement)
+    // Try to fetch description from Hanzo Manager (optional enhancement)
     try {
       const { fetchRepoDescriptionMap } = await import("../src/fetchRepoDescriptionMap");
       const repoDescriptionMap = await fetchRepoDescriptionMap();
@@ -73,7 +73,7 @@ async function previewPyprojectToml() {
         }
       }
     } catch (_e) {
-      console.log("\n💡 Note: Could not fetch description from ComfyUI-Manager database");
+      console.log("\n💡 Note: Could not fetch description from Hanzo Manager database");
     }
 
     // Save to output file if specified
@@ -84,7 +84,7 @@ async function previewPyprojectToml() {
 
     // Show what modifications would be made
     console.log("\n📝 Additional modifications in actual PR:");
-    console.log("   1. Description field would be filled from ComfyUI-Manager database");
+    console.log("   1. Description field would be filled from Hanzo Manager database");
     console.log(
       "   2. File would be committed with message: 'chore(pyproject): Add pyproject.toml for Custom Node Registry'",
     );

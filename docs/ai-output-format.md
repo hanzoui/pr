@@ -42,7 +42,7 @@ Use **Option B**. It guarantees GitHub links appear even when the model stops af
 
 ## CLI Options (yargs)
 
-- `query` (positional): Prompt string (default: `binarization for videos in ComfyUI?`)
+- `query` (positional): Prompt string (default: `binarization for videos in Hanzo Studio?`)
 - `--models`: Comma-separated model list (default: `gpt-4o,claude-sonnet-4-5`)
 - `--maxSteps`: Max tool/response steps per model (default: `3`)
 - `--limit`: Max results per code search (default: `50`)

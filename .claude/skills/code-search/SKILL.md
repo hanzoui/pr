@@ -1,13 +1,13 @@
 ---
 name: code-search
-description: Search ComfyUI codebase and custom nodes using the comfy-codesearch service. Use when the user wants to find code examples, search for specific functions, or explore ComfyUI repositories.
+description: Search Hanzo Studio codebase and custom nodes using the comfy-codesearch service. Use when the user wants to find code examples, search for specific functions, or explore Hanzo Studio repositories.
 allowed-tools: Bash
 model: haiku
 ---
 
-# ComfyUI Code Search
+# Hanzo Studio Code Search
 
-This skill searches through ComfyUI codebase and custom nodes using the comfy-codesearch service.
+This skill searches through Hanzo Studio codebase and custom nodes using the comfy-codesearch service.
 
 ## Usage
 
@@ -18,7 +18,7 @@ prbot code search -q "<SEARCH_QUERY>" [--repo <REPO>] [--path <PATH>]
 ## Parameters
 
 - `-q, --query` (required): Search query text
-- `--repo` (optional): Filter by repository (e.g. `Comfy-Org/ComfyUI`)
+- `--repo` (optional): Filter by repository (e.g. `hanzoui/studio`)
 - `--path` (optional): Filter by file path pattern (e.g. `python`)
 
 ## Search Syntax
@@ -35,13 +35,13 @@ The search query supports special filters:
 prbot code search -q "binarization"
 
 # Search in specific repository
-prbot code search -q "last_node_id" --repo Comfy-Org/ComfyUI
+prbot code search -q "last_node_id" --repo hanzoui/studio
 
 # Search with path filter
-prbot code search -q "last_node_id" --repo Comfy-Org/ComfyUI --path python
+prbot code search -q "last_node_id" --repo hanzoui/studio --path python
 
 # Complex search with inline filters
-prbot code search -q "repo:Comfy-Org/ComfyUI path:python last_node_id"
+prbot code search -q "repo:hanzoui/studio path:python last_node_id"
 ```
 
 ## Output Format
@@ -64,4 +64,4 @@ Returns JSON with search results containing:
 
 - Requires `comfy-codesearch` CLI to be installed
 - Requires CS_ORIGIN and CS_TOKEN environment variables
-- Searches across ComfyUI core and custom nodes registry
+- Searches across Hanzo Studio core and custom nodes registry

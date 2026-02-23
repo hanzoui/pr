@@ -56,16 +56,16 @@ describe("parseOwnerRepo", () => {
     });
 
     it("should handle real-world example URLs", () => {
-      const result1 = parseGithubRepoUrl("git@github.com:Comfy-Org/ComfyUI-Registry");
+      const result1 = parseGithubRepoUrl("git@github.com:hanzoui/studio-Registry");
       expect(result1).toEqual({
-        owner: "Comfy-Org",
-        repo: "ComfyUI-Registry",
+        owner: "hanzoui",
+        repo: "Hanzo Studio-Registry",
       });
 
-      const result2 = parseGithubRepoUrl("https://github.com/snomiao/ComfyUI-FD-Tagger.git");
+      const result2 = parseGithubRepoUrl("https://github.com/snomiao/Hanzo Studio-FD-Tagger.git");
       expect(result2).toEqual({
         owner: "snomiao",
-        repo: "ComfyUI-FD-Tagger",
+        repo: "Hanzo Studio-FD-Tagger",
       });
     });
   });
@@ -99,8 +99,8 @@ describe("parseOwnerRepo", () => {
     });
 
     it("should handle real-world examples", () => {
-      const result = stringifyGithubRepoUrl({ owner: "Comfy-Org", repo: "ComfyUI-Registry" });
-      expect(result).toBe("https://github.com/Comfy-Org/ComfyUI-Registry");
+      const result = stringifyGithubRepoUrl({ owner: "hanzoui", repo: "Hanzo Studio-Registry" });
+      expect(result).toBe("https://github.com/hanzoui/studio-Registry");
     });
   });
 
@@ -117,24 +117,24 @@ describe("parseOwnerRepo", () => {
     });
 
     it("should handle real-world examples", async () => {
-      const result = await stringifyGithubOrigin({ owner: "Comfy-Org", repo: "ComfyUI-Registry" });
-      expect(result).toBe("git@github.com:Comfy-Org/ComfyUI-Registry");
+      const result = await stringifyGithubOrigin({ owner: "hanzoui", repo: "Hanzo Studio-Registry" });
+      expect(result).toBe("git@github.com:hanzoui/studio-Registry");
     });
   });
 
   describe("integration tests", () => {
     it("should work end-to-end with parseGithubRepoUrl and stringifyOwnerRepo", () => {
-      const originalUrl = "git@github.com:Comfy-Org/ComfyUI-Registry.git";
+      const originalUrl = "git@github.com:hanzoui/studio-Registry.git";
       const parsed = parseGithubRepoUrl(originalUrl);
       const stringified = stringifyOwnerRepo(parsed);
-      expect(stringified).toBe("Comfy-Org/ComfyUI-Registry");
+      expect(stringified).toBe("hanzoui/studio-Registry");
     });
 
     it("should work end-to-end with parseGithubRepoUrl and stringifyGithubRepoUrl", () => {
-      const originalUrl = "git@github.com:snomiao/ComfyUI-FD-Tagger";
+      const originalUrl = "git@github.com:snomiao/Hanzo Studio-FD-Tagger";
       const parsed = parseGithubRepoUrl(originalUrl);
       const httpsUrl = stringifyGithubRepoUrl(parsed);
-      expect(httpsUrl).toBe("https://github.com/snomiao/ComfyUI-FD-Tagger");
+      expect(httpsUrl).toBe("https://github.com/snomiao/Hanzo Studio-FD-Tagger");
     });
 
     it("should work end-to-end with parseGithubRepoUrl and stringifyGithubOrigin", async () => {
