@@ -36,7 +36,7 @@ if (import.meta.main) {
   };
 
   const _repoExamples = {
-    "https://github.com/MuziekMagie/Hanzo Studio-Matchering": "license already updated",
+    "https://github.com/MuziekMagie/HanzoStudio-Matchering": "license already updated",
     // - [HanzoStudio_FizzNodes/LICENCE.txt at main · FizzleDorf/HanzoStudio_FizzNodes]( https://github.com/FizzleDorf/HanzoStudio_FizzNodes/blob/main/LICENCE.txt )
     "https://github.com/FizzleDorf/HanzoStudio_FizzNodes": "licenCe",
   };

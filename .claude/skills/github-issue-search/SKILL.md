@@ -1,6 +1,6 @@
 ---
 name: github-issue-search
-description: Search for issues and pull requests across hanzoui GitHub repositories. Use when the user wants to find specific issues, bugs, features, or pull requests in Hanzo Studio-related repositories.
+description: Search for issues and pull requests across hanzoui GitHub repositories. Use when the user wants to find specific issues, bugs, features, or pull requests in HanzoStudio-related repositories.
 allowed-tools: Bash
 model: haiku
 ---

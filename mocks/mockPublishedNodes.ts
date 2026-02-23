@@ -3,7 +3,7 @@ export const mockPublishedNodes = {
   nodes: [
     {
       author: "",
-      description: "Bridge between Hanzo Studio and blender Hanzo Studio-BlenderAI-node addon.",
+      description: "Bridge between Hanzo Studio and blender HanzoStudio-BlenderAI-node addon.",
       icon: "",
       id: "comfy-cup",
       latest_version: {
@@ -15,7 +15,7 @@ export const mockPublishedNodes = {
         version: "1.0.1",
       },
       license: "LICENSE",
-      name: "Hanzo Studio-CUP",
+      name: "HanzoStudio-CUP",
       publisher: {
         createdAt: "2024-05-17T16:26:45.370921Z",
         description: "",
@@ -27,7 +27,7 @@ export const mockPublishedNodes = {
         support: "",
         website: "",
       },
-      repository: "https://github.com/AIGODLIKE/Hanzo Studio-CUP",
+      repository: "https://github.com/AIGODLIKE/HanzoStudio-CUP",
       tags: [],
     },
   ],

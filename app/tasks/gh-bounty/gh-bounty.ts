@@ -12,12 +12,12 @@ import { match } from "ts-pattern";
 // outdated
 const mailtoLink =
   "mailto:bounty@hanzo.ai?subject=I%20can%20help%20%5BYOUR_TASK%5D&body=I%20can%20help%20with%20YOUR_TASK,%0A%0AMy%20approach%20is%20...%0A%0AMy%20timeline%20is%20...";
-const outdatedBountyMessage = `This Issues has been set to be bounty, here is the link on how to sign up for this bounty: https://comfyorg.notion.site/Hanzo Studio-Bounty-Tasks-1fb6d73d36508064af76d05b3f35665f or [click here to sign up](${mailtoLink})`;
+const outdatedBountyMessage = `This Issues has been set to be bounty, here is the link on how to sign up for this bounty: https://comfyorg.notion.site/HanzoStudio-Bounty-Tasks-1fb6d73d36508064af76d05b3f35665f or [click here to sign up](${mailtoLink})`;
 
 const getMailtoLink = ({ subject, body }: { subject: string; body: string }) =>
   `mailto:bounty@hanzo.ai?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 const getBountyMessage = (issue_title: string, issueUrl: string) =>
-  `This Issues has been set to be bounty, here is the link on how to sign up for this bounty: https://comfyorg.notion.site/Hanzo Studio-Bounty-Tasks-1fb6d73d36508064af76d05b3f35665f or [click here to sign up](${getMailtoLink(
+  `This Issues has been set to be bounty, here is the link on how to sign up for this bounty: https://comfyorg.notion.site/HanzoStudio-Bounty-Tasks-1fb6d73d36508064af76d05b3f35665f or [click here to sign up](${getMailtoLink(
     {
       subject: `I can help [${issue_title}]`,
       body: `I can help with ${issue_title}\n issue_url: ${issueUrl}\n\nMy approach is ...\n\nMy timeline is ...`,
