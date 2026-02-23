@@ -1,3 +1,4 @@
+# Secrets: Hanzo KMS (kms.hanzo.ai) — auth via Hanzo IAM
 name: "EasyLabel - Automated PR Labeling"
 
 on:
@@ -14,6 +15,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
+      - name: Fetch secrets from Hanzo KMS
+        id: kms
+        uses: hanzoui/.github/actions/kms-secrets@main
+        with:
+          kms_client_id: ${{ secrets.KMS_CLIENT_ID }}
+          kms_client_secret: ${{ secrets.KMS_CLIENT_SECRET }}
+          secrets: 'GH_TOKEN_COMFY_PR_BOT,MONGODB_URI,SLACK_BOT_CHANNEL,SLACK_BOT_TOKEN'
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
 
@@ -23,7 +31,7 @@ jobs:
       # Run EasyLabel task with timeout
       - run: bun run/easylabel.tsx
         env:
-          GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR_BOT }}
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          SLACK_BOT_CHANNEL: ${{ secrets.SLACK_BOT_CHANNEL }}
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
+          GH_TOKEN_COMFY_PR: ${{ steps.kms.outputs.GH_TOKEN_COMFY_PR_BOT }}
+          MONGODB_URI: ${{ steps.kms.outputs.MONGODB_URI }}
+          SLACK_BOT_CHANNEL: ${{ steps.kms.outputs.SLACK_BOT_CHANNEL }}
+          SLACK_BOT_TOKEN: ${{ steps.kms.outputs.SLACK_BOT_TOKEN }}

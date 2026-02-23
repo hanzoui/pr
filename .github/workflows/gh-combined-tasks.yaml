@@ -1,3 +1,4 @@
+# Secrets: Hanzo KMS (kms.hanzo.ai) — auth via Hanzo IAM
 name: "Combined GitHub Tasks (5-minute schedule)"
 on:
   schedule:
@@ -24,6 +25,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15 # Allow some extra time for all tasks
     steps:
+      - name: Fetch secrets from Hanzo KMS
+        id: kms
+        uses: hanzoui/.github/actions/kms-secrets@main
+        with:
+          kms_client_id: ${{ secrets.KMS_CLIENT_ID }}
+          kms_client_secret: ${{ secrets.KMS_CLIENT_SECRET }}
+          secrets: 'AUTH_GOOGLE_ID,AUTH_GOOGLE_SECRET,COMFY_PR_REPO,GH_TOKEN_COMFY_PR_BOT,MONGODB_URI,NOTION_TOKEN,OPENAI_API_KEY,SLACK_BOT_CHANNEL,SLACK_BOT_TOKEN'
       - uses: actions/checkout@v4
       - uses: oven-sh/setup-bun@v2
 
@@ -36,17 +44,17 @@ jobs:
         env:
           # Bounty task environment variables
           AUTH_GCLOUD_URL: https://comfy-pr.vercel.app
-          AUTH_GOOGLE_ID: ${{ secrets.AUTH_GOOGLE_ID }}
-          AUTH_GOOGLE_SECRET: ${{ secrets.AUTH_GOOGLE_SECRET }}
-          COMFY_PR_REPO: ${{ secrets.COMFY_PR_REPO }}
+          AUTH_GOOGLE_ID: ${{ steps.kms.outputs.AUTH_GOOGLE_ID }}
+          AUTH_GOOGLE_SECRET: ${{ steps.kms.outputs.AUTH_GOOGLE_SECRET }}
+          COMFY_PR_REPO: ${{ steps.kms.outputs.COMFY_PR_REPO }}
           FORK_OWNER: "ComfyNodePRs"
           FORK_PREFIX: "PR-"
 
           # DB, Integrations
-          MONGODB_URI: ${{ secrets.MONGODB_URI }}
-          GH_TOKEN_COMFY_PR: ${{ secrets.GH_TOKEN_COMFY_PR_BOT }}
-          GH_TOKEN_COMFY_PR_BOT: ${{ secrets.GH_TOKEN_COMFY_PR_BOT }}
-          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
-          SLACK_BOT_CHANNEL: ${{ secrets.SLACK_BOT_CHANNEL }}
-          SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
-          NOTION_TOKEN: ${{ secrets.NOTION_TOKEN }}
+          MONGODB_URI: ${{ steps.kms.outputs.MONGODB_URI }}
+          GH_TOKEN_COMFY_PR: ${{ steps.kms.outputs.GH_TOKEN_COMFY_PR_BOT }}
+          GH_TOKEN_COMFY_PR_BOT: ${{ steps.kms.outputs.GH_TOKEN_COMFY_PR_BOT }}
+          OPENAI_API_KEY: ${{ steps.kms.outputs.OPENAI_API_KEY }}
+          SLACK_BOT_CHANNEL: ${{ steps.kms.outputs.SLACK_BOT_CHANNEL }}
+          SLACK_BOT_TOKEN: ${{ steps.kms.outputs.SLACK_BOT_TOKEN }}
+          NOTION_TOKEN: ${{ steps.kms.outputs.NOTION_TOKEN }}
