@@ -18,7 +18,7 @@ describe("normalizeGithubUrl", () => {
   });
 
   test("should be case insensitive", () => {
-    const url = "https://github.com/ComfyAnonymous/HanzoStudio/issues/123";
+    const url = "https://github.com/hanzoai/studio/issues/123";
     const expected = "https://github.com/hanzoui/studio/issues/123";
     expect(normalizeGithubUrl(url)).toBe(expected);
   });

@@ -1,6 +1,6 @@
 # Add GPL-3.0 License
 
-Hey! My name is Robin and I'm from [comfy-org](https://hanzo.ai/)! We noticed your custom node repository doesn't have a license file.
+Hey! My name is Robin and I'm from [Hanzo AI](https://hanzo.ai/)! We noticed your custom node repository doesn't have a license file.
 
 This PR adds a [GNU General Public License v3.0](https://www.gnu.org/licenses/gpl-3.0.en.html) (GPL-3.0) license, which is a common open-source license used by many Hanzo Studio custom nodes.
 
