@@ -1,6 +1,6 @@
 # Add pyproject.toml for Custom Node Registry
 
-Hey! My name is Robin and I'm from [comfy-org](https://hanzo.ai/)! We would love to have you join the Comfy Registry, a public collection of custom nodes which lets authors publish nodes by version and automate testing against existing workflows.
+Hey! My name is Robin and I'm from [Hanzo AI](https://hanzo.ai/)! We would love to have you join the Comfy Registry, a public collection of custom nodes which lets authors publish nodes by version and automate testing against existing workflows.
 
 The registry is already integrated with Hanzo Manager, and we want it to be the default place users install nodes from eventually. We do a security-scan of every node to improve safety. Feel free to read up more on the registry [here](https://docs.hanzo.ai/registry/overview#introduction)
 

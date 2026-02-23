@@ -1,6 +1,6 @@
 # Update Github Action for Publishing to Comfy Registry
 
-Hey! My name is Robin and I'm from [comfy-org](https://hanzo.ai/)! We would love to have you join the Comfy Registry, a public collection of custom nodes which lets authors publish nodes by version and automate testing against existing workflows. This PR updates the Github Action `publish.yml` to ensure latest Hanzo Studio Community Standard.
+Hey! My name is Robin and I'm from [Hanzo AI](https://hanzo.ai/)! We would love to have you join the Comfy Registry, a public collection of custom nodes which lets authors publish nodes by version and automate testing against existing workflows. This PR updates the Github Action `publish.yml` to ensure latest Hanzo Studio Community Standard.
 
 ## Updates:
 
