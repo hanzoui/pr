@@ -47,7 +47,7 @@ async function fetchAllComfyOrgRepos(): Promise<Repository[]> {
   // This avoids rate limits and allows us to control exactly which repos to analyze
   const repos: Repository[] = [
     // Main repo
-    { owner: "hanzoai", repo: "Hanzo Studio", displayName: "Hanzo Studio" },
+    { owner: "hanzoai", repo: "studio", displayName: "Hanzo Studio" },
 
     // Core frontend and desktop
     { owner: "hanzoui", repo: "HanzoStudio_frontend", displayName: "Frontend" },

@@ -56,7 +56,7 @@ describe("parseOwnerRepo", () => {
     });
 
     it("should handle real-world example URLs", () => {
-      const result1 = parseGithubRepoUrl("git@github.com:hanzoui/studio-Registry");
+      const result1 = parseGithubRepoUrl("git@github.com:hanzoui/registry-backend");
       expect(result1).toEqual({
         owner: "hanzoui",
         repo: "HanzoStudio-Registry",
@@ -100,7 +100,7 @@ describe("parseOwnerRepo", () => {
 
     it("should handle real-world examples", () => {
       const result = stringifyGithubRepoUrl({ owner: "hanzoui", repo: "HanzoStudio-Registry" });
-      expect(result).toBe("https://github.com/hanzoui/studio-Registry");
+      expect(result).toBe("https://github.com/hanzoui/registry-backend");
     });
   });
 
@@ -118,16 +118,16 @@ describe("parseOwnerRepo", () => {
 
     it("should handle real-world examples", async () => {
       const result = await stringifyGithubOrigin({ owner: "hanzoui", repo: "HanzoStudio-Registry" });
-      expect(result).toBe("git@github.com:hanzoui/studio-Registry");
+      expect(result).toBe("git@github.com:hanzoui/registry-backend");
     });
   });
 
   describe("integration tests", () => {
     it("should work end-to-end with parseGithubRepoUrl and stringifyOwnerRepo", () => {
-      const originalUrl = "git@github.com:hanzoui/studio-Registry.git";
+      const originalUrl = "git@github.com:hanzoui/registry-backend.git";
       const parsed = parseGithubRepoUrl(originalUrl);
       const stringified = stringifyOwnerRepo(parsed);
-      expect(stringified).toBe("hanzoui/studio-Registry");
+      expect(stringified).toBe("hanzoui/registry-backend");
     });
 
     it("should work end-to-end with parseGithubRepoUrl and stringifyGithubRepoUrl", () => {

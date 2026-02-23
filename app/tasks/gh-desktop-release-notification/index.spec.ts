@@ -520,7 +520,7 @@ describe("GithubDesktopReleaseNotificationTask", () => {
       // Verify both repositories were queried
       expect(mockGh.repos.listReleases).toHaveBeenCalledWith({
         owner: "hanzoai",
-        repo: "Hanzo Studio",
+        repo: "studio",
         per_page: 3,
       });
 

@@ -34,7 +34,7 @@ mock.module("@/src/parseOwnerRepo", () => ({
       return { owner: "hanzoui", repo: "HanzoStudio_frontend" };
     }
     if (url === "https://github.com/hanzoai/studio") {
-      return { owner: "hanzoai", repo: "Hanzo Studio" };
+      return { owner: "hanzoai", repo: "studio" };
     }
     throw new Error(`Unknown repo URL: ${url}`);
   },
